@@ -1,0 +1,2015 @@
+Index: btdkpi_final.C
+===================================================================
+RCS file: /afs/slac.stanford.edu/u/ec/martinef/workspace/repo/DKDalitzMiniUser/selectionCode/btdkpi_final.C,v
+retrieving revision 1.51
+diff -r1.51 btdkpi_final.C
+429c429
+<  //
+---
+>   //
+582a583,614
+>   TChain* chain= new TChain("D0");
+>   TString filename2;
+>   TString filename_root2="./validation-rel24/DK/reduced/";
+>   filename2=filename_root2+"btdkpi_kspipi_on1.root";
+>   cout << "filename : " << filename2 << endl;
+>   chain->Add(filename2);
+>   // filename2=filename_root2+"btdkpi_kspipi_on2.root";
+>   //cout << "filename : " << filename2<< endl;
+>   //chain->Add(filename2);
+>   //filename2=filename_root2+"btdkpi_kspipi_on3.root";
+>   //cout << "filename : " << filename2<< endl;
+>   //chain->Add(filename2);
+>   //filename2=filename_root2+"btdkpi_kspipi_on4.root";
+>   //cout << "filename : " << filename2<< endl;
+>   //chain->Add(filename2);
+>   //filename2=filename_root2+"btdkpi_kspipi_on5.root";
+>   //cout << "filename : " << filename2<< endl;
+>   //chain->Add(filename2);
+>   
+>   Int_t   runNumbernew;
+>   Int_t   upperIDnew;
+>   Int_t   lowerIDnew;
+>   chain->SetBranchAddress("runNumber",&runNumbernew);    
+>   chain->SetBranchAddress("upperID",&upperIDnew);
+>   chain->SetBranchAddress("lowerID",&lowerIDnew);
+>   
+>   Int_t nentriesnew;
+>   nentriesnew=Int_t(chain->GetEntries());
+> 
+> 
+> 
+> 
+591a624,627
+>       //  cout<<"runNumber= "<<runNumber<<endl;
+> 
+> 
+> 
+602a639,663
+>       for(Int_t i=0;i<nentriesnew;i++){
+> 	
+> 	Int_t ien = LoadTree(i);
+> 	
+> 	if (ien < 0) break;
+> 	
+> 	chain->GetEntry(i);
+> 	
+> 	//	cout<<"i= "<<i<<endl;
+> 	//	if(i==33799)cout<<"holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa***************************************************************************************************"<<endl;
+> 
+> 	if(runNumber!=runNumbernew){
+> 	  //   cout<<"no iguals!!"<<"runNumber="<<runNumber<<"*******************runNumbernew="<<runNumbernew<<endl;
+> 	  continue;
+> 
+> 
+> 	  //	}else if(runNumber==12365){ 
+> 	  //}else{
+> 	  	}else if(lowerID==lowerIDnew && upperID==upperIDnew){
+> 
+> 		  
+> 		  cout<<"************** runNumber="<<runNumber<<"runNumbernew= "<<runNumbernew<<"lowerID= "<<lowerID<<"lowerIDnew= "<<lowerIDnew<<"upperID= "<<upperID<<"upperIDnew=<"<<upperIDnew<<endl;
+> 		  
+>       
+>       
+604,605c665,666
+<       number=0;
+<       back=0;   //VIR
+---
+> 	  number=0;
+> 	  back=0;   //VIR
+607,608c668,669
+<       Float_t ppr2=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr);
+<       Float_t mk=0.49368;
+---
+> 	  Float_t ppr2=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr);
+> 	  Float_t mk=0.49368;
+610,614c671,675
+<       //   TLorentzVector p4ChB(pxChB,pyChB,pzChB,sqrt(pxChB*pxChB+pyChB*pyChB+pzChB*pzChB+massChB*massChB));
+<       TLorentzVector p4ChB(pxChB,pyChB,pzChB,eDstar0 + sqrt(ppr2*ppr2+mk*mk));      
+<       TLorentzVector p4Dstar0(pxDstar0,pyDstar0,pzDstar0,eDstar0);
+<       TLorentzVector p4D0(pxD0,pyD0,pzD0,eD0);
+<       Double_t egam= sqrt(pxDstar0Gam*pxDstar0Gam +pyDstar0Gam*pyDstar0Gam+ pzDstar0Gam*pzDstar0Gam);
+---
+> 	  //   TLorentzVector p4ChB(pxChB,pyChB,pzChB,sqrt(pxChB*pxChB+pyChB*pyChB+pzChB*pzChB+massChB*massChB));
+> 	  TLorentzVector p4ChB(pxChB,pyChB,pzChB,eDstar0 + sqrt(ppr2*ppr2+mk*mk));      
+> 	  TLorentzVector p4Dstar0(pxDstar0,pyDstar0,pzDstar0,eDstar0);
+> 	  TLorentzVector p4D0(pxD0,pyD0,pzD0,eD0);
+> 	  Double_t egam= sqrt(pxDstar0Gam*pxDstar0Gam +pyDstar0Gam*pyDstar0Gam+ pzDstar0Gam*pzDstar0Gam);
+616,617c677,678
+<       Double_t egampi01=sqrt(pxDstar0Pi0g1*pxDstar0Pi0g1+pyDstar0Pi0g1*pyDstar0Pi0g1+pzDstar0Pi0g1*pzDstar0Pi0g1);
+<       Double_t egampi02=sqrt(pxDstar0Pi0g2*pxDstar0Pi0g2+pyDstar0Pi0g2*pyDstar0Pi0g2+pzDstar0Pi0g2*pzDstar0Pi0g2);
+---
+> 	  Double_t egampi01=sqrt(pxDstar0Pi0g1*pxDstar0Pi0g1+pyDstar0Pi0g1*pyDstar0Pi0g1+pzDstar0Pi0g1*pzDstar0Pi0g1);
+> 	  Double_t egampi02=sqrt(pxDstar0Pi0g2*pxDstar0Pi0g2+pyDstar0Pi0g2*pyDstar0Pi0g2+pzDstar0Pi0g2*pzDstar0Pi0g2);
+619,622c680,683
+<       Double_t pxDstarp0 = (_dstar0mode=="d0pi0")? pxDstar0Pi0 : (_dstar0mode=="d0gam")? pxDstar0Gam : -999;
+<       Double_t pyDstarp0 = (_dstar0mode=="d0pi0")? pyDstar0Pi0 : (_dstar0mode=="d0gam")? pyDstar0Gam : -999;
+<       Double_t pzDstarp0 = (_dstar0mode=="d0pi0")? pzDstar0Pi0 : (_dstar0mode=="d0gam")? pzDstar0Gam : -999;
+<       Double_t eDstarp0 = (_dstar0mode=="d0pi0")? eDstar0Pi0 : (_dstar0mode=="d0gam")? egam : -999;
+---
+> 	  Double_t pxDstarp0 = (_dstar0mode=="d0pi0")? pxDstar0Pi0 : (_dstar0mode=="d0gam")? pxDstar0Gam : -999;
+> 	  Double_t pyDstarp0 = (_dstar0mode=="d0pi0")? pyDstar0Pi0 : (_dstar0mode=="d0gam")? pyDstar0Gam : -999;
+> 	  Double_t pzDstarp0 = (_dstar0mode=="d0pi0")? pzDstar0Pi0 : (_dstar0mode=="d0gam")? pzDstar0Gam : -999;
+> 	  Double_t eDstarp0 = (_dstar0mode=="d0pi0")? eDstar0Pi0 : (_dstar0mode=="d0gam")? egam : -999;
+624c685
+<       TLorentzVector p4p0(pxDstarp0,pyDstarp0,pzDstarp0,eDstarp0);
+---
+> 	  TLorentzVector p4p0(pxDstarp0,pyDstarp0,pzDstarp0,eDstarp0);
+628,629c689,690
+<       //      Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+<       Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+---
+> 	  //      Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+> 	  Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+631,636c692,697
+<       Float_t pD0=sqrt(pxD0*pxD0+pyD0*pyD0+pzD0*pzD0);
+<       Float_t pD0CM=pcmsD0;
+<       //TLorentzVector p4cmsD0(pxD0,pyD0,pzD0,eD0);
+<       //TVector3 boostVector(pxUps/eUps,pyUps/eUps,pzUps/eUps);
+<       //p4cmsD0.Boost(-boostVector);
+<       //Float_t pD0CM=sqrt(p4cmsD0.Px()*p4cmsD0.Px()+p4cmsD0.Py()*p4cmsD0.Py()+p4cmsD0.Pz()*p4cmsD0.Pz());
+---
+> 	  Float_t pD0=sqrt(pxD0*pxD0+pyD0*pyD0+pzD0*pzD0);
+> 	  Float_t pD0CM=pcmsD0;
+> 	  //TLorentzVector p4cmsD0(pxD0,pyD0,pzD0,eD0);
+> 	  //TVector3 boostVector(pxUps/eUps,pyUps/eUps,pzUps/eUps);
+> 	  //p4cmsD0.Boost(-boostVector);
+> 	  //Float_t pD0CM=sqrt(p4cmsD0.Px()*p4cmsD0.Px()+p4cmsD0.Py()*p4cmsD0.Py()+p4cmsD0.Pz()*p4cmsD0.Pz());
+638,650c699,711
+<       // if event accepted, calculate relevant variables for the fit (data members)
+<       Int_t ChBtruth= (McEvtType==McEvt || McEvtType==McEvt2) ? 1 : 0;
+<       Int_t chargeB= (lundpr>0) ? 1 : 0;
+<       Float_t eD0Pi1=sqrt(pxD0Pi1*pxD0Pi1+pyD0Pi1*pyD0Pi1+pzD0Pi1*pzD0Pi1+mTrk_nom*mTrk_nom);
+<       Float_t eD0Pi2=sqrt(pxD0Pi2*pxD0Pi2+pyD0Pi2*pyD0Pi2+pzD0Pi2*pzD0Pi2+mTrk_nom*mTrk_nom);
+<       Float_t eKs=sqrt(pxKs*pxKs+pyKs*pyKs+pzKs*pzKs+mKs_nom*mKs_nom);
+<       TLorentzVector vKs,vPi1,vPi2;
+<       vKs.SetPxPyPzE(pxKs,pyKs,pzKs,eKs);
+<       vPi1.SetPxPyPzE(pxD0Pi1,pyD0Pi1,pzD0Pi1,eD0Pi1);
+<       vPi2.SetPxPyPzE(pxD0Pi2,pyD0Pi2,pzD0Pi2,eD0Pi2);
+<       Float_t m12=(lundD0Pi1>0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2p
+<       Float_t m13=(lundD0Pi1<0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2m
+<       Float_t m23=(vPi1+vPi2).Mag2();  // m2z
+---
+> 	  // if event accepted, calculate relevant variables for the fit (data members)
+> 	  Int_t ChBtruth= (McEvtType==McEvt || McEvtType==McEvt2) ? 1 : 0;
+> 	  Int_t chargeB= (lundpr>0) ? 1 : 0;
+> 	  Float_t eD0Pi1=sqrt(pxD0Pi1*pxD0Pi1+pyD0Pi1*pyD0Pi1+pzD0Pi1*pzD0Pi1+mTrk_nom*mTrk_nom);
+> 	  Float_t eD0Pi2=sqrt(pxD0Pi2*pxD0Pi2+pyD0Pi2*pyD0Pi2+pzD0Pi2*pzD0Pi2+mTrk_nom*mTrk_nom);
+> 	  Float_t eKs=sqrt(pxKs*pxKs+pyKs*pyKs+pzKs*pzKs+mKs_nom*mKs_nom);
+> 	  TLorentzVector vKs,vPi1,vPi2;
+> 	  vKs.SetPxPyPzE(pxKs,pyKs,pzKs,eKs);
+> 	  vPi1.SetPxPyPzE(pxD0Pi1,pyD0Pi1,pzD0Pi1,eD0Pi1);
+> 	  vPi2.SetPxPyPzE(pxD0Pi2,pyD0Pi2,pzD0Pi2,eD0Pi2);
+> 	  Float_t m12=(lundD0Pi1>0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2p
+> 	  Float_t m13=(lundD0Pi1<0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2m
+> 	  Float_t m23=(vPi1+vPi2).Mag2();  // m2z
+652,703c713,745
+<       Float_t ppr=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr); // cm del prompt
+<       //cout << lundmcd0pi1 << " " << lundmcd0pi2 << endl;
+<       Float_t beta_gamma=pzUps/sqrt(eUps*eUps-pxUps*pxUps-pyUps*pyUps-pzUps*pzUps); // boost
+<       Float_t q12(0.),q13(0.),q23(0.);
+<       // evaluate and apply scaling factor
+<       //TLorentzVector vKsscal(vKs),vPqi1scal(vPi1),vPi2scal(vPi2);
+<       //Double_t alpha;
+<       //alpha = Rescaling(vKsscal,vpi1scal,vpi2scal,md0_nom,vks.Mag(),vpi1.Mag(),vpi2.Mag());
+<       //q12 = (vksscal+vpi1scal).Mag2();
+<       //q13 = (vksscal+vpi2scal).Mag2();
+<       //q23 = (vpi1scal+vpi2scal).Mag2(); 
+<       // get Dalitz variables from rootuple
+<       q12 = m2pDalitzD0;
+<       q13 = m2mDalitzD0;
+<       q23 = m2zDalitzD0;
+<       
+<       //   assert(q12>0 && q23>0 && q13>0);       
+<       
+<       Float_t* dalVarsTruthInfo = new Float_t[4];
+<       for(Int_t i=0;i<4;i++) dalVarsTruthInfo[i]=-999;
+<       dalVarsTruth(ChBtruth,dalVarsTruthInfo);
+<       Int_t chargeB_truth = (Int_t) dalVarsTruthInfo[0];
+<       Float_t q12_truth = dalVarsTruthInfo[1];
+<       Float_t q13_truth = dalVarsTruthInfo[2];
+<       Float_t q23_truth = dalVarsTruthInfo[3];
+< 
+<       Float_t DalCut = (_d0mode=="kskk")? 2. : 3.1;
+<       Float_t mD0trk =  (_d0mode=="kskk")? 0.493677 : 0.13957018;
+<       
+<       if(q12>DalCut || q13>DalCut){
+< 	cout<<"jentry: "<<jentry<<"   q12: "<<q12<<"   q13: "<<q13<<"   q23: "<<q23<<"   massD0-1.8645: "<<massD0-1.8645<<endl;
+< 	cout<<"sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645)<<" sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645)<<endl;
+< 	cout<<endl;
+<       }
+<       
+<       // counting w/o bc choice
+<       Int_t isMcD0id = idMc[mothMc[indexMcD0Pi1]-1];
+<       if (_dtype=="D0") {
+< 	if (isMcD0) {
+< 	  totD0++;
+< 	  if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+< 	}
+< 	if ( ( (isMcD0id==-421 && lundpr==-321) || (isMcD0id==421 && lundpr==321) ) && 
+< 	     ( (KorPi=="k" && (McEvtType&3841==3841 || McEvtType&3842==3842))||
+< 	       (KorPi=="pi" && (McEvtType&12032==12032 || McEvtType&20224==20224)) ) ) totSigWS++;
+<       } else if (_dtype=="Dstar0") {
+< 	if (_dstar0mode=="d0pi0") {
+< 	  //totdstar0pi0++;
+<           //if(isMcD0 && isMcDstar0Pi0) {
+< 	  if(isMcD0) {
+< 	    totD0++;     
+< 	    if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+---
+> 	  Float_t ppr=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr); // cm del prompt
+> 	  //cout << lundmcd0pi1 << " " << lundmcd0pi2 << endl;
+> 	  Float_t beta_gamma=pzUps/sqrt(eUps*eUps-pxUps*pxUps-pyUps*pyUps-pzUps*pzUps); // boost
+> 	  Float_t q12(0.),q13(0.),q23(0.);
+> 	  // evaluate and apply scaling factor
+> 	  //TLorentzVector vKsscal(vKs),vPqi1scal(vPi1),vPi2scal(vPi2);
+> 	  //Double_t alpha;
+> 	  //alpha = Rescaling(vKsscal,vpi1scal,vpi2scal,md0_nom,vks.Mag(),vpi1.Mag(),vpi2.Mag());
+> 	  //q12 = (vksscal+vpi1scal).Mag2();
+> 	  //q13 = (vksscal+vpi2scal).Mag2();
+> 	  //q23 = (vpi1scal+vpi2scal).Mag2(); 
+> 	  // get Dalitz variables from rootuple
+> 	  q12 = m2pDalitzD0;
+> 	  q13 = m2mDalitzD0;
+> 	  q23 = m2zDalitzD0;
+>       
+> 	  //   assert(q12>0 && q23>0 && q13>0);       
+>       
+> 	  Float_t* dalVarsTruthInfo = new Float_t[4];
+> 	  for(Int_t i=0;i<4;i++) dalVarsTruthInfo[i]=-999;
+> 	  dalVarsTruth(ChBtruth,dalVarsTruthInfo);
+> 	  Int_t chargeB_truth = (Int_t) dalVarsTruthInfo[0];
+> 	  Float_t q12_truth = dalVarsTruthInfo[1];
+> 	  Float_t q13_truth = dalVarsTruthInfo[2];
+> 	  Float_t q23_truth = dalVarsTruthInfo[3];
+> 
+> 	  Float_t DalCut = (_d0mode=="kskk")? 2. : 3.1;
+> 	  Float_t mD0trk =  (_d0mode=="kskk")? 0.493677 : 0.13957018;
+>       
+> 	  if(q12>DalCut || q13>DalCut){
+> 	    cout<<"jentry: "<<jentry<<"   q12: "<<q12<<"   q13: "<<q13<<"   q23: "<<q23<<"   massD0-1.8645: "<<massD0-1.8645<<endl;
+> 	    cout<<"sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645)<<" sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645)<<endl;
+> 	    cout<<endl;
+705,713c747,779
+< 	  if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+< 	      ( ( KorPi=="k" && (McEvtType&3865==3865 || McEvtType&3866==3866))||
+< 		( KorPi=="pi" && (McEvtType&12056==12056 || McEvtType&20248==20248)) ) ) totSigWS++;
+< 	} else if (_dstar0mode=="d0gam") { 
+< 	  //totdstar0gam++;
+<           //if(isMcD0 && isMcDstar0Gam) {
+< 	  if(isMcD0) {
+< 	    totD0++;
+< 	    if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+---
+>       
+> 	  // counting w/o bc choice
+> 	  Int_t isMcD0id = idMc[mothMc[indexMcD0Pi1]-1];
+> 	  if (_dtype=="D0") {
+> 	    if (isMcD0) {
+> 	      totD0++;
+> 	      if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+> 	    }
+> 	    if ( ( (isMcD0id==-421 && lundpr==-321) || (isMcD0id==421 && lundpr==321) ) && 
+> 		 ( (KorPi=="k" && (McEvtType&3841==3841 || McEvtType&3842==3842))||
+> 		   (KorPi=="pi" && (McEvtType&12032==12032 || McEvtType&20224==20224)) ) ) totSigWS++;
+> 	  } else if (_dtype=="Dstar0") {
+> 	    if (_dstar0mode=="d0pi0") {
+> 	      //totdstar0pi0++;
+> 	      //if(isMcD0 && isMcDstar0Pi0) {
+> 	      if(isMcD0) {
+> 		totD0++;     
+> 		if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+> 	      }
+> 	      if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+> 		  ( ( KorPi=="k" && (McEvtType&3865==3865 || McEvtType&3866==3866))||
+> 		    ( KorPi=="pi" && (McEvtType&12056==12056 || McEvtType&20248==20248)) ) ) totSigWS++;
+> 	    } else if (_dstar0mode=="d0gam") { 
+> 	      //totdstar0gam++;
+> 	      //if(isMcD0 && isMcDstar0Gam) {
+> 	      if(isMcD0) {
+> 		totD0++;
+> 		if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+> 	      }
+> 	      if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+> 		  ( ( KorPi=="k" && (McEvtType&3873==3873 || McEvtType&3874==3874))||
+> 		    ( KorPi=="pi" && (McEvtType&12064==12064 || McEvtType&20256==20256)) ) ) totSigWS++;
+> 	    }
+715,719d780
+< 	  if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+< 	      ( ( KorPi=="k" && (McEvtType&3873==3873 || McEvtType&3874==3874))||
+< 		( KorPi=="pi" && (McEvtType&12064==12064 || McEvtType&20256==20256)) ) ) totSigWS++;
+< 	}
+<       }
+721,727c782,788
+<       //################################################################
+<       //################### best candidate selection ###################
+<       //################################################################
+<       if(event==prevev && runNumber==prevrun)
+< 	{
+< 	  //cout<<"same event"<<endl;
+< 	  // SAME EVENT
+---
+> 	  //################################################################
+> 	  //################### best candidate selection ###################
+> 	  //################################################################
+> 	  if(event==prevev && runNumber==prevrun)
+> 	    {
+> 	      //cout<<"same event"<<endl;
+> 	      // SAME EVENT
+729,738c790,799
+< 	  Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+< 	  if (debug) {
+< 	    cout<<"Questo evento e' uguale al precedente"<<endl;
+< 	    cout<<"event="<<event<<endl;
+< 	    cout<<"mes="<<mes<<endl;
+< 	    cout<<"massD0="<<massD0<<endl;
+< 	    cout<<"massDstar0="<<massDstar0<<endl;
+< 	    cout<<"m0Dstar0Pi0="<<m0Dstar0Pi0<<endl;
+< 	    cout<<"thisprob="<<thisprob<<endl;
+< 	  }
+---
+> 	      Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+> 	      if (debug) {
+> 		cout<<"Questo evento e' uguale al precedente"<<endl;
+> 		cout<<"event="<<event<<endl;
+> 		cout<<"mes="<<mes<<endl;
+> 		cout<<"massD0="<<massD0<<endl;
+> 		cout<<"massDstar0="<<massDstar0<<endl;
+> 		cout<<"m0Dstar0Pi0="<<m0Dstar0Pi0<<endl;
+> 		cout<<"thisprob="<<thisprob<<endl;
+> 	      }
+740,788c801,849
+< 	  if (thisprob>actualprob) {
+< 	    if (debug) cout<<"la prob di questo cand e' > del precedente cand"<<endl;
+< 	    actualevent=event;
+< 	    actualrunNumber=runNumber;
+< 	    actualupperID=upperID;
+< 	    actuallowerID=lowerID;
+< 	    actualmassD0=massD0;
+< 	    actualmassDstar0=massDstar0;
+< 	    actualmes=mes;
+< 	    actualcoshelyDstar0=coshelyDstar0;
+< 	    actualdemk=demk2;
+< 	    actualdeltadeltamd=deltadeltamd;
+< 	    actualChBtruth=ChBtruth;	    
+< 	    actualfisherDK=fisherDK;
+< 	    actualppr=ppr;
+< 	    actualbeta_gamma=beta_gamma;
+< 	    actualchargeB=chargeB;
+< 	    actualMcEvtType=McEvtType;
+< 	    actualq12=q12;
+< 	    actualq13=q13;
+< 	    actualq23=q23;
+< 
+< 	    actualq12_truth=q12_truth;
+< 	    actualq13_truth=q13_truth;
+< 	    actualq23_truth=q23_truth;
+< 	    actualchargeB_truth=chargeB_truth;
+< 
+< 	    actualm12=m12;
+< 	    actualm13=m13;
+< 	    actualm23=m23;
+< 	    actualcosthrust=costhrust;
+< 	    actualmassKs=massKs;
+< 	    actualprob=thisprob;
+< 	    actualisMcDstar0Pi0=isMcDstar0Pi0;
+< 	    actualisMcDstar0Gam=isMcDstar0Gam;
+< 	    actualisMcD0=isMcD0;
+< 	    actuallundpr=lundpr;
+< 	    //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+< 	    //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+< 	    actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+< 	    actualpD0=pD0;
+< 	    actualpD0CM=pD0CM;
+< 	    // actuallunddstar0=lunddstar0;
+< 	    // actuallundd0=lundd0;
+< 	    actualjentry=jentry;
+< 	  }
+< 	  else {
+< 	    //cout<<"getchi"<<thisprob<<endl;  //lascia tutto invariato
+< 	  }
+---
+> 	      if (thisprob>actualprob) {
+> 		if (debug) cout<<"la prob di questo cand e' > del precedente cand"<<endl;
+> 		actualevent=event;
+> 		actualrunNumber=runNumber;
+> 		actualupperID=upperID;
+> 		actuallowerID=lowerID;
+> 		actualmassD0=massD0;
+> 		actualmassDstar0=massDstar0;
+> 		actualmes=mes;
+> 		actualcoshelyDstar0=coshelyDstar0;
+> 		actualdemk=demk2;
+> 		actualdeltadeltamd=deltadeltamd;
+> 		actualChBtruth=ChBtruth;	    
+> 		actualfisherDK=fisherDK;
+> 		actualppr=ppr;
+> 		actualbeta_gamma=beta_gamma;
+> 		actualchargeB=chargeB;
+> 		actualMcEvtType=McEvtType;
+> 		actualq12=q12;
+> 		actualq13=q13;
+> 		actualq23=q23;
+> 
+> 		actualq12_truth=q12_truth;
+> 		actualq13_truth=q13_truth;
+> 		actualq23_truth=q23_truth;
+> 		actualchargeB_truth=chargeB_truth;
+> 
+> 		actualm12=m12;
+> 		actualm13=m13;
+> 		actualm23=m23;
+> 		actualcosthrust=costhrust;
+> 		actualmassKs=massKs;
+> 		actualprob=thisprob;
+> 		actualisMcDstar0Pi0=isMcDstar0Pi0;
+> 		actualisMcDstar0Gam=isMcDstar0Gam;
+> 		actualisMcD0=isMcD0;
+> 		actuallundpr=lundpr;
+> 		//actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+> 		//actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+> 		actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+> 		actualpD0=pD0;
+> 		actualpD0CM=pD0CM;
+> 		// actuallunddstar0=lunddstar0;
+> 		// actuallundd0=lundd0;
+> 		actualjentry=jentry;
+> 	      }
+> 	      else {
+> 		//cout<<"getchi"<<thisprob<<endl;  //lascia tutto invariato
+> 	      }
+790,797c851,858
+< 	  //fine valutazione probabilita'
+< 	  //
+< 	  mul++;
+< 	  prevev=event;
+< 	  prevrun=prevrun;
+< 	  //parte di verita' in eventi con mul>1
+< 	  if (ChBtruth==1) istrue++;
+< 	}
+---
+> 	      //fine valutazione probabilita'
+> 	      //
+> 	      mul++;
+> 	      prevev=event;
+> 	      prevrun=prevrun;
+> 	      //parte di verita' in eventi con mul>1
+> 	      if (ChBtruth==1) istrue++;
+> 	    }
+799,800c860,861
+<       else {
+< 	// EVENT CHANGED
+---
+> 	  else {
+> 	    // EVENT CHANGED
+802,811c863,872
+< 	//cout<<"event changed"<<endl;
+< 	if (!isfirst)
+< 	  {
+< 	    //ORA SI OCCUPA DELL'EVENTO PRECEDENTE
+< 	    //valuta la probabilita' dell'evento precedente
+< 	    if (debug) {
+< 	      cout<<endl<<"La probabilita' dell'ev precedente e' "<<actualprob<<endl;
+< 	      cout<<"actualdemk dell'ev precedente = "<<actualdemk<<endl;
+< 	    }
+< 	    if (opt==1) {
+---
+> 	    //cout<<"event changed"<<endl;
+> 	    if (!isfirst)
+> 	      {
+> 		//ORA SI OCCUPA DELL'EVENTO PRECEDENTE
+> 		//valuta la probabilita' dell'evento precedente
+> 		if (debug) {
+> 		  cout<<endl<<"La probabilita' dell'ev precedente e' "<<actualprob<<endl;
+> 		  cout<<"actualdemk dell'ev precedente = "<<actualdemk<<endl;
+> 		}
+> 		if (opt==1) {
+813,819c874,880
+< 	      outfile<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+< 		     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+< 		     <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+< 		     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+< 		     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+< 		     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<" "
+< 		     <<actualcoshelyDstar0<<" "<<actualegam<<" "<<actualdeltadeltamd<<endl; 
+---
+> 		  outfile<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+> 			 << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+> 			 <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+> 			 <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+> 			 <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+> 			 <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<" "
+> 			 <<actualcoshelyDstar0<<" "<<actualegam<<" "<<actualdeltadeltamd<<endl; 
+821,844c882,905
+< 	      //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcDstar0Pi0==0) ||
+<               //     (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcDstar0Gam==0) ||
+<               //     (_dtype=="D0" && actualisMcD0==0) )
+< 	      //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcD0==0) ||
+< 	      //   (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcD0==0) ||
+< 	      //   (_dtype=="D0" && actualisMcD0==0) )
+< 
+< 	      if( 
+< 		 (KorPi=="k" && !(actualMcEvtType&3841==3841 || actualMcEvtType&3842==3842)) ||
+< 		 (KorPi=="pi" && !(actualMcEvtType&12032==12032 || actualMcEvtType&20224==20224)) 
+< 		 )
+< 		outfile_fakeD0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+< 			      << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+< 			      <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+< 			      <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+< 			      <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+< 			      <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+< 	      if(actualMcEvtType==McEvt || actualMcEvtType==McEvt2)
+< 		outfile_matched<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+< 			      << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+< 			      <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+< 			      <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+< 			      <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+< 			      <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+---
+> 		  //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcDstar0Pi0==0) ||
+> 		  //     (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcDstar0Gam==0) ||
+> 		  //     (_dtype=="D0" && actualisMcD0==0) )
+> 		  //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcD0==0) ||
+> 		  //   (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcD0==0) ||
+> 		  //   (_dtype=="D0" && actualisMcD0==0) )
+> 
+> 		  if( 
+> 		     (KorPi=="k" && !(actualMcEvtType&3841==3841 || actualMcEvtType&3842==3842)) ||
+> 		     (KorPi=="pi" && !(actualMcEvtType&12032==12032 || actualMcEvtType&20224==20224)) 
+> 		     )
+> 		    outfile_fakeD0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+> 				  << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+> 				  <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+> 				  <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+> 				  <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+> 				  <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+> 		  if(actualMcEvtType==McEvt || actualMcEvtType==McEvt2)
+> 		    outfile_matched<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+> 				   << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+> 				   <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+> 				   <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+> 				   <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+> 				   <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+848,866c909,927
+< 	      roomes->setVal(actualmes);
+< 	      roodemk->setVal(actualdemk);
+< 	      roomassD0->setVal(actualmassD0);
+< 	      if(_dtype=="Dstar0") roomassDstar0->setVal(actualmassDstar0);
+< 	      roofisherDK->setVal(actualfisherDK);
+< 	      dataset->add(roovars);
+< 	      //
+< 	      if(
+< 		 (actualq12_truth != -999) &&
+< 		 (actualq13_truth != -999) &&
+< 		 (actualq23_truth != -999) &&                                        
+< 		 (actualq23_truth > 0.99726) &&                                                    
+< 		 (actualq23_truth < 1.04156) 
+< 		 )
+< 	      {
+< 		resq12->Fill(actualq12-actualq12_truth);
+< 		resq13->Fill(actualq13-actualq13_truth);
+< 		resq23->Fill(actualq23-actualq23_truth);
+< 	      }
+---
+> 		  roomes->setVal(actualmes);
+> 		  roodemk->setVal(actualdemk);
+> 		  roomassD0->setVal(actualmassD0);
+> 		  if(_dtype=="Dstar0") roomassDstar0->setVal(actualmassDstar0);
+> 		  roofisherDK->setVal(actualfisherDK);
+> 		  dataset->add(roovars);
+> 		  //
+> 		  if(
+> 		     (actualq12_truth != -999) &&
+> 		     (actualq13_truth != -999) &&
+> 		     (actualq23_truth != -999) &&                                        
+> 		     (actualq23_truth > 0.99726) &&                                                    
+> 		     (actualq23_truth < 1.04156) 
+> 		     )
+> 		    {
+> 		      resq12->Fill(actualq12-actualq12_truth);
+> 		      resq13->Fill(actualq13-actualq13_truth);
+> 		      resq23->Fill(actualq23-actualq23_truth);
+> 		    }
+868,892c929,953
+< 	      TfisherDK->Fill(actualfisherDK);
+< 	      Tmes->Fill(actualmes);
+< 	      TcoshelyDstar0->Fill(actualcoshelyDstar0);
+< 	      Tegam->Fill(actualegam);
+< 	      Tdeltadeltamd->Fill(actualdeltadeltamd);
+< 	      TmassD0->Fill(actualmassD0);
+< 	      Tdemk->Fill(actualdemk);
+< 	      Tm12->Fill(actualq12-actualm12);
+< 	      Tm13->Fill(actualq13-actualm13);
+< 	      Tm23->Fill(actualq23-actualm23);
+< 	      Tdalitz->Fill(actualq12,actualq13);
+< 	      Tcosthrust->Fill(actualcosthrust);
+< 	      TmassKs->Fill(actualmassKs);
+< 	      Tq23->Fill(actualq23);
+< 	      Tmesdemk->Fill(actualmes,actualdemk);
+< 	      TpD0->Fill(actualpD0);
+< 	      TpD0CM->Fill(actualpD0CM);
+< 	      //cout << actualmcEvtType << endl;
+< 
+< 	      //if (cut_code==100) {
+< 	      if (cut_code==100 || cut_code==1 || cut_code==2) {
+< 		// get actualjentry
+< 		ientry = LoadTree(actualjentry);
+< 		if (ientry < 0) break;
+< 		nb = fChain->GetEntry(actualjentry); 
+---
+> 		  TfisherDK->Fill(actualfisherDK);
+> 		  Tmes->Fill(actualmes);
+> 		  TcoshelyDstar0->Fill(actualcoshelyDstar0);
+> 		  Tegam->Fill(actualegam);
+> 		  Tdeltadeltamd->Fill(actualdeltadeltamd);
+> 		  TmassD0->Fill(actualmassD0);
+> 		  Tdemk->Fill(actualdemk);
+> 		  Tm12->Fill(actualq12-actualm12);
+> 		  Tm13->Fill(actualq13-actualm13);
+> 		  Tm23->Fill(actualq23-actualm23);
+> 		  Tdalitz->Fill(actualq12,actualq13);
+> 		  Tcosthrust->Fill(actualcosthrust);
+> 		  TmassKs->Fill(actualmassKs);
+> 		  Tq23->Fill(actualq23);
+> 		  Tmesdemk->Fill(actualmes,actualdemk);
+> 		  TpD0->Fill(actualpD0);
+> 		  TpD0CM->Fill(actualpD0CM);
+> 		  //cout << actualmcEvtType << endl;
+> 
+> 		  //if (cut_code==100) {
+> 		  if (cut_code==100 || cut_code==1 || cut_code==2) {
+> 		    // get actualjentry
+> 		    ientry = LoadTree(actualjentry);
+> 		    if (ientry < 0) break;
+> 		    nb = fChain->GetEntry(actualjentry); 
+894,932c955,993
+< 		//bkg_tree(KorPi,outfile2,ientry);
+< 		//cout<<"indexB[]before = ["<<indexB[0]<<"  ";
+< 		//cout<< indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3]<<"  "<<indexB[4]<<"]"<<endl;
+< 
+< 		//bkg_tree(KorPi,outfile2,ientry,indexB);
+< 
+< 		Int_t out = bkg_tree_MC(KorPi,
+< 					chargedDauFirstB,neutralDauFirstB,chargedDauSoftFirstB,neutralDauSoftFirstB,
+< 					chargedDauSecondB,neutralDauSecondB,chargedDauSoftSecondB,neutralDauSoftSecondB,
+< 					outfile_BkgTree,ientry);
+< 		//
+< 		if (out&1) totBkgTreeChMC5matches++;
+< 		if (out&1 && out&16384) totBkgTreeChMC5matchesNothingelse++;
+< 		if (out&2) totBkgTreeChMC4matches++;
+< 		if (out&128) totBkgTreeNeuMCmatches++;
+< 		if (out&256) totBkgTreeAllMCmatches++;
+< 		if (out&1 && out&512) totBkgTreeChMC5matchesPid++;
+< 		if (out&2 && out&512) totBkgTreeChMC4matchesPid++;
+< 		if (out&128 && out&512) totBkgTreeNeuMCmatchesPid++;
+< 		if (out&256 && out&512) totBkgTreeAllMCmatchesPid++;
+< 		//
+< 		if (out&1) Tmes_BkgTreeChMC5matches->Fill(mes);
+< 		if (out&1 && out&16384) Tmes_BkgTreeChMC5matchesNothingelse->Fill(mes);
+< 		if (out&2) Tmes_BkgTreeChMC4matches->Fill(mes);
+< 		if (out&4) Tmes_BkgTreeChMC3matches->Fill(mes);
+< 		if (out&8) Tmes_BkgTreeChMC2matches->Fill(mes);
+< 		if (out&256) Tmes_BkgTreeAllMCmatches->Fill(mes);
+< 		if (out&1 && out&&512) Tdemk_BkgTreeChMC5matches->Fill(demk);
+< 		if (out&1 && out&&512 && out&16384) Tdemk_BkgTreeChMC5matchesNothingelse->Fill(demk);
+< 		if (out&2 && out&&512) Tdemk_BkgTreeChMC4matches->Fill(demk);
+< 		if (out&4 && out&&512) Tdemk_BkgTreeChMC3matches->Fill(demk);
+< 		if (out&8 && out&&512) Tdemk_BkgTreeChMC2matches->Fill(demk);
+< 		if (out&256 && out&&512) Tdemk_BkgTreeAllMCmatches->Fill(demk);
+< 
+< 		/*
+< 		cout<<endl;
+< 		cout<<"entry # : "<<ientry<<endl;
+< 	       	//cout<<"indexB[]before = ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  ";
+< 		//cout<<<indexB[3]<<"  "<<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<endl;
+---
+> 		    //bkg_tree(KorPi,outfile2,ientry);
+> 		    //cout<<"indexB[]before = ["<<indexB[0]<<"  ";
+> 		    //cout<< indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3]<<"  "<<indexB[4]<<"]"<<endl;
+> 
+> 		    //bkg_tree(KorPi,outfile2,ientry,indexB);
+> 
+> 		    Int_t out = bkg_tree_MC(KorPi,
+> 					    chargedDauFirstB,neutralDauFirstB,chargedDauSoftFirstB,neutralDauSoftFirstB,
+> 					    chargedDauSecondB,neutralDauSecondB,chargedDauSoftSecondB,neutralDauSoftSecondB,
+> 					    outfile_BkgTree,ientry);
+> 		    //
+> 		    if (out&1) totBkgTreeChMC5matches++;
+> 		    if (out&1 && out&16384) totBkgTreeChMC5matchesNothingelse++;
+> 		    if (out&2) totBkgTreeChMC4matches++;
+> 		    if (out&128) totBkgTreeNeuMCmatches++;
+> 		    if (out&256) totBkgTreeAllMCmatches++;
+> 		    if (out&1 && out&512) totBkgTreeChMC5matchesPid++;
+> 		    if (out&2 && out&512) totBkgTreeChMC4matchesPid++;
+> 		    if (out&128 && out&512) totBkgTreeNeuMCmatchesPid++;
+> 		    if (out&256 && out&512) totBkgTreeAllMCmatchesPid++;
+> 		    //
+> 		    if (out&1) Tmes_BkgTreeChMC5matches->Fill(mes);
+> 		    if (out&1 && out&16384) Tmes_BkgTreeChMC5matchesNothingelse->Fill(mes);
+> 		    if (out&2) Tmes_BkgTreeChMC4matches->Fill(mes);
+> 		    if (out&4) Tmes_BkgTreeChMC3matches->Fill(mes);
+> 		    if (out&8) Tmes_BkgTreeChMC2matches->Fill(mes);
+> 		    if (out&256) Tmes_BkgTreeAllMCmatches->Fill(mes);
+> 		    if (out&1 && out&&512) Tdemk_BkgTreeChMC5matches->Fill(demk);
+> 		    if (out&1 && out&&512 && out&16384) Tdemk_BkgTreeChMC5matchesNothingelse->Fill(demk);
+> 		    if (out&2 && out&&512) Tdemk_BkgTreeChMC4matches->Fill(demk);
+> 		    if (out&4 && out&&512) Tdemk_BkgTreeChMC3matches->Fill(demk);
+> 		    if (out&8 && out&&512) Tdemk_BkgTreeChMC2matches->Fill(demk);
+> 		    if (out&256 && out&&512) Tdemk_BkgTreeAllMCmatches->Fill(demk);
+> 
+> 		    /*
+> 		      cout<<endl;
+> 		      cout<<"entry # : "<<ientry<<endl;
+> 		      //cout<<"indexB[]before = ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  ";
+> 		      //cout<<<indexB[3]<<"  "<<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<endl;
+934,942c995,1003
+< 		if(_dtype=="D0"){
+< 		  indexB[5] = indexB[6] = indexB[7] = indexB[0];
+< 		}
+< 		else if(_dtype=="Dstar0" &&  _dstar0mode=="d0pi0"){
+< 		  indexB[6] = indexB[7] = indexB[0] ;
+< 		}
+< 		else if(_dtype=="Dstar0" && _dstar0mode=="d0gam"){
+< 		  indexB[5] = indexB[0];
+< 		}
+---
+> 		      if(_dtype=="D0"){
+> 		      indexB[5] = indexB[6] = indexB[7] = indexB[0];
+> 		      }
+> 		      else if(_dtype=="Dstar0" &&  _dstar0mode=="d0pi0"){
+> 		      indexB[6] = indexB[7] = indexB[0] ;
+> 		      }
+> 		      else if(_dtype=="Dstar0" && _dstar0mode=="d0gam"){
+> 		      indexB[5] = indexB[0];
+> 		      }
+945,946c1006,1007
+< 		cout<<"indexB after= ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3];
+< 		cout<<      "  "       <<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<"]"<<endl;
+---
+> 		      cout<<"indexB after= ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3];
+> 		      cout<<      "  "       <<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<"]"<<endl;
+949c1010
+< 		if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])&&(indexB[4]==indexB[5])&&(indexB[5]==indexB[6])&&(indexB[6]==indexB[7])){
+---
+> 		      if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])&&(indexB[4]==indexB[5])&&(indexB[5]==indexB[6])&&(indexB[6]==indexB[7])){
+951,955c1012,1016
+< 		  cout<<"agreement of B index !!!! "<<endl;
+< 		  goodindex++;
+< 		  //cout<<"goodindex="<<goodindex<<endl;
+< 		  bkg_tree(KorPi,outfile21,ientry,indexB);
+< 		  bkg_tree_MC(KorPi,outfile31,ientry);
+---
+> 		      cout<<"agreement of B index !!!! "<<endl;
+> 		      goodindex++;
+> 		      //cout<<"goodindex="<<goodindex<<endl;
+> 		      bkg_tree(KorPi,outfile21,ientry,indexB);
+> 		      bkg_tree_MC(KorPi,outfile31,ientry);
+957c1018
+< 		  back=bkg_tree_number(0,indexB[0],outfile4,actualjentry);
+---
+> 		      back=bkg_tree_number(0,indexB[0],outfile4,actualjentry);
+959c1020
+< 		  cout<<"final state # particles ="<<back<<endl;
+---
+> 		      cout<<"final state # particles ="<<back<<endl;
+961c1022
+< 		  ////--------------------VIR
+---
+> 		      ////--------------------VIR
+963,987c1024,1048
+< 		  // no peaking events
+< 		  if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+< 		  if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+< 		  if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+< 
+< 		  // mES peaking events
+< 
+< 		  if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+< 		  if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+< 		  if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+< 		  if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+< 		  if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+< 		  if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+< 		  if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+< 		  if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+< 		  if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+< 		  if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+< 
+< 		  // maybe/not peaking events
+< 		  if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+< 		  if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+< 		  if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+< 		  if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+< 		  if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+< 		  if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+---
+> 		      // no peaking events
+> 		      if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+> 		      if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+> 		      if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+> 
+> 		      // mES peaking events
+> 
+> 		      if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+> 		      if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+> 		      if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+> 		      if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+> 		      if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+> 		      if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+> 		      if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+> 		      if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+> 		      if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+> 		      if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+> 
+> 		      // maybe/not peaking events
+> 		      if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+> 		      if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+> 		      if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+> 		      if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+> 		      if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+> 		      if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+989,999c1050,1060
+< 		  /////////////////////////////
+< 		  //if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+< 		  //if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+< 		  //if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+< 		  //if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+< 		  //if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+< 		  //if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+<  		  //if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+< 		  //if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+< 		  //if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+< 		  /////////////////////////////
+---
+> 		      /////////////////////////////
+> 		      //if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+> 		      //if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+> 		      //if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+> 		      //if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+> 		      //if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+> 		      //if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+> 		      //if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+> 		      //if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+> 		      //if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+> 		      /////////////////////////////
+1002,1004c1063,1065
+< 		  if(back==194  || back==1134 || back==2124) indexOFless++;
+< 		  if(back==255|| back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+< 		  if(back==316  || back==356 || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+---
+> 		      if(back==194  || back==1134 || back==2124) indexOFless++;
+> 		      if(back==255|| back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+> 		      if(back==316  || back==356 || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+1007,1009c1068,1070
+< 		  cout<<"indexOFless: "<<indexOFless<<endl;		  
+< 		  cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+< 		  cout<<"indexOFmore: "<<indexOFmore<<endl;
+---
+> 		      cout<<"indexOFless: "<<indexOFless<<endl;		  
+> 		      cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+> 		      cout<<"indexOFmore: "<<indexOFmore<<endl;
+1012,1027c1073,1088
+< 		  if(back==194 || back==1134 || back== 2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+< 		    cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+< 		  } 
+< 		  else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+< 		    withgamma++;
+< 		    cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+< 		  }
+< 		  else if (back==307 || back==387 ||back==317){
+< 		    with2gamma++;
+< 		    cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+< 		  }
+< 		  else {
+< 		    unknown++;
+< 		    cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+< 		  }      
+< 		  ////--------------------VIR
+---
+> 		      if(back==194 || back==1134 || back== 2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+> 		      cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+> 		      } 
+> 		      else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+> 		      withgamma++;
+> 		      cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+> 		      }
+> 		      else if (back==307 || back==387 ||back==317){
+> 		      with2gamma++;
+> 		      cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+> 		      }
+> 		      else {
+> 		      unknown++;
+> 		      cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+> 		      }      
+> 		      ////--------------------VIR
+1029,1042c1090,1103
+< 		}
+< 		else{
+< 		  cout<<"combinatorial error !!!! :("<<endl;
+< 		  badindex++;
+< 		  bkg_tree(KorPi,outfile22,ientry,indexB);
+< 		  bkg_tree_MC(KorPi,outfile32,ientry);
+< 		  //cout<<"# combinatorial events: "<<badindex<<endl;
+< 		  cout<<endl;
+< 		}
+< 		//bkg_tree_MC(KorPi,outfile3,ientry);
+< 		// retrieve jentry
+< 		ientry = LoadTree(jentry);
+< 		if (ientry < 0) break;
+< 		nb = fChain->GetEntry(jentry); 
+---
+> 		      }
+> 		      else{
+> 		      cout<<"combinatorial error !!!! :("<<endl;
+> 		      badindex++;
+> 		      bkg_tree(KorPi,outfile22,ientry,indexB);
+> 		      bkg_tree_MC(KorPi,outfile32,ientry);
+> 		      //cout<<"# combinatorial events: "<<badindex<<endl;
+> 		      cout<<endl;
+> 		      }
+> 		      //bkg_tree_MC(KorPi,outfile3,ientry);
+> 		      // retrieve jentry
+> 		      ientry = LoadTree(jentry);
+> 		      if (ientry < 0) break;
+> 		      nb = fChain->GetEntry(jentry); 
+1044c1105
+< 		*/
+---
+> 		    */
+1046c1107
+< 	      }
+---
+> 		  }
+1048,1050c1109,1111
+< 	    } else if (opt==2) {
+< 	      //outfile<<mul<<endl; 
+< 	    } else assert(0);
+---
+> 		} else if (opt==2) {
+> 		  //outfile<<mul<<endl; 
+> 		} else assert(0);
+1052,1053c1113,1114
+< 	    totcand+=mul;
+< 	    totevt++;
+---
+> 		totcand+=mul;
+> 		totevt++;
+1055,1056c1116,1117
+< 	    //   cout<<"actualMcEvtType="<<actualMcEvtType<<endl;
+< 	    //   if(actualMcEvtType&12036==12036)   cout<<"holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"<<endl;	   
+---
+> 		//   cout<<"actualMcEvtType="<<actualMcEvtType<<endl;
+> 		//   if(actualMcEvtType&12036==12036)   cout<<"holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"<<endl;	   
+1058,1075c1119,1136
+< 	    if (_dtype=="D0") {
+< 	      if (actualisMcD0) {
+< 		totD0bc++;
+< 		if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+< 	      }
+< 	      if ( ( (actualisMcD0id==-421 && actuallundpr==-321) || (actualisMcD0id==421 && actuallundpr==321) ) && 
+< 		   ( (KorPi=="k" && ((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842))||
+< 		     (KorPi=="pi" && ((actualMcEvtType&12032)==12032 || (actualMcEvtType&20224)==20224)) ) ) totSigWSbc++;
+< 
+< 	      //Nou! ########################### per la càlcul de right sign in wrong signal
+< 	        if (actualisMcD0) {
+< 		  if(
+< 		   //(abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+< 		   (KorPi=="k" &&((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842)&& ((actualMcEvtType&5)==5 || (actualMcEvtType&6)==6)  ) || 
+< 		   (KorPi=="pi" && ((actualMcEvtType&12032)==12032|| (actualMcEvtType&20224)==20224)&& ((actualMcEvtType&8196)==8196 || (actualMcEvtType&16388)==16388) 
+< 		    )
+< 		   )
+< 		   RightSignalbc++;  
+---
+> 		if (_dtype=="D0") {
+> 		  if (actualisMcD0) {
+> 		    totD0bc++;
+> 		    if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+> 		  }
+> 		  if ( ( (actualisMcD0id==-421 && actuallundpr==-321) || (actualisMcD0id==421 && actuallundpr==321) ) && 
+> 		       ( (KorPi=="k" && ((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842))||
+> 			 (KorPi=="pi" && ((actualMcEvtType&12032)==12032 || (actualMcEvtType&20224)==20224)) ) ) totSigWSbc++;
+> 
+> 		  //Nou! ########################### per la càlcul de right sign in wrong signal
+> 		  if (actualisMcD0) {
+> 		    if(
+> 		       //(abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+> 		       (KorPi=="k" &&((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842)&& ((actualMcEvtType&5)==5 || (actualMcEvtType&6)==6)  ) || 
+> 		       (KorPi=="pi" && ((actualMcEvtType&12032)==12032|| (actualMcEvtType&20224)==20224)&& ((actualMcEvtType&8196)==8196 || (actualMcEvtType&16388)==16388) 
+> 			)
+> 		       )
+> 		      RightSignalbc++;  
+1077,1086c1138,1148
+< 		if(
+< 		   //(abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+< 		   (KorPi=="k" && ((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842)&& ((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6)) ||
+< 		   (KorPi=="pi" && ((actualMcEvtType&12032)==12032 || (actualMcEvtType&20224)==20224) && ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388))
+< 		    )
+< 		  {
+< 		    //  cout<<"actualMcEvtType= "<<actualMcEvtType<<"runNumber ="<<runNumber<<"lowerID="<<lowerID<<"upperID="<<upperID<< endl;
+< 		    // assert(actualMcEvtType!=3841);
+< 		    WSignalbc++;
+< 		    if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+---
+> 		    if(
+> 		       //(abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+> 		       (KorPi=="k" && ((actualMcEvtType&3841)==3841 || (actualMcEvtType&3842)==3842)&& ((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6)) ||
+> 		       (KorPi=="pi" && ((actualMcEvtType&12032)==12032 || (actualMcEvtType&20224)==20224) && ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388))
+> 		       )
+> 		      {
+> 			//  cout<<"actualMcEvtType= "<<actualMcEvtType<<"runNumber ="<<runNumber<<"lowerID="<<lowerID<<"upperID="<<upperID<< endl;
+> 			// assert(actualMcEvtType!=3841);
+> 			WSignalbc++;
+> 			if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+> 		      }
+1089,1106c1151,1167
+< 		 }
+< 	    else if (_dtype=="Dstar0") {
+< 	      if (_dstar0mode=="d0pi0") {
+< 		//totdstar0pi0bc++;
+<                 //if(actualisMcD0 && actualisMcDstar0Pi0) {
+<  		if(actualisMcD0) {
+< 		  totD0bc++;     
+< 		  if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+< 		}
+< 		if( ( (actualisMcD0id==421 && actuallundpr==321) || (actualisMcD0id==-421 && actuallundpr==-321) )&&
+< 		    ( ( KorPi=="k" && ((actualMcEvtType&3865)==3865 || (actualMcEvtType&3866)==3866))||
+< 		      ( KorPi=="pi" && ((actualMcEvtType&12056)==12056 || (actualMcEvtType&20248)==20248)) ) ) totSigWSbc++;
+< 	
+< 		//Nou!   ########################### per la calcul de right sign in wrong signal
+< 		if (actualisMcD0) {
+< 		  if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+< 		   (KorPi=="k" &&((actualMcEvtType&3869)==3869 || (actualMcEvtType&3870)==3870)) || 
+< 		   (KorPi=="pi" &&((actualMcEvtType&12060)==12060 || (actualMcEvtType&20252)==20252))) 	 RightSignalbc++;  
+---
+> 		else if (_dtype=="Dstar0") {
+> 		  if (_dstar0mode=="d0pi0") {
+> 		    //totdstar0pi0bc++;
+> 		    //if(actualisMcD0 && actualisMcDstar0Pi0) {
+> 		    if(actualisMcD0) {
+> 		      totD0bc++;     
+> 		      if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+> 		    }
+> 		    if( ( (actualisMcD0id==421 && actuallundpr==321) || (actualisMcD0id==-421 && actuallundpr==-321) )&&
+> 			( ( KorPi=="k" && ((actualMcEvtType&3865)==3865 || (actualMcEvtType&3866)==3866))||
+> 			  ( KorPi=="pi" && ((actualMcEvtType&12056)==12056 || (actualMcEvtType&20248)==20248)) ) ) totSigWSbc++;
+> 	
+> 		    //Nou!   ########################### per la calcul de right sign in wrong signal
+> 		    if (actualisMcD0) {
+> 		      if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+> 			 (KorPi=="k" &&((actualMcEvtType&3869)==3869 || (actualMcEvtType&3870)==3870)) || 
+> 			 (KorPi=="pi" &&((actualMcEvtType&12060)==12060 || (actualMcEvtType&20252)==20252))) 	 RightSignalbc++;  
+1108,1131c1169,1192
+< 		if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+< 		   (KorPi=="k" && ((actualMcEvtType&3865)==3865 || (actualMcEvtType&3866)==3866) &&((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6) )||
+< 		    (KorPi=="pi" && ((actualMcEvtType&12056)==12056 || (actualMcEvtType&20248)==20248)&& ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388) ) ) 
+< 		  {
+< 		    WSignalbc++;
+< 		    if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+< 		  }
+< 		}	
+< 	      } else if (_dstar0mode=="d0gam") { 
+< 		//totdstar0gambc++;
+<                 //if(actualisMcD0 && actualisMcDstar0Gam) {
+< 		if(actualisMcD0) {
+< 		  totD0bc++;
+< 		  if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+< 		}
+< 		if( ( (actualisMcD0id==421 && actuallundpr==321) || (actualisMcD0id==-421 && actuallundpr==-321) )&&
+< 		    ( ( KorPi=="k" && ((actualMcEvtType&3873)==3873 || (actualMcEvtType&3874)==3874))||
+< 		      ( KorPi=="pi" && ((actualMcEvtType&12064)==12064 || (actualMcEvtType&20256)==20256)) ) ) totSigWSbc++;
+< 
+< 		//Nou!! ########################### per la calcul de right sign in wrong signal
+< 		if (actualisMcD0) {
+< 		  if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+< 		   (KorPi=="k" &&((actualMcEvtType&3869)==3869 || (actualMcEvtType&3870)==3870)) || 
+< 		   (KorPi=="pi" &&((actualMcEvtType&12068)==12068 || (actualMcEvtType&20260)==20260))) 	 RightSignalbc++;  
+---
+> 		      if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+> 			 (KorPi=="k" && ((actualMcEvtType&3865)==3865 || (actualMcEvtType&3866)==3866) &&((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6) )||
+> 			 (KorPi=="pi" && ((actualMcEvtType&12056)==12056 || (actualMcEvtType&20248)==20248)&& ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388) ) ) 
+> 			{
+> 			  WSignalbc++;
+> 			  if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+> 			}
+> 		    }	
+> 		  } else if (_dstar0mode=="d0gam") { 
+> 		    //totdstar0gambc++;
+> 		    //if(actualisMcD0 && actualisMcDstar0Gam) {
+> 		    if(actualisMcD0) {
+> 		      totD0bc++;
+> 		      if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+> 		    }
+> 		    if( ( (actualisMcD0id==421 && actuallundpr==321) || (actualisMcD0id==-421 && actuallundpr==-321) )&&
+> 			( ( KorPi=="k" && ((actualMcEvtType&3873)==3873 || (actualMcEvtType&3874)==3874))||
+> 			  ( KorPi=="pi" && ((actualMcEvtType&12064)==12064 || (actualMcEvtType&20256)==20256)) ) ) totSigWSbc++;
+> 
+> 		    //Nou!! ########################### per la calcul de right sign in wrong signal
+> 		    if (actualisMcD0) {
+> 		      if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)   && 
+> 			 (KorPi=="k" &&((actualMcEvtType&3869)==3869 || (actualMcEvtType&3870)==3870)) || 
+> 			 (KorPi=="pi" &&((actualMcEvtType&12068)==12068 || (actualMcEvtType&20260)==20260))) 	 RightSignalbc++;  
+1133,1138c1194,1200
+< 		  if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+< 		     (KorPi=="k" && ((actualMcEvtType&3873)==3873 || (actualMcEvtType&3874)==3874)&& ((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6) )||
+< 		     (KorPi=="pi" && ((actualMcEvtType&12064)==12064 || (actualMcEvtType&20256)==20256)&& ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388) ))  
+< 		    {
+< 		      WSignalbc++;
+< 		      if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+---
+> 		      if(//abs(actualisMcD0id)==421 && abs(actuallundpr)==321)&& 
+> 			 (KorPi=="k" && ((actualMcEvtType&3873)==3873 || (actualMcEvtType&3874)==3874)&& ((actualMcEvtType&5)!=5) && ((actualMcEvtType&6)!=6) )||
+> 			 (KorPi=="pi" && ((actualMcEvtType&12064)==12064 || (actualMcEvtType&20256)==20256)&& ((actualMcEvtType&8196)!=8196) && ((actualMcEvtType&16388)!=16388) ))  
+> 			{
+> 			  WSignalbc++;
+> 			  if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+> 			}
+1139a1202
+> 		  }
+1141,1142d1203
+< 	      }
+< 	    }
+1144,1149c1205,1210
+< 	    //
+< 	    if (mul>1) ((istrue>0)?numtrue++:numfalse++);
+< 	    if (mul>1 && istrue>0 && actualChBtruth==1) num_right_choice++;	
+< 	    if (mul>1 && istrue>0 && actualChBtruth==0) num_wrong_choice++;
+< 	    if (mul==1) num1++;
+< 	    if (mul==1) ((istrue>0)? num1t++:num1f++);
+---
+> 		//
+> 		if (mul>1) ((istrue>0)?numtrue++:numfalse++);
+> 		if (mul>1 && istrue>0 && actualChBtruth==1) num_right_choice++;	
+> 		if (mul>1 && istrue>0 && actualChBtruth==0) num_wrong_choice++;
+> 		if (mul==1) num1++;
+> 		if (mul==1) ((istrue>0)? num1t++:num1f++);
+1152,1153c1213,1214
+< 	    //ORA SI OCCUPA DEL NUOVO EVENTO: 
+< 	    //valuta la probabilita' di questo evento
+---
+> 		//ORA SI OCCUPA DEL NUOVO EVENTO: 
+> 		//valuta la probabilita' di questo evento
+1155,1268c1216,1329
+< 	    Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+< 	    //	      
+< 	    actualevent=event;
+< 	    actualrunNumber=runNumber;
+< 	    actualupperID=upperID;
+< 	    actuallowerID=lowerID;
+< 	    actualmassD0=massD0;	
+< 	    actualmassDstar0=massDstar0; 
+< 	    actualmes=mes;
+< 	    actualcoshelyDstar0=coshelyDstar0;
+< 	    actualegam=egam;
+< 	    actualdeltadeltamd=deltadeltamd;
+< 	    actualdemk=demk2;
+< 	    actualChBtruth=ChBtruth;
+< 	    actualfisherDK=fisherDK;
+< 	    actualppr=ppr;
+< 	    actualbeta_gamma=beta_gamma;
+< 	    actualchargeB=chargeB;
+< 	    actualMcEvtType=McEvtType;
+< 	    actualm12=m12;
+< 	    actualm13=m13;
+< 	    actualm23=m23;
+< 	    actualq12=q12;
+< 	    actualq13=q13;
+< 	    actualq23=q23;
+< 	    actualq12_truth=q12_truth;
+< 	    actualq13_truth=q13_truth;
+< 	    actualq23_truth=q23_truth;
+< 	    actualchargeB_truth=chargeB_truth;
+< 
+< 	    actualmassKs=massKs;
+< 	    actualcosthrust=costhrust;	
+< 	    actualprob=thisprob;
+< 	    actualisMcD0=isMcD0; 
+< 	    actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+< 	    actualpD0=pD0;
+< 	    actualpD0CM=pD0CM;
+< 	    //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+< 	    //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+< 	    actuallundpr=lundpr; 
+< 	    actualjentry=jentry;
+< 	    actualisMcDstar0Pi0=isMcDstar0Pi0;
+< 	    actualisMcDstar0Gam=isMcDstar0Gam;
+< 	    //
+< 	    if (debug) {
+< 	      cout<<"event="<<event<<endl;
+< 	      cout<<"mes="<<mes<<endl;
+< 	      cout<<"massD0="<<massD0<<endl;
+< 	      cout<<"massDstar0="<<massDstar0<<endl;
+< 	      cout<<"la probab di questo evento e' "<<actualprob<<endl;
+< 	      cout<<"actualdemk di questo evento e' "<<actualdemk<<endl;
+< 	    }
+< 	    Tmulti_cand->Fill(mul);
+< 	    mul=1;
+< 	    istrue=0;
+< 	    prevev=event;
+< 	    prevrun=runNumber;
+< 	    //parte di verita' in eventi con mul>1
+< 	    if (ChBtruth==1) istrue++;
+< 	  }//end !isfirst
+< 	
+< 	else {// start ifirst cond
+< 
+< 	  Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+< 	  //	      
+< 	  //cout<<"probabilidad = "<<thisprob<<endl;
+< 	  actualevent=event;
+< 	  actualrunNumber=runNumber;
+< 	  actualupperID=upperID;
+< 	  actuallowerID=lowerID;
+< 	  actualmassD0=massD0;	
+< 	  actualmassDstar0=massDstar0; 
+< 	  actualmes=mes;
+< 	  actualcoshelyDstar0=coshelyDstar0;
+< 	  actualegam=egam;
+< 	  actualdeltadeltamd=deltadeltamd;
+< 	  actualdemk=demk2;
+< 	  actualChBtruth=ChBtruth;
+< 	  actualfisherDK=fisherDK;
+< 	  actualppr=ppr;
+< 	  actualbeta_gamma=beta_gamma;
+< 	  actualchargeB=chargeB;
+< 	  actualMcEvtType=McEvtType;
+< 	  actualm12=m12;
+< 	  actualm13=m13;
+< 	  actualm23=m23;	
+< 	  actualq12=q12;
+< 	  actualq13=q13;
+< 	  actualq23=q23;
+< 	  actualq12_truth=q12_truth;
+< 	  actualq13_truth=q13_truth;
+< 	  actualq23_truth=q23_truth;
+< 	  actualchargeB_truth=chargeB_truth;
+< 
+< 	  actualmassKs=massKs;
+< 	  actualcosthrust=costhrust;
+< 	  actualprob=thisprob;
+< 	  actualisMcD0=isMcD0; 
+< 	  actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+< 	  //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+< 	  //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+< 	  actuallundpr=lundpr; 
+< 	  actualjentry=jentry;
+< 	  actualisMcDstar0Pi0=isMcDstar0Pi0;
+< 	  actualisMcDstar0Gam=isMcDstar0Gam;
+< 	  //	
+< 	  if (debug) {
+< 	    cout<<"event="<<event<<endl;
+< 	    cout<<"mes="<<mes<<endl;
+< 	    cout<<"massD0="<<massD0<<endl;
+< 	    cout<<"massDstar0="<<massDstar0<<endl;
+< 	    cout<<"thisprob="<<thisprob<<endl;
+< 	  }
+< 	  //fine valutazione probabilita'
+---
+> 		Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+> 		//	      
+> 		actualevent=event;
+> 		actualrunNumber=runNumber;
+> 		actualupperID=upperID;
+> 		actuallowerID=lowerID;
+> 		actualmassD0=massD0;	
+> 		actualmassDstar0=massDstar0; 
+> 		actualmes=mes;
+> 		actualcoshelyDstar0=coshelyDstar0;
+> 		actualegam=egam;
+> 		actualdeltadeltamd=deltadeltamd;
+> 		actualdemk=demk2;
+> 		actualChBtruth=ChBtruth;
+> 		actualfisherDK=fisherDK;
+> 		actualppr=ppr;
+> 		actualbeta_gamma=beta_gamma;
+> 		actualchargeB=chargeB;
+> 		actualMcEvtType=McEvtType;
+> 		actualm12=m12;
+> 		actualm13=m13;
+> 		actualm23=m23;
+> 		actualq12=q12;
+> 		actualq13=q13;
+> 		actualq23=q23;
+> 		actualq12_truth=q12_truth;
+> 		actualq13_truth=q13_truth;
+> 		actualq23_truth=q23_truth;
+> 		actualchargeB_truth=chargeB_truth;
+> 
+> 		actualmassKs=massKs;
+> 		actualcosthrust=costhrust;	
+> 		actualprob=thisprob;
+> 		actualisMcD0=isMcD0; 
+> 		actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+> 		actualpD0=pD0;
+> 		actualpD0CM=pD0CM;
+> 		//actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+> 		//actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+> 		actuallundpr=lundpr; 
+> 		actualjentry=jentry;
+> 		actualisMcDstar0Pi0=isMcDstar0Pi0;
+> 		actualisMcDstar0Gam=isMcDstar0Gam;
+> 		//
+> 		if (debug) {
+> 		  cout<<"event="<<event<<endl;
+> 		  cout<<"mes="<<mes<<endl;
+> 		  cout<<"massD0="<<massD0<<endl;
+> 		  cout<<"massDstar0="<<massDstar0<<endl;
+> 		  cout<<"la probab di questo evento e' "<<actualprob<<endl;
+> 		  cout<<"actualdemk di questo evento e' "<<actualdemk<<endl;
+> 		}
+> 		Tmulti_cand->Fill(mul);
+> 		mul=1;
+> 		istrue=0;
+> 		prevev=event;
+> 		prevrun=runNumber;
+> 		//parte di verita' in eventi con mul>1
+> 		if (ChBtruth==1) istrue++;
+> 	      }//end !isfirst
+> 	
+> 	    else {// start ifirst cond
+> 
+> 	      Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+> 	      //	      
+> 	      //cout<<"probabilidad = "<<thisprob<<endl;
+> 	      actualevent=event;
+> 	      actualrunNumber=runNumber;
+> 	      actualupperID=upperID;
+> 	      actuallowerID=lowerID;
+> 	      actualmassD0=massD0;	
+> 	      actualmassDstar0=massDstar0; 
+> 	      actualmes=mes;
+> 	      actualcoshelyDstar0=coshelyDstar0;
+> 	      actualegam=egam;
+> 	      actualdeltadeltamd=deltadeltamd;
+> 	      actualdemk=demk2;
+> 	      actualChBtruth=ChBtruth;
+> 	      actualfisherDK=fisherDK;
+> 	      actualppr=ppr;
+> 	      actualbeta_gamma=beta_gamma;
+> 	      actualchargeB=chargeB;
+> 	      actualMcEvtType=McEvtType;
+> 	      actualm12=m12;
+> 	      actualm13=m13;
+> 	      actualm23=m23;	
+> 	      actualq12=q12;
+> 	      actualq13=q13;
+> 	      actualq23=q23;
+> 	      actualq12_truth=q12_truth;
+> 	      actualq13_truth=q13_truth;
+> 	      actualq23_truth=q23_truth;
+> 	      actualchargeB_truth=chargeB_truth;
+> 
+> 	      actualmassKs=massKs;
+> 	      actualcosthrust=costhrust;
+> 	      actualprob=thisprob;
+> 	      actualisMcD0=isMcD0; 
+> 	      actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+> 	      //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+> 	      //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+> 	      actuallundpr=lundpr; 
+> 	      actualjentry=jentry;
+> 	      actualisMcDstar0Pi0=isMcDstar0Pi0;
+> 	      actualisMcDstar0Gam=isMcDstar0Gam;
+> 	      //	
+> 	      if (debug) {
+> 		cout<<"event="<<event<<endl;
+> 		cout<<"mes="<<mes<<endl;
+> 		cout<<"massD0="<<massD0<<endl;
+> 		cout<<"massDstar0="<<massDstar0<<endl;
+> 		cout<<"thisprob="<<thisprob<<endl;
+> 	      }
+> 	      //fine valutazione probabilita'
+1270,1278c1331,1339
+< 	  //setta a false il flag isfirst
+< 	  isfirst=false;
+< 	  mul=1;
+< 	  istrue=0;
+< 	  prevev=event;
+< 	  prevrun=runNumber;
+< 	  //parte di verita' in eventi con mul>1
+< 	  if (ChBtruth==1) istrue++;
+< 	}
+---
+> 	      //setta a false il flag isfirst
+> 	      isfirst=false;
+> 	      mul=1;
+> 	      istrue=0;
+> 	      prevev=event;
+> 	      prevrun=runNumber;
+> 	      //parte di verita' in eventi con mul>1
+> 	      if (ChBtruth==1) istrue++;
+> 	    }
+1280,1282c1341
+<       }//**** end big else
+< 
+<       ntot++;
+---
+> 	  }//**** end big else
+1283a1343,1346
+> 	  ntot++;
+> 	}
+> 	//	break;
+>       }
+1285a1349
+> 
+1513c1577
+< 	indexB[6] = indexB[7] = indexB[0] ;
+---
+>       indexB[6] = indexB[7] = indexB[0] ;
+1516c1580
+< 	indexB[5] = indexB[0];
+---
+>       indexB[5] = indexB[0];
+1524c1588
+< 	//if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])){
+---
+>       //if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])){
+1526,1603c1590,1667
+< 	cout<<"agreement of B index !!!! "<<endl;
+< 	goodindex++;
+< 	//cout<<"goodindex="<<goodindex<<endl;
+< 	
+< 	bkg_tree(KorPi,outfile21,ientry,indexB);
+< 	bkg_tree_MC(KorPi,outfile31,ientry);
+< 	
+< 	back = bkg_tree_number(0,indexB[0],outfile4,actualjentry); //VIR
+< 	cout<<"final state # particles ="<<back <<endl;
+< 	
+< 	
+< 	////--------------------VIR
+< 	
+< 	// no peaking events
+< 	if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+< 	if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+< 	if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+< 	
+< 	// mES peaking events
+< 	
+< 	if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+< 	if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+< 	if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+< 	if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+< 	if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+< 	if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+< 	if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+< 	if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+< 	if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+< 	if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+< 	
+< 	// maybe/not peaking events
+< 	if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+< 	if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+< 	if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+< 	if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+< 	if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+< 	if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+< 	
+< 	/////////////////////////////
+< 	//if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+< 	//if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+< 	//if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+< 	//if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+< 	//if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+< 	//if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+< 	//if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+< 	//if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+< 	//if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+< 	/////////////////////////////
+< 	
+< 	
+< 	if(back==194 || back==1134 || back==2124) indexOFless++;
+< 	if(back==255 || back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+< 	if(back==316 || back==356  || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+< 	
+< 	
+< 	cout<<"indexOFless: "<<indexOFless<<endl;		  
+< 	cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+< 	cout<<"indexOFmore: "<<indexOFmore<<endl;
+< 	
+< 	
+< 	if(back==194 || back==1134 || back==2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+< 	  cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+< 	} 
+< 	else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+< 	  withgamma++;
+< 	  cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+< 	}
+< 	else if (back==307 || back==387 ||back==317){
+< 	  with2gamma++;
+< 	  cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+< 	}
+< 	else {
+< 	  unknown++;
+< 	  cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+< 	}      
+< 	////--------------------VIR
+---
+>       cout<<"agreement of B index !!!! "<<endl;
+>       goodindex++;
+>       //cout<<"goodindex="<<goodindex<<endl;
+> 	
+>       bkg_tree(KorPi,outfile21,ientry,indexB);
+>       bkg_tree_MC(KorPi,outfile31,ientry);
+> 	
+>       back = bkg_tree_number(0,indexB[0],outfile4,actualjentry); //VIR
+>       cout<<"final state # particles ="<<back <<endl;
+> 	
+> 	
+>       ////--------------------VIR
+> 	
+>       // no peaking events
+>       if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+>       if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+>       if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+> 	
+>       // mES peaking events
+> 	
+>       if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+>       if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+>       if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+>       if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+>       if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+>       if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+>       if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+>       if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+>       if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+>       if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+> 	
+>       // maybe/not peaking events
+>       if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+>       if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+>       if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+>       if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+>       if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+>       if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+> 	
+>       /////////////////////////////
+>       //if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+>       //if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+>       //if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+>       //if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+>       //if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+>       //if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+>       //if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+>       //if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+>       //if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+>       /////////////////////////////
+> 	
+> 	
+>       if(back==194 || back==1134 || back==2124) indexOFless++;
+>       if(back==255 || back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+>       if(back==316 || back==356  || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+> 	
+> 	
+>       cout<<"indexOFless: "<<indexOFless<<endl;		  
+>       cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+>       cout<<"indexOFmore: "<<indexOFmore<<endl;
+> 	
+> 	
+>       if(back==194 || back==1134 || back==2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+>       cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+>       } 
+>       else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+>       withgamma++;
+>       cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+>       }
+>       else if (back==307 || back==387 ||back==317){
+>       with2gamma++;
+>       cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+>       }
+>       else {
+>       unknown++;
+>       cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+>       }      
+>       ////--------------------VIR
+1606,1607c1670,1671
+< 	cout<<"combinatorial error !!!! :("<<endl;
+< 	badindex++;
+---
+>       cout<<"combinatorial error !!!! :("<<endl;
+>       badindex++;
+1609,1610c1673,1674
+< 	bkg_tree(KorPi,outfile22,ientry,indexB);
+< 	bkg_tree_MC(KorPi,outfile32,ientry);
+---
+>       bkg_tree(KorPi,outfile22,ientry,indexB);
+>       bkg_tree_MC(KorPi,outfile32,ientry);
+1612,1613c1676,1677
+< 	//cout<<"# combinatorial events: "<<badindex<<endl;
+< 	cout<<endl;
+---
+>       //cout<<"# combinatorial events: "<<badindex<<endl;
+>       cout<<endl;
+1938c2002
+< 	  if (cut_code==1 || cut_code==112) pdf = getPdf(KorPi,*var);
+---
+> 	  if (cut_code==1 || cut_code==112|| cut_code==115) pdf = getPdf(KorPi,*var);
+1940c2004
+< 	  if (cut_code==2 || cut_code==112) pdf = getPdf(KorPi,*var);
+---
+> 	  if (cut_code==2 || cut_code==112 || cut_code==115) pdf = getPdf(KorPi,*var);
+2233,2235c2297,2299
+< 			       Int_t* chargedDauFirstB, Int_t* neutralDauFirstB, Int_t* chargedDauSoftFirstB, Int_t* neutralDauSoftFirstB,
+< 			       Int_t* chargedDauSecondB, Int_t* neutralDauSecondB, Int_t* chargedDauSoftSecondB, Int_t* neutralDauSoftSecondB, 
+< 			       ofstream& outfile,Int_t ientry)
+---
+> 				Int_t* chargedDauFirstB, Int_t* neutralDauFirstB, Int_t* chargedDauSoftFirstB, Int_t* neutralDauSoftFirstB,
+> 				Int_t* chargedDauSecondB, Int_t* neutralDauSecondB, Int_t* chargedDauSoftSecondB, Int_t* neutralDauSoftSecondB, 
+> 				ofstream& outfile,Int_t ientry)
+2276,2279c2340,2343
+<   outfile<<endl;
+<   outfile<<"  k or pi:     i:      idMc :(nDauMc , pMc)         mothMc :"<<endl;
+<   outfile<<endl;
+<   for (Int_t i=1; i<nMc;i++) {
+---
+>     outfile<<endl;
+>     outfile<<"  k or pi:     i:      idMc :(nDauMc , pMc)         mothMc :"<<endl;
+>     outfile<<endl;
+>     for (Int_t i=1; i<nMc;i++) {
+2281,2282c2345,2346
+< 	   <<getName(idMc[mothMc[i]-1])<<endl;      
+<   }
+---
+>     <<getName(idMc[mothMc[i]-1])<<endl;      
+>     }
+2312,2315c2376,2379
+<     matchChFirstB[i]=indexExists(idxMc[i-1],chargedDauFirstB);
+<     matchChSecondB[i]=indexExists(idxMc[i-1],chargedDauSecondB);
+<     matchChFirstB[0] += matchChFirstB[i];
+<     matchChSecondB[0] += matchChSecondB[i];
+---
+>   matchChFirstB[i]=indexExists(idxMc[i-1],chargedDauFirstB);
+>   matchChSecondB[i]=indexExists(idxMc[i-1],chargedDauSecondB);
+>   matchChFirstB[0] += matchChFirstB[i];
+>   matchChSecondB[0] += matchChSecondB[i];
+2319,2322c2383,2386
+<     if (matchChFirstB[0]==5) outCh += 1;
+<     if (matchChFirstB[0]==4)
+<       //for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+<       for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+---
+>   if (matchChFirstB[0]==5) outCh += 1;
+>   if (matchChFirstB[0]==4)
+>   //for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+>   for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+2324,2327c2388,2391
+<     if (matchChSecondB[0]==5) outCh += 1;
+<     if (matchChSecondB[0]==4)
+<       //for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+<       for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+---
+>   if (matchChSecondB[0]==5) outCh += 1;
+>   if (matchChSecondB[0]==4)
+>   //for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+>   for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+2338,2339c2402,2403
+<     if ( chargedDauFirstB[0]==5 ) outCh += 1;
+<     if ( chargedDauSecondB[0]==5 ) outCh += 2;
+---
+>   if ( chargedDauFirstB[0]==5 ) outCh += 1;
+>   if ( chargedDauSecondB[0]==5 ) outCh += 2;
+2341,2344c2405,2408
+<     if ( ( chargedDauFirstB[0]==4 && chargedDauSoftSecondB[0]>=1 ) ||
+< 	 ( chargedDauFirstB[0]==6 && chargedDauSoftFirstB[0]>=1 ) ) outCh += 1;
+<     if ( ( chargedDauSecondB[0]==4 && chargedDauSoftFirstB[0]>=1 ) ||
+< 	 ( chargedDauSecondB[0]==6 && chargedDauSoftSecondB[0]>=1 ) ) outCh += 2;
+---
+>   if ( ( chargedDauFirstB[0]==4 && chargedDauSoftSecondB[0]>=1 ) ||
+>   ( chargedDauFirstB[0]==6 && chargedDauSoftFirstB[0]>=1 ) ) outCh += 1;
+>   if ( ( chargedDauSecondB[0]==4 && chargedDauSoftFirstB[0]>=1 ) ||
+>   ( chargedDauSecondB[0]==6 && chargedDauSoftSecondB[0]>=1 ) ) outCh += 2;
+2349,2364c2413,2428
+<     if (_dtype=="D0") {
+<       assert(_dstar0mode=="d0");
+<       if ( (neutralDauFirstB[0]==0) || (neutralDauFirstB[0]==1&&idMc[neutralDauFirstB[1]]==22) || 
+< 	   //(neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1) ) outNeu += 1;
+< 	   (neutralDauFirstB[0]==neutralDauSoftFirstB[0]) ) outNeu += 1;
+<     } else if (_dtype=="Dstar0") {
+<       if (_dstar0mode=="d0pi0") {
+< 	if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111) ||
+< 	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111&&idMc[neutralDauFirstB[2]]==22) ||
+< 	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==111) ) outNeu += 1;
+<       } else if (_dstar0mode=="d0gam") {
+< 	if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22) ||
+< 	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22&&idMc[neutralDauFirstB[2]]==22) ||
+< 	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==22) ) outNeu += 1;
+<       } else assert(0);
+<     } else assert(0);
+---
+>   if (_dtype=="D0") {
+>   assert(_dstar0mode=="d0");
+>   if ( (neutralDauFirstB[0]==0) || (neutralDauFirstB[0]==1&&idMc[neutralDauFirstB[1]]==22) || 
+>   //(neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1) ) outNeu += 1;
+>   (neutralDauFirstB[0]==neutralDauSoftFirstB[0]) ) outNeu += 1;
+>   } else if (_dtype=="Dstar0") {
+>   if (_dstar0mode=="d0pi0") {
+>   if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111) ||
+>   (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111&&idMc[neutralDauFirstB[2]]==22) ||
+>   (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==111) ) outNeu += 1;
+>   } else if (_dstar0mode=="d0gam") {
+>   if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22) ||
+>   (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22&&idMc[neutralDauFirstB[2]]==22) ||
+>   (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==22) ) outNeu += 1;
+>   } else assert(0);
+>   } else assert(0);
+2367,2382c2431,2446
+<     if (_dtype=="D0") {
+<       assert(_dstar0mode=="d0");
+<       if ( (neutralDauSecondB[0]==0) || (neutralDauSecondB[0]==1&&idMc[neutralDauSecondB[1]]==22) || 
+< 	   //(neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1) ) outNeu += 2;
+< 	   (neutralDauSecondB[0]==neutralDauSoftSecondB[0]) ) outNeu += 2;
+<     } else if (_dtype=="Dstar0") {
+<       if (_dstar0mode=="d0pi0") {
+< 	if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111) ||
+< 	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111&&idMc[neutralDauSecondB[2]]==22) ||
+< 	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==111) ) outNeu += 2;
+<       } else if (_dstar0mode=="d0gam") {
+< 	if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22) ||
+< 	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22&&idMc[neutralDauSecondB[2]]==22) ||
+< 	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==22) ) outNeu += 2;
+<       } else assert(0);
+<     } else assert(0);
+---
+>   if (_dtype=="D0") {
+>   assert(_dstar0mode=="d0");
+>   if ( (neutralDauSecondB[0]==0) || (neutralDauSecondB[0]==1&&idMc[neutralDauSecondB[1]]==22) || 
+>   //(neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1) ) outNeu += 2;
+>   (neutralDauSecondB[0]==neutralDauSoftSecondB[0]) ) outNeu += 2;
+>   } else if (_dtype=="Dstar0") {
+>   if (_dstar0mode=="d0pi0") {
+>   if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111) ||
+>   (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111&&idMc[neutralDauSecondB[2]]==22) ||
+>   (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==111) ) outNeu += 2;
+>   } else if (_dstar0mode=="d0gam") {
+>   if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22) ||
+>   (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22&&idMc[neutralDauSecondB[2]]==22) ||
+>   (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==22) ) outNeu += 2;
+>   } else assert(0);
+>   } else assert(0);
+2463c2527
+<    outfile<<" Win first B!"<<endl;
+---
+>     outfile<<" Win first B!"<<endl;
+2482c2546
+<   outfile<<" Win second B!"<<endl;
+---
+>     outfile<<" Win second B!"<<endl;
+2599,2600c2663,2664
+<   outfile4<<"****-----------------------------------------------------------------"<<endl;
+<   outfile4<<"entry # : "<<ientry<<endl;
+---
+> outfile4<<"****-----------------------------------------------------------------"<<endl;
+> outfile4<<"entry # : "<<ientry<<endl;
+2602c2666
+<   Int_t nDau(0);
+---
+> Int_t nDau(0);
+2604,2612c2668,2676
+<   Int_t numberPI0(0);
+<   Int_t numberPIch(0);
+<   Int_t numberKch(0);
+<   Int_t numberEL(0);
+<   Int_t numberMU(0);
+<   Int_t numberPROT(0);
+<   Int_t numberSoftPION(0);
+<   Int_t numberGAM(0);
+<   //  Int_t softPionnumber(0);
+---
+> Int_t numberPI0(0);
+> Int_t numberPIch(0);
+> Int_t numberKch(0);
+> Int_t numberEL(0);
+> Int_t numberMU(0);
+> Int_t numberPROT(0);
+> Int_t numberSoftPION(0);
+> Int_t numberGAM(0);
+> //  Int_t softPionnumber(0);
+2615c2679
+<   Int_t* dau = new Int_t[30];
+---
+> Int_t* dau = new Int_t[30];
+2617c2681
+<   for(Int_t k=0; k<30;k++)dau[k]=-9;
+---
+> for(Int_t k=0; k<30;k++)dau[k]=-9;
+2619c2683
+<   outfile4<<"index_first B = "<<index<<endl;
+---
+> outfile4<<"index_first B = "<<index<<endl;
+2621c2685
+<   giveMeDau(index,dau);
+---
+> giveMeDau(index,dau);
+2623c2687
+<   outfile4<<"dau=["<<dau[0]<<"  "<<idMc[dau[1]]<<"  "<<idMc[dau[2]]<<" "<<idMc[dau[3]]<<"  "<<idMc[dau[4]]<<" ]"<<endl;
+---
+> outfile4<<"dau=["<<dau[0]<<"  "<<idMc[dau[1]]<<"  "<<idMc[dau[2]]<<" "<<idMc[dau[3]]<<"  "<<idMc[dau[4]]<<" ]"<<endl;
+2625c2689
+<   nDau = nDauMc[index];
+---
+> nDau = nDauMc[index];
+2627c2691
+<   for(Int_t j=1; j<=nDau; j++){
+---
+> for(Int_t j=1; j<=nDau; j++){
+2629,2630c2693,2694
+<     // ---------------- VIR    
+<     // if (pi0, charge pi,   charge K,  electron, muon , proton ,  SoftPION, photons)
+---
+> // ---------------- VIR    
+> // if (pi0, charge pi,   charge K,  electron, muon , proton ,  SoftPION, photons)
+2632c2696
+<     if ((abs(idMc[dau[j]])==111 )|| (abs(idMc[dau[j]])==211) || (abs(idMc[dau[j]])==321) || (abs(idMc[dau[j]])==11) || (abs(idMc[dau[j]])==13)|| (abs(idMc[dau[j]])==2212) || (abs(idMc[dau[j]])==22)){
+---
+> if ((abs(idMc[dau[j]])==111 )|| (abs(idMc[dau[j]])==211) || (abs(idMc[dau[j]])==321) || (abs(idMc[dau[j]])==11) || (abs(idMc[dau[j]])==13)|| (abs(idMc[dau[j]])==2212) || (abs(idMc[dau[j]])==22)){
+2635,2674c2699,2738
+<       if(abs(idMc[dau[j]])==111){
+< 	back+= 10;
+< 	numberPI0++;
+< 	outfile4<<" # of Pi0 = "<<numberPI0<<"      ";
+<       } 
+<       else  if(abs(idMc[dau[j]])==211){
+< 	back += 60;
+< 	numberPIch++;
+< 	outfile4<<" # of Pi+ = "<<numberPIch<<"      ";
+<       }   
+<       else if(abs(idMc[dau[j]])==321){
+<       	back += 1000;
+<  	numberKch++;
+<        	outfile4<<" # of K+ = "<<numberKch<<"      ";
+<       } 
+<       else if(abs(idMc[dau[j]])==11){
+< 	back += 100;
+< 	numberEL++;
+< 	outfile4<<" # of Electron = "<<numberEL<<"      ";
+<       }
+<       else if(abs(idMc[dau[j]])==13){
+< 	back += 600;
+< 	numberMU++;
+< 	outfile4<<" # of Muon = "<<numberMU<<"      ";
+<       }
+<       else if(abs(idMc[dau[j]])==2212){
+< 	back += 10000;
+< 	numberPROT++;
+< 	outfile4<<" # of Protons = "<<numberPROT<<"      ";
+<       }
+<       else if(((abs(idMc[dau[j]])==111) || (abs(idMc[dau[j]])==211)) && pMc[j]<0.2){
+< 	//	back += 20000;
+< 	numberSoftPION++;
+< 	outfile4<<" # of soft Pion  = "<<numberSoftPION<<"      ";
+<       }
+<       else if(abs(idMc[dau[j]])==22){
+< 	//back += 100000;
+< 	numberGAM++;
+< 	outfile4<<" # of Photons = "<<numberGAM<<"      ";
+<       }
+---
+> if(abs(idMc[dau[j]])==111){
+> back+= 10;
+> numberPI0++;
+> outfile4<<" # of Pi0 = "<<numberPI0<<"      ";
+> } 
+> else  if(abs(idMc[dau[j]])==211){
+> back += 60;
+> numberPIch++;
+> outfile4<<" # of Pi+ = "<<numberPIch<<"      ";
+> }   
+> else if(abs(idMc[dau[j]])==321){
+> back += 1000;
+> numberKch++;
+> outfile4<<" # of K+ = "<<numberKch<<"      ";
+> } 
+> else if(abs(idMc[dau[j]])==11){
+> back += 100;
+> numberEL++;
+> outfile4<<" # of Electron = "<<numberEL<<"      ";
+> }
+> else if(abs(idMc[dau[j]])==13){
+> back += 600;
+> numberMU++;
+> outfile4<<" # of Muon = "<<numberMU<<"      ";
+> }
+> else if(abs(idMc[dau[j]])==2212){
+> back += 10000;
+> numberPROT++;
+> outfile4<<" # of Protons = "<<numberPROT<<"      ";
+> }
+> else if(((abs(idMc[dau[j]])==111) || (abs(idMc[dau[j]])==211)) && pMc[j]<0.2){
+> //	back += 20000;
+> numberSoftPION++;
+> outfile4<<" # of soft Pion  = "<<numberSoftPION<<"      ";
+> }
+> else if(abs(idMc[dau[j]])==22){
+> //back += 100000;
+> numberGAM++;
+> outfile4<<" # of Photons = "<<numberGAM<<"      ";
+> }
+2676c2740
+<       back += 1;
+---
+> back += 1;
+2678,2680c2742,2744
+<       outfile4<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+<     }else{
+<       //outfile4<<" idMc[dau[j]] ="<<idMc[dau[j]]<<endl;
+---
+> outfile4<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+> }else{
+> //outfile4<<" idMc[dau[j]] ="<<idMc[dau[j]]<<endl;
+2682,2684c2746,2748
+<       back = bkg_tree_number(back, dau[j],outfile4,ientry);
+<       //number = bkg_tree_number(number, dau[j],outfile4,ientry); //ORIGIN
+<     }
+---
+> back = bkg_tree_number(back, dau[j],outfile4,ientry);
+> //number = bkg_tree_number(number, dau[j],outfile4,ientry); //ORIGIN
+> }
+2686c2750
+<     //-----------------VIR
+---
+> //-----------------VIR
+2688,2689c2752,2753
+<     // pi soft
+<     if(abs(idMc[dau[j]])==211 && (idMc[mothMc[dau[j]]-1]== 10411 || idMc[mothMc[dau[j]]-1]== 10421 || idMc[mothMc[dau[j]]-1]== 413 ||idMc[mothMc[dau[j]]-1]== 423)){
+---
+> // pi soft
+> if(abs(idMc[dau[j]])==211 && (idMc[mothMc[dau[j]]-1]== 10411 || idMc[mothMc[dau[j]]-1]== 10421 || idMc[mothMc[dau[j]]-1]== 413 ||idMc[mothMc[dau[j]]-1]== 423)){
+2691c2755
+<       Int_t pippo[7]={0};
+---
+> Int_t pippo[7]={0};
+2693,2699c2757,2763
+<       pippo[j]= idMc[mothMc[dau[j]]-1];
+<       if(abs(idMc[dau[j]])==211  && pMc[j]<0.2){
+< 	cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pippo[j])<<" "<<pippo[j]<<"------> soft Pion"<< endl;
+< 	//cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pippo[j])<<endl;
+< 	//softPionnumber++;
+<       }
+<     }
+---
+> pippo[j]= idMc[mothMc[dau[j]]-1];
+> if(abs(idMc[dau[j]])==211  && pMc[j]<0.2){
+> cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pippo[j])<<" "<<pippo[j]<<"------> soft Pion"<< endl;
+> //cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pippo[j])<<endl;
+> //softPionnumber++;
+> }
+> }
+2702c2766
+<     // gamma Brem
+---
+> // gamma Brem
+2704,2705c2768,2769
+<     Int_t pluto[7]={0};
+<     pluto[j]= idMc[mothMc[dau[j]]-1];
+---
+> Int_t pluto[7]={0};
+> pluto[j]= idMc[mothMc[dau[j]]-1];
+2707,2712c2771,2776
+<     if(abs(idMc[dau[j]])==22 && getChg3(pluto[j])==0){
+<       cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pluto[j])<<" "<<pluto[j]<<"------> gamma Brem"<< endl;
+<       //cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pluto[j])<<endl;
+<       //gammaBrem++;
+<       //cout<<"-------------------------------------->"<<gammaBrem<<endl;
+<     }
+---
+> if(abs(idMc[dau[j]])==22 && getChg3(pluto[j])==0){
+> cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pluto[j])<<" "<<pluto[j]<<"------> gamma Brem"<< endl;
+> //cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pluto[j])<<endl;
+> //gammaBrem++;
+> //cout<<"-------------------------------------->"<<gammaBrem<<endl;
+> }
+2715c2779
+<     // gamma rad
+---
+> // gamma rad
+2717,2726c2781,2790
+<     Int_t paperino[7]={0};
+<     paperino[j]= idMc[mothMc[dau[j]]-1];
+<     if(abs(idMc[dau[j]])==22 && getChg3(paperino[j])!=0){
+<       cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(paperino[j])<<" "<<paperino[j]<<"------> gamma Rad"<< endl;
+<       //cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(paperino[j])<<endl;
+<       //if( back==316 || back==356 || back==366 || back==1256|| back==2196 || back==101786){
+<       //gammaRAD++;
+<       //	cout<<"-------------------------------------->"<<gammaRAD<<endl;
+<       //}
+<     }
+---
+> Int_t paperino[7]={0};
+> paperino[j]= idMc[mothMc[dau[j]]-1];
+> if(abs(idMc[dau[j]])==22 && getChg3(paperino[j])!=0){
+> cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(paperino[j])<<" "<<paperino[j]<<"------> gamma Rad"<< endl;
+> //cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(paperino[j])<<endl;
+> //if( back==316 || back==356 || back==366 || back==1256|| back==2196 || back==101786){
+> //gammaRAD++;
+> //	cout<<"-------------------------------------->"<<gammaRAD<<endl;
+> //}
+> }
+2728,2729c2792,2793
+<     //-----------------VIR
+<   }
+---
+> //-----------------VIR
+> }
+2732c2796
+<   return back;
+---
+> return back;

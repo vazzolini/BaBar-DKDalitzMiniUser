@@ -1,0 +1,132 @@
+//#define vali2_cxx
+//#include <TH2.h>
+//#include <TStyle.h>
+//#include <TCanvas.h>
+//#include <TChain.h>
+//#include <TFile.h>
+//#include <iostream.h>   
+//#include niceplot_cxx 
+
+//void vali2()
+{
+  gROOT->ProcessLine(".x plots.C");
+  gROOT->ProcessLine(".L niceplot.C");
+
+ 
+
+  TCanvas* canvas1= new TCanvas("canvas1","canvas1",500,500);
+  TCanvas* canvas2= new TCanvas("canvas2","canvas2",500,500);
+  TCanvas* canvas3= new TCanvas("canvas3","canvas3",500,500);
+  
+  
+  TH1F* hmes=new TH1F("mes","mES 24",60,5.200,5.300);
+  TH1F* hDe=new TH1F("de","deltaE 24",60,-0.300,0.300);
+  
+  TH1F* hmesnew=new TH1F("mes18","mES 18",60,5.200,5.300);
+  TH1F* hDenew=new TH1F("De18","deltaE 18",60,-0.300,0.300);
+  
+  TH1F* hDm=new TH1F("mes18-mes24","Dmes",60,-0.002,0.002);
+   TH1F* hDDe=new TH1F("DDe","DDe",60,-0.1,0.1);
+   
+   
+
+ // TTree R24
+  Int_t   runNumber;
+  Int_t   upperID;
+  Int_t   lowerID;
+  Double_t demk;
+  Double_t mes;
+  
+  TChain* tree= new TChain("treevali");
+  TString filename="./vali1/ASCII/final_valireduced_d0pi_kspipi_on_Bbest_Cut1_rel-24.root";
+  cout << "filename : " << filename << endl;
+  tree->Add(filename);
+   
+  tree->SetBranchAddress("actualrunNumber",&runNumber);    
+  tree->SetBranchAddress("actualupperID",&upperID);
+  tree->SetBranchAddress("actuallowerID",&lowerID);
+  tree->SetBranchAddress("actualdemk",&demk);
+  tree->SetBranchAddress("actualmes",&mes);
+
+
+
+  Int_t nentries=tree->GetEntries();  
+  cout<<"nentries(24)= "<<nentries<<endl;
+
+    // TTree R18
+  Int_t   runNumbernew;
+  Int_t   upperIDnew;
+  Int_t   lowerIDnew;
+  Double_t demknew;
+  Double_t mesnew;
+  
+  TChain* treenew= new TChain("treevali");
+  TString filenamenew="./vali1/ASCII/final_valireduced_d0pi_kspipi_on_Bbest_Cut1_rel-18new.root";
+  cout << "filenamenew : " << filenamenew << endl;
+  treenew->Add(filenamenew);
+  
+  treenew->SetBranchAddress("actualrunNumber",&runNumbernew);    
+  treenew->SetBranchAddress("actualupperID",&upperIDnew);
+  treenew->SetBranchAddress("actuallowerID",&lowerIDnew);
+  treenew->SetBranchAddress("actualdemk",&demknew);
+  treenew->SetBranchAddress("actualmes",&mesnew);
+ 
+
+
+ 
+  Int_t nentriesnew=treenew->GetEntries();  
+  cout<<"nentries(18)= "<<nentriesnew<<endl;
+
+      
+  for(Int_t i=0;i<nentries;i++){
+  
+    tree->GetEntry(i);
+  
+    for (Int_t j=0; j<nentriesnew;j++) {
+      treenew->GetEntry(j); 
+       
+      if(runNumbernew==runNumber && lowerIDnew==lowerID && upperIDnew==upperID){ 
+	//	cout<<"holaa"<<endl;
+	hmesnew->Fill(mesnew);
+	hDenew->Fill(demknew);
+	hmes->Fill(mes);
+	hDe->Fill(demk);
+	
+	hDm->Fill(mesnew-mes);
+	hDDe->Fill(demknew-demk);
+		 
+		 
+      } else continue;
+    }
+    
+    
+  }
+
+  dibuja(hmes,hmesnew,130,"mes","L","mesdiff.gif") ;
+  canvas1->Divide(1,2);
+  canvas1->cd(1);
+  hmesnew->Draw();
+  canvas1->cd(2);
+  hmes->Draw();
+  canvas1->Print("mes.gif");
+  
+  canvas2->Divide(1,2);
+  canvas2->cd(1);
+  hDenew->Draw();
+  canvas2->cd(2);
+  hDenew->Draw();
+  canvas2->Print("de.gif");
+  
+  canvas3->Divide(1,2);
+  canvas3->cd(1);
+  hDm->Draw();
+  //  canvas3->cd(2);
+  // hDDe->Draw();
+  canvas3->Print("diff.gif");
+  
+}
+
+
+
+
+  

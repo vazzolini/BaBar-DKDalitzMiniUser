@@ -1,0 +1,127 @@
+This program calculates the D0 fractions from background.
+Diego Milanes. 2007.
+
+
+*************************************************
+*************************************************
+Channel : B->D0k*, k*->kspi, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   317 
+Total number of D0s             :   106 
+      Fraction of real D0s      :   0.334385 +- 0.0264975 
+      Total number of RS D0s    :   62 
+           D0s RightSign        :   0.584906 +- 0.047859 
+           D0s WrongSign        :   0.415094 +- 0.047859 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   309 
+Total number of D0s             :   29 
+      Fraction of real D0s      :   0.0938511 +- 0.0165898 
+      Total number of RS D0s    :   13 
+           D0s RightSign        :   0.448276 +- 0.0923495 
+           D0s WrongSign        :   0.551724 +- 0.0923495 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   3950 
+Total number of D0s             :   1451 
+      Fraction of real D0s      :   0.367342 +- 0.00767046 
+      Total number of RS D0s    :   740 
+           D0s RightSign        :   0.509993 +- 0.0131235 
+           D0s WrongSign        :   0.490007 +- 0.0131235 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   1159 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Total number of candidates      :   1159 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DKspi;KsPiPi}       =   0.27681296411183 +/- 0.00882734494707566 C L(0 - 1)
+fmDBBPkg_{DKspi;KsPiPi}         =   0.216180266584899 +/- 0.0287072315626666 C L(0 - 1)
+Rbkg_{DKspi;KsPiPi}             =   0.27234347304279 +/- 0.00845149259159909 C L(0 - 1)
+fContGoodDRS_{DKspi;KsPiPi}     =   0.509993108201241 +/- 0.0187456974686438 C L(0 - 1)
+fBBGoodDRS_{DKspi;KsPiPi}        =   0.555852723974169 +/- 0.0745264678450611 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DKspi;KsPiPi}       =   0.025076 +/- 0.000399817 C L(0 - 1)
+fSigWSRS_{DKspi;KsPiPi}         =   0.481356 +/- 0.00806836 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D0k*, k*->kspi, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   31 
+Total number of D0s             :   17 
+      Fraction of real D0s      :   0.548387 +- 0.0893811 
+      Total number of RS D0s    :   5 
+           D0s RightSign        :   0.294118 +- 0.11051 
+           D0s WrongSign        :   0.705882 +- 0.11051 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   11 
+Total number of D0s             :   2 
+      Fraction of real D0s      :   0.181818 +- 0.116291 
+      Total number of RS D0s    :   1 
+           D0s RightSign        :   0.5 +- 0.353553 
+           D0s WrongSign        :   0.5 +- 0.353553 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   397 
+Total number of D0s             :   271 
+      Fraction of real D0s      :   0.68262 +- 0.0233606 
+      Total number of RS D0s    :   74 
+           D0s RightSign        :   0.273063 +- 0.0270642 
+           D0s WrongSign        :   0.726937 +- 0.0270642 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   88 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Total number of candidates      :   88 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DKspi;KsKK}       =   0.547382223103169 +/- 0.0319539027748739 C L(0 - 1)
+fmDBBPkg_{DKspi;KsKK}         =   0.452097637081463 +/- 0.133700962967081 C L(0 - 1)
+Rbkg_{DKspi;KsKK}             =   0.542312138165004 +/- 0.0311095389284369 C L(0 - 1)
+fContGoodDRS_{DKspi;KsKK}     =   0.273062730627306 +/- 0.0386586869331737 C L(0 - 1)
+fBBGoodDRS_{DKspi;KsKK}        =   0.315539785116995 +/- 0.185674335674192 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DKspi;KsKK}       =   0.024645 +/- 0.000404926 C L(0 - 1)
+fSigWSRS_{DKspi;KsKK}         =   0.471353 +/- 0.00830466 C L(0 - 1)
+

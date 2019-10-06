@@ -1,0 +1,77 @@
+#! /usr/bin/env python
+
+import sys
+
+#cutSigdlKs=sys.argv[1]
+
+#file="./ASCII_"+cutSigdlKs+"/bkg_MC_d0k_kspipi_chb_Bbest_Cut100.study"
+file="./ASCII/bkg_MC_d0k_kspipi_chb_Bbest_Cut100.study"
+f = open(file,'r')
+
+
+#B+ -> anti-D0 K+   anti-D0 -> pi- pi- pi+ pi+ gamma
+#B+ -> anti-D0 K+   anti-D0 -> pi- pi- pi+ pi+
+#B- -> D0 K-   D0 -> pi- pi- pi+ pi+
+#B- -> D0 K-   D0 -> pi- pi- pi+ pi+ gamma
+#B- -> D0 K- gamma   D0 -> pi- pi- pi+ pi+
+#---------------------------------------------------------------------------------------------------------
+
+
+bm="B- -> D0 K-   D0 -> pi- pi- pi+ pi+"
+bp="B+ -> anti-D0 K+   anti-D0 -> pi- pi- pi+ pi+"
+bmg="B- -> D0 K- gamma   D0 -> pi- pi- pi+ pi+"
+bpg="B+ -> anti-D0 K+ gamma   anti-D0 -> pi- pi- pi+ pi+"
+
+
+w=-1
+neg=-99
+nega=-99
+contf=0
+conts=0
+cont=0
+
+for line in f.readlines():
+
+    if w==1 :
+        winsec=line.find("Win second")
+        winfir=line.find("Win first")
+
+        if winsec!=-1 and neg==1:
+            print "one good"
+            w=-1
+            print line
+            contf=contf+1
+        elif winfir!=-1 and neg==-1:
+            print "one good"
+            print line
+            w=-1
+            conts=conts+1
+            
+            
+    a=line.find(bp)
+    b=line.find(bm)
+    c=line.find(bmg)
+    d=line.find(bpg)
+    
+
+    if a!= -1 or b!= -1 or c!= -1 or d!= -1:    
+        nega=line.find("-----------")
+        if nega!= -1 : 
+            neg=1
+        else:
+            neg=-1
+            
+        print line
+        w=1
+      #  print neg
+      #  print w
+                
+#
+#   
+ #    break
+
+cont=contf+conts
+print contf
+print conts
+print "Number of D->4pions: "+str(cont)
+f.close()

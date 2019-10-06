@@ -1,0 +1,28 @@
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run1:          9.72690206939                 (6322,105000)
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run2:          9.28351666444                 (18044,314000)
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run3:          9.33959954962                 (9539,165000)
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run4:          9.12730593141                 (28588,506000)
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run5:          8.86486170855                 (36436,664000)
+Mode btdkpi_d0pi0pi_kspipi_btdspi , Eficiencia, Run6:          8.8873438171                 (21730,395000)
+************************************************************************************
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run1:          11.6260467442                 (4651,105000)
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run2:          11.2559974589                 (13466,314000)
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run3:          11.4706116281                 (7211,165000)
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run4:          11.1418878964                 (21480,506000)
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run5:          10.7358568131                 (27160,664000)
+Mode btdkpi_d0gampi_kspipi_btdspi , Eficiencia, Run6:          10.4621415994                 (15745,395000)
+************************************************************************************
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run1:          8.80836987461                 (5725,105000)
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run2:          8.61210293981                 (16739,314000)
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run3:          8.85396778773                 (9043,165000)
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run4:          8.42778419866                 (26397,506000)
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run5:          8.03010101797                 (33005,664000)
+Mode btdkpi_d0pi0pi_kskk_btdspi , Eficiencia, Run6:          8.10453773951                 (19816,395000)
+************************************************************************************
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run1:          11.648543932                 (4660,105000)
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run2:          11.4039487102                 (13643,314000)
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run3:          11.6233198123                 (7307,165000)
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run4:          10.8861639331                 (20987,506000)
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run5:          10.3409701799                 (26161,664000)
+Mode btdkpi_d0gampi_kskk_btdspi , Eficiencia, Run6:          10.4063257916                 (15661,395000)
+************************************************************************************

@@ -1,0 +1,96 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsf@cob0257>
+Subject: Job 348123: <test> Exited
+
+Job <test> was submitted from host <yakut04> by user <neus>.
+Job was executed on host(s) <cob0257>, in queue <kanga>, as user <neus>.
+</u/br/neus> was used as the home directory.
+</u/br/neus/gamma08/DKDalitzMiniUser/selectionCode> was used as the working directory.
+Started at Thu Mar  5 07:56:41 2009
+Results reported at Thu Mar  5 07:56:42 2009
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+test
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time   :      0.11 sec.
+    Max Memory :         1 MB
+    Max Swap   :         4 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) is above this job summary.
+
+
+------------------------------------------------------------
+Sender: LSF System <lsf@cob0257>
+Subject: Job 351316: <test> Exited
+
+Job <test> was submitted from host <yakut04> by user <neus>.
+Job was executed on host(s) <cob0257>, in queue <kanga>, as user <neus>.
+</u/br/neus> was used as the home directory.
+</u/br/neus/gamma08/DKDalitzMiniUser/selectionCode> was used as the working directory.
+Started at Thu Mar  5 08:14:41 2009
+Results reported at Thu Mar  5 08:14:42 2009
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+test
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time   :      0.11 sec.
+    Max Memory :         1 MB
+    Max Swap   :         4 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) is above this job summary.
+
+
+------------------------------------------------------------
+Sender: LSF System <lsf@cob0258>
+Subject: Job 354963: <test> Exited
+
+Job <test> was submitted from host <yakut04> by user <neus>.
+Job was executed on host(s) <cob0258>, in queue <kanga>, as user <neus>.
+</u/br/neus> was used as the home directory.
+</u/br/neus/gamma08/DKDalitzMiniUser/selectionCode> was used as the working directory.
+Started at Thu Mar  5 08:46:26 2009
+Results reported at Thu Mar  5 08:46:27 2009
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+test
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time   :      0.08 sec.
+    Max Memory :         1 MB
+    Max Swap   :         4 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) is above this job summary.
+

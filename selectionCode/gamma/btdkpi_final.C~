@@ -1,0 +1,3638 @@
+#define btdkpi_final_cxx
+#include "btdkpi_final.h"
+#include <TH2.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <iomanip.h>
+#include <fstream.h>
+#include <TLorentzVector.h>
+#include <TMath.h>
+#include "RooFitCore/RooGlobalFunc.hh"
+//--------Dump tree ---------
+//#include "DumpEvt.h"
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <cstring>
+#include <cmath>
+//---------------------------
+
+using namespace RooFit;
+
+void btdkpi_final::Loop(TString KorPi, Int_t cut_code, Long64_t nentries)
+{
+  if (fChain==0) return;
+  
+  TCanvas* canvas= new TCanvas;
+  
+  // cut_code =    0     Pre-Selection Cuts      
+  // 100     All Cuts
+  // cut_code =    
+  // 1     mes
+  // 2     demk
+  // 3     massd0
+  // 4     massKs
+  // 5     cosKs
+  // 6     kaonid
+  // 7     costhrust
+  // 8     probchi2d0
+  // 9     probchi2chb        
+  // 10    deltadeltamd
+  // 112   (mes and demk)
+
+  
+  TH1F  *vect[12];
+  TFile *f[12];
+  
+  Int_t nbins(50);
+  TH1F* Tmes = new TH1F("mes","mES distribution",nbins,5.20,5.30); 
+  vect[0]=Tmes; 
+  TH1F* Tdemk = new TH1F("demk","DeltaE distribution",nbins,-0.2,0.2); 
+  vect[1]=Tdemk;
+  //TH1F* TmassD0 = new TH1F("massD0","D0 mass distribution",nbins,1.840,1.890); 
+  TH1F* TmassD0 = new TH1F("massD0","D0 mass distribution",nbins,1.80,1.94); 
+  vect[2]=TmassD0;
+  TH1F* TmassKs = new TH1F("massKs","Ks mass distribution",nbins,0.470,0.520);
+  vect[3]=TmassKs; 
+  TH1F* TcosKs = new TH1F("cosKs","CosthetaKs distribution",nbins,-1,1); 
+  vect[4]=TcosKs;
+  TH1F* Tkaonidpr = new TH1F("kaonidpr","kaonid distribution",12,0,11);
+  vect[5]=Tkaonidpr;
+  TH1F* Tcosthrust = new TH1F("costhrust","costhrust distribution",nbins,-1.0,1.0);
+  vect[6]=Tcosthrust; 
+  TH1F* TprobChi2D0 = new TH1F("probChi2D0","probabilitat del chi2 per a D0",40,0,1);
+  vect[7]= TprobChi2D0;
+  TH1F* TprobChi2ChB = new TH1F("probChi2ChB","probabilitat del chi2 per a Bch",40,0,1);
+  vect[8]= TprobChi2ChB;
+  TH1F* Tdeltadeltamd = new TH1F("deltadeltamd","DeltaDeltaD0 mass districution",nbins,-0.025,0.025);
+  vect[9]= Tdeltadeltamd;
+  TH1F* Tmulti_cand = new TH1F("multi_cand","Multiple Candidate distribution",10,1,10);
+  vect[10]=Tmulti_cand; 
+  TH1F* TSigdlKs = new TH1F("SigdlKs","SigdlKs distribution",nbins,-3000,4000);
+  vect[11]=TSigdlKs; 
+
+
+  TH1F* TfisherDK = new TH1F( "fisherDK", "Fisher discriminant", 60, -1.2, 1.2);
+
+  if (nentries<=0 || nentries>fChain->GetEntries()) nentries = Int_t(fChain->GetEntriesFast());
+  cout<< "Number of Entries = " <<nentries<<endl; 
+  cout<<endl; 
+  cout<<endl; 
+  
+  
+
+  Int_t nbytes(0), nb(0);
+  Int_t ncand(1);
+  Int_t runNumber_temp(0);
+  Int_t event_temp(0);
+
+  TString sel;
+  if(cut_code==0) sel="Precut";
+  if(cut_code!=0) {
+    sel="Finalcut";
+    if (cut_code!=100) {
+      sel.Append(vect[cut_code-1]->GetName());
+    }
+  }
+  Int_t ncreco=0;
+  Int_t ncrecomatch=0;
+  Int_t nereco=0;
+  Int_t nerecomatch=0;
+  for (Long64_t jentry=0; jentry<nentries;jentry++) 
+    {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) 
+	break;
+
+      nb = fChain->GetEntry(jentry);   
+      nbytes += nb;
+      
+      //fisherDK=0.6565-0.9160*fabs(costhrust)+0.0210*legendrep0-0.1186*legendrep2-0.3828*fabs(cosChBCM);//  with cut in costhrust
+      
+      //   fisherDK=0.8579-0.9422*fabs(costhrust)+0.0447*legendrep0-0.1819*legendrep2-0.2778*fabs(cosChBCM); // no cut in costhrust Nicola
+      //      fisherDK=0.93416-0.939082*fabs(costhrust)+0.0322243*legendrep0-0.207507*legendrep2-0.272079*fabs(cosChBCM);  // PRD
+      fisherDK=0.968912-0.943614*fabs(costhrust)+0.0161328*legendrep0-0.176824*legendrep2-0.279403*fabs(cosChBCM); //an-51
+
+      //Significancia del decay Lenght the KS
+      SigdlKs=decayLengthD0/sqrt(mydecayLengthCovD0);
+
+      if(Cut(KorPi,cut_code,kFALSE)<0) continue;
+
+      TfisherDK->Fill( fisherDK );
+
+      ncreco++; // counter after the cut
+      if(McEvtType==McEvt || McEvtType==McEvt2) 
+	ncrecomatch++; // counts candidats matched
+      
+      
+      //       Float_t fisherDK=(0.595+0.1372*coschbCM-0.2983*legendrep2+0.1172*legendrep0-1.6151*fabs(costhrust));
+      // 	TLorentzVector vkstarcpi0CM(pxkstarcpi0,pykstarcpi0,pzkstarcpi0,sqrt(pkstarcpi0*pkstarcpi0+mpi0_nom*mpi0_nom));
+      // 	vkstarcpi0CM.Boost(-pxUps/eUps,-pyUps/eUps,-pzUps/eUps);
+      // 	Float_t ekstarcpi0CM=vkstarcpi0CM.Energy();
+      // 	//definisco il numero di multipli candidati
+      // 	//if ( (runnumber_temp==runnumber) && (event_temp==event))
+      // 	// cncand++;
+      //        contador de multipli candidati
+      
+      if ( (runNumber_temp==runNumber) && (event_temp==event))
+	//same event
+	ncand++;
+      //  cout << "n cand = " << ncand<<endl;
+      else {
+	Tmulti_cand->Fill(ncand);
+	ncand=1;
+	runNumber_temp=runNumber;
+	event_temp=event;
+	nereco++; //contador de multipli candidati
+	if(McEvtType==McEvt || McEvtType==McEvt2) nerecomatch++;
+      }
+      //
+      // fill histograms
+
+      Tmes->Fill(mes); 
+      Tdemk->Fill(demk2); 
+      TmassD0->Fill(massD0); 
+      TmassKs->Fill(massKs); 
+      TSigdlKs->Fill(SigdlKs);
+      TcosKs->Fill(cosKs); 
+      // Kaon ID bitmap
+      if ((int(kaonidpr)&16)==16) Tkaonidpr->Fill(1);
+      else if ((int(kaonidpr)&1)==1) Tkaonidpr->Fill(2);
+      else if ((int(kaonidpr)&2)==2) Tkaonidpr->Fill(3);
+      else if ((int(kaonidpr)&4)==4) Tkaonidpr->Fill(4);
+      else if ((int(kaonidpr)&8)==8) Tkaonidpr->Fill(5);
+      else if ((int(kaonidpr)&1024)==1024) Tkaonidpr->Fill(6);
+      else if ((int(kaonidpr)&2048)==2048) Tkaonidpr->Fill(7);
+      else if ((int(kaonidpr)&4096)==4096) Tkaonidpr->Fill(8);
+      else if ((int(kaonidpr)&8192)==8192) Tkaonidpr->Fill(9);
+      else if ((int(kaonidpr)&16384)==16384) Tkaonidpr->Fill(10);
+      else Tkaonidpr->Fill(0);
+      Tcosthrust->Fill(costhrust);
+      TprobChi2ChB->Fill(probChi2ChB);
+      TprobChi2D0->Fill(probChi2D0);
+      Tdeltadeltamd->Fill(deltadeltamd);
+    }  
+  
+  
+  cout<<"contador candidatos reconstruidos="<<ncreco<<endl;
+  cout<<"contador candidatos reconstruidos y matched ="<<ncrecomatch<<endl;
+  cout<<"numero de multiples candidatos="<<nereco<<endl;
+  cout<<"numero de multiples candidatos matchados="<<nerecomatch<<endl;
+  cout<<"multiplicitat candidates="<<Double_t(ncreco)/Double_t(nereco)<<endl;
+  
+  if (ncrecomatch==0) nerecomatch=1;
+  cout<<"multiplicitat candidates match="<<Double_t(ncrecomatch)/Double_t(nerecomatch)<<endl;
+  // Double_t ef(0.);
+  // ef=Double_t(ncreco)/6580.;//kpi0
+  // ef=Double_t(ncreco)/4600.;//kspi
+  // cout<<"eficiencia="<<ef<<endl;
+ 
+  canvas->cd();
+  
+  Int_t style(1);
+  if (_super_sig_type=="btdsk"||_super_sig_type=="btdk"||_super_sig_type=="btdspi"||_super_sig_type=="btdpi") style=2;
+  if (_super_sig_type=="chb") style=3;
+  if (_super_sig_type=="chbk"||_super_sig_type=="chbpi") style=4;
+  if (_super_sig_type=="b0b0bar") style=5;
+  if (_super_sig_type=="bbbar") style=3;
+  //if (_super_sig_type=="bbbark"||_super_sig_type=="bbbarpi") style=4;
+  if (_super_sig_type=="uds")  style=6;
+  if (_super_sig_type=="ccbar")  style=7;
+  if (_super_sig_type=="udsccbar")  style=6;
+  cout << "Making histograms with style = " << style << endl;
+  
+  gStyle->SetOptFit(0);
+  gStyle->SetOptStat(111);
+
+  if (sel == TString("Precut") || cut_code > 100) 
+    { 
+      for (Int_t j=0;j<=11;j++)
+	{
+	  vect[j]->SetLineWidth(style);
+	  vect[j]->SetLineColor(style);
+	  vect[j]->SetFillColor(style);
+	  vect[j]->Draw();
+	  TString filename="HIST/"+sel+"_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".ps";
+	  canvas->SaveAs(filename);
+	  f[j]= new TFile("HIST/"+sel+"_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".root","recreate");
+	  f[j]->cd();
+	  vect[j]->Write();
+	  f[j]->Close();
+	  delete f[j]; 
+	}
+    } 
+  else if (cut_code == 100)
+    {
+      vect[10]->SetLineWidth(style);
+      vect[10]->SetLineColor(style);
+      vect[10]->SetFillColor(style);
+      vect[10]->Draw();
+      TString filename="HIST/"+sel+"multi_cand_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".ps";
+      canvas->SaveAs(filename);
+      f[10]= new TFile("HIST/"+sel+"multi_cand_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".root","recreate");
+      f[10]->cd();
+      vect[10]->Write();
+      f[10]->Close();
+      delete f[10]; 
+    }
+  else 
+    {
+      vect[cut_code-1]->SetLineWidth(style);
+      vect[cut_code-1]->SetLineColor(style);
+      vect[cut_code-1]->SetFillColor(style);
+      vect[cut_code-1]->Draw();
+      TString name(vect[cut_code-1]->GetName());
+      TString filename="HIST/"+sel+"_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".ps";
+      canvas->SaveAs(filename);    
+      f[cut_code-1]= new TFile("HIST/"+sel+"_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".root","recreate");
+      f[cut_code-1]->cd();
+      vect[cut_code-1]->Write();
+      f[cut_code-1]->Close();
+      delete f[cut_code-1]; 
+    }
+
+  TString sdec = "btdkpi_";
+  char cut_code_str[10];
+  sprintf(cut_code_str,"Cut%i",cut_code);
+  TString filename_ASCII="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_"+cut_code_str;
+
+  TFile* file = new TFile(filename_ASCII+".root","recreate");
+
+  TCanvas* canvasFisher = new TCanvas("canvasFisher","canvasFisher",500,500);
+
+  TfisherDK->Draw();  // Plot the Fisher discriminant into the canvas.
+  TfisherDK->Write(); // Save the plot into the opened file.
+
+  canvasFisher->Print(filename_ASCII+".eps");
+  canvasFisher->Print(filename_ASCII+".gif");
+
+  file->Close();
+  
+  //   delete Tmes;
+  //   delete Tdemk;
+  //   delete TmassD0;
+  //   delete TmassKs;
+  //   delete TcosKs;
+  //   delete Tkaonidpr;
+  //   delete Tcosthrust;
+  //   delete TprobChi2D0;
+  //   delete TprobChi2ChB;
+  //   delete Tmulti_cand;
+  
+}
+
+
+// it returns the inverse of chi-square using massD0 and massDstar0 (m0Dstar0Pi0).  
+// It returns the inverse of the chi-square in way that best the candidates are that one with 1/chi2 GREATER!!!!
+Double_t btdkpi_final::getchi(Float_t mPi0,Float_t mDstar0, Float_t mD0)
+{
+  Double_t massD0m, massD0s, massDstar0m, massPi0m, massPi0s;
+  Double_t deltadeltamd_cut = (_dstar0mode=="d0pi0") ? 0.0025 : 0.010;
+  // from signal MC
+  massD0m=1.8645;
+  massD0s=0.0073;
+  massDstar0m=2.0067;
+  massPi0m=0.135;
+  massPi0s=0.0075;
+  Double_t chi2(0.);
+  if(_dtype=="D0") {
+    chi2 = pow((mD0-massD0m),2)/pow(massD0s,2);
+  } else if(_dtype=="Dstar0" && _dstar0mode=="d0gam") {
+    chi2 = pow((mD0-massD0m),2)/pow(massD0s,2)+pow((mDstar0-mD0)-(massDstar0m-massD0m),2)/pow(deltadeltamd_cut,2);
+  } else if(_dtype=="Dstar0" && _dstar0mode=="d0pi0") {
+    chi2 = pow((mD0-massD0m),2)/pow(massD0s,2)+pow((mDstar0-mD0)-(massDstar0m-massD0m),2)/pow(deltadeltamd_cut,2)+pow((mPi0-massPi0m),2)/pow(massPi0s,2);
+  } 
+  // creo que faltan mas contribuciones
+  //cout<<"chi2 ="<<chi2<<endl;
+  Double_t invchi2 = 1./chi2;  
+  return invchi2;  
+}
+
+
+void btdkpi_final::LoopBest(TString KorPi, Int_t cut_code, Long64_t nentries, Int_t opt)
+{
+  // KorPi = k, pi ----> (B^-\to D(*)0 X) 
+  // Definisco il codice per il tipo di segnale e taglio
+  // cut_code =    0     Pre-Selection Cuts      
+  // 100     All Cuts
+  // cut_code =    
+  // 1     mes
+  // 2     demk
+  // 3     massd0
+  // 4     massKs
+  // 5     cosKs
+  // 6     kaonid
+  // 7     costhrust
+  // 8     probchi2d0
+  // 9     probchi2chb        
+  // 10    deltadeltamd
+  // cut_code =   112 (mes and demk)
+  //
+  // opt: 1=dump ascii file, 2=do not dump ascii file
+  //
+  gROOT->SetStyle("Plain");
+  if (fChain == 0) return;
+
+  char cut_code_str[10];
+  sprintf(cut_code_str,"Cut%i",cut_code);
+ 
+  TString sdec="btdkpi_";
+  TString outname="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+".dat";
+  TString outname_mispi0="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_mispi0.dat";
+  TString outname_fakeD0="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeD0.dat";
+  TString outname_matched="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_matched.dat";
+  TString outname_fakeB="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeB.dat";
+  TString outname_matchedB="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_matchedB.dat";
+  TString outname_fakeBfakepr="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeBfakepr.dat";
+  TString outname_fakeBfakeD="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeBfakeD.dat";
+  TString outname_fakeBtruepr="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeBtruepr.dat";
+  TString outname_fakeBtrueD="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_fakeBtrueD.dat";
+  TString outname_SigEfi="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+"_SigEfi.dat";
+
+
+
+  cout<< "file dat = "<< outname <<endl;
+  ofstream outfile(outname);
+  ofstream outfile_fakeD0(outname_fakeD0);
+  ofstream outfile_mispi0(outname_mispi0);
+  ofstream outfile_matched(outname_matched);
+  ofstream outfile_fakeB(outname_fakeB);
+  ofstream outfile_matchedB(outname_matchedB);
+  ofstream outfile_fakeBfakepr(outname_fakeBfakepr);
+  ofstream outfile_fakeBfakeD(outname_fakeBfakeD);
+  ofstream outfile_fakeBtruepr(outname_fakeBtruepr);
+  ofstream outfile_fakeBtrueD(outname_fakeBtrueD);
+  ofstream outfile_SigEfi(outname_SigEfi);
+
+  //
+  //TString outfile_name2="ASCII/bkg_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  //ofstream outfile2(outfile_name2);
+  //cout<<"outfile name = " <<outfile_name2<<endl;
+  //TString outfile_name3="ASCII/bkg_Mc_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  //ofstream outfile3(outfile_name3);
+  //cout<<"outfile name = " <<outfile_name3<<endl;
+
+  /*
+  //-------------- VIR -------------------
+  TString outfile_name21="ASCII/bkg_p_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  ofstream outfile21(outfile_name21);
+  cout<<"outfile name = " <<outfile_name21<<endl;
+  TString outfile_name22="ASCII/bkg_COMB_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  ofstream outfile22(outfile_name22);
+  cout<<"outfile name = " <<outfile_name22<<endl;
+
+  TString outfile_name31="ASCII/bkg_p_Mc_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  ofstream outfile31(outfile_name31);
+  cout<<"outfile name = " <<outfile_name31<<endl;
+  TString outfile_name32="ASCII/bkg_COMB_Mc_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  ofstream outfile32(outfile_name32);
+  cout<<"outfile name = " <<outfile_name32<<endl;
+  */
+
+  TString outfile_name_BkgTree="ASCII/bkg_MC_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str+".study";
+  ofstream outfile_BkgTree(outfile_name_BkgTree);
+  cout<<"outfile name BkgTree = " <<outfile_name_BkgTree<<endl;
+
+
+  /*
+  //-------------- %  VIR ----------------
+
+  TString outfile_name4="ASCII/bkg_Number_"+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+".study";
+  ofstream outfile4(outfile_name4);
+  cout<<"outfile name = " <<outfile_name4<<endl;
+  */  
+
+  //  Float_t mdstar0_nom = 2.0067; 
+  //Float_t mD0_nom=1.8645;
+  Float_t mKs_nom=0.49767;
+  Float_t mPi_nom=0.13957;
+  //Float_t mpi0_nom=0.13498;
+  Float_t mK_nom=0.49368;
+  Float_t mTrk_nom = (_d0mode=="kspipi")? mPi_nom : mK_nom ;
+  //
+  Int_t nbins(50);
+  TH1F* Tm12 = new TH1F("Tm12","delta q12-m12 distribution",nbins,-0.04,0.04);
+  TH1F* Tm13 = new TH1F("Tm13","delta q13-m13 distribution",nbins,-0.04,0.04);
+  TH1F* Tm23 = new TH1F("Tm23","delta q23-m23 distribution",nbins,-0.04,0.04);
+  TH2F* Tdalitz = new TH2F("Tdalitz","Dalitz plot q12:q13",nbins*2,0,4.,nbins*2,0,4.);
+  //TH1F* Tmulti_cand = new TH1F("Tmulti_cand","Multiple Candidate distribution",10,1.0,10);
+  TH2F* Tmesdemk = new TH2F("Tmesdemk","mES-DeltaE distribution",nbins,roomes->getMin(),roomes->getMax(),nbins,roodemk->getMin(),roodemk->getMax()); 
+  //
+  //  TH1F  *vect[3];
+  TH1F  *vect[16];
+
+  TH1F* Tmes = new TH1F("mes","mES distribution",nbins,roomes->getMin(),roomes->getMax()); 
+  vect[0]=Tmes;
+  TH1F* Tdemk = new TH1F("demk","DeltaE distribution",nbins,roodemk->getMin(),roodemk->getMax()); 
+  vect[1]=Tdemk;
+  TH1F* TfisherDK = new TH1F("fisherDK","fisher distribution",nbins,roofisherDK->getMin(),roofisherDK->getMax()); 
+  //  TH1F* TfisherDK = new TH1F("fisherDK","fisher distribution",nbins,roofisherDK->getMin(),1.5); 
+  vect[2]=TfisherDK;
+  TH1F* TpD0 = new TH1F("TpD0","pD0 distribution",nbins,0,7.);
+  vect[3]=TpD0;
+  TH1F* TpD0CM = new TH1F("TpD0CM","pD0CM distribution",nbins,0,7.);
+  vect[4]=TpD0CM;
+
+  TH1F* Tcosthrust = new TH1F("costhrust","costhrust distribution",nbins,-1,1.);
+  vect[5]=Tcosthrust;
+  TH1F* TmassKs = new TH1F("massKs","massKs distribution",nbins,0.475,0.52);
+  vect[6]=TmassKs;
+  TH1F* Tq23 = new TH1F("q23","q23 distribution",nbins,0,2.2);
+  vect[7]=Tq23;
+  TH1F* TcoshelyDstar0 = new TH1F("coshelyDstar0","coshelicity of DStar0",nbins,-1.1,1.1);
+  vect[8]=TcoshelyDstar0;
+  TH1F* Tegam = new TH1F("egam","Energy distribution of gamma",nbins,0,0.8);
+  vect[9]=Tegam;
+  TH1F* Tdeltadeltamd=new TH1F ("deltadeltamd","deltadeltamd distribution",nbins,-0.020,0.025);
+  vect[10]=Tdeltadeltamd;
+  TH1F* TmassD0matched = new TH1F ("massD0matched","massD0 distribution",nbins,1.84,1.89);
+  vect[11]=TmassD0matched;
+  TH1F* Tmulti_cand = new TH1F("Tmulti_cand","Multiple Candidate distribution",10,1.0,10);
+  vect[12]=Tmulti_cand;
+  TH1F* TSigdlKs = new TH1F("TSigdlKs","SigdlKs distribution",nbins,-300,4000);
+  vect[13]=TSigdlKs;
+  TH1F* TmassD0fake = new TH1F ("massD0fake","massD0 distribution",nbins,1.84,1.89);
+  vect[14]=TmassD0fake;
+  //  TmassD0fake->GetYaxis()->SetRange(0.,1700);
+  TmassD0fake->SetMinimum(0.);
+  TH1F* TmassD0 = new TH1F ("massD0","massD0 distribution",nbins,1.84,1.89);
+  vect[15]=TmassD0;
+
+ //
+  TH1F* Tmes_BkgTreeChMC5matches = new TH1F("mes BkgTreeChMC5matches","mES distribution BkgTreeChMC5matches",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tmes_BkgTreeChMC5matchesNothingelse = 
+    new TH1F("mes BkgTreeChMC5matchesNothingelse","mES distribution BkgTreeChMC5matchesNothingelse",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tmes_BkgTreeChMC4matches = new TH1F("mes BkgTreeChMC4matches","mES distribution BkgTreeChMC4matches",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tmes_BkgTreeChMC3matches = new TH1F("mes BkgTreeChMC3matches","mES distribution BkgTreeChMC3matches",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tmes_BkgTreeChMC2matches = new TH1F("mes BkgTreeChMC2matches","mES distribution BkgTreeChMC2matches",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tmes_BkgTreeAllMCmatches = new TH1F("mes BkgTreeAllMCmatches","mES distribution BkgTreeAllMCmatches",nbins,roomes->getMin(),roomes->getMax()); 
+  TH1F* Tdemk_BkgTreeChMC5matches = new TH1F("demk BkgTreeChMC5matches","DeltaE distribution BkgTreeChMC5matches",nbins,roodemk->getMin(),roodemk->getMax()); 
+  TH1F* Tdemk_BkgTreeChMC5matchesNothingelse = 
+    new TH1F("demk BkgTreeChMC5matchesNothingelse","DeltaE distribution BkgTreeChMC5matchesNothingelse",nbins,roodemk->getMin(),roodemk->getMax()); 
+  TH1F* Tdemk_BkgTreeChMC4matches = new TH1F("demk BkgTreeChMC4matches","DeltaE distribution BkgTreeChMC4matches",nbins,roodemk->getMin(),roodemk->getMax()); 
+  TH1F* Tdemk_BkgTreeChMC3matches = new TH1F("demk BkgTreeChMC3matches","DeltaE distribution BkgTreeChMC3matches",nbins,roodemk->getMin(),roodemk->getMax()); 
+  TH1F* Tdemk_BkgTreeChMC2matches = new TH1F("demk BkgTreeChMC2matches","DeltaE distribution BkgTreeChMC2matches",nbins,roodemk->getMin(),roodemk->getMax()); 
+  TH1F* Tdemk_BkgTreeAllMCmatches = new TH1F("demk BkgTreeAllMCmatches","DeltaE distribution BkgTreeAllMCmatches",nbins,roodemk->getMin(),roodemk->getMax()); 
+
+  TH1F* resq12 = new TH1F("resq12","resq12",nbins,-0.02,0.02);
+  TH1F* resq13 = new TH1F("resq13","resq13",nbins,-0.02,0.02);
+  TH1F* resq23 = new TH1F("resq23","resq23",nbins,-0.02,0.02);
+
+
+  RooDataSet* dataset = new RooDataSet("dataset","dataset",roovars);
+
+  //########################################
+  
+  //Int_t indexB[7]={0};
+  Int_t goodindex(0);
+  Int_t badindex(0);
+  Int_t number(0);
+  Int_t back(0);              //VIR
+  //  Int_t softPionnumber(0);//VIR
+  Int_t indexOFless(0),indexOFequal(0),indexOFmore(0), withgamma(0),with2gamma(0), unknown(0); //VIR
+
+  Int_t prevrun(0);
+  Int_t prevev(0);
+  Int_t debug(0);
+  //
+  Bool_t isfirst=true;
+  Int_t mul(0);              // event multiplicity
+  Int_t istrue(0);           // multiplicity for true events
+  Int_t num1(0);             // number of events with mul=1
+  Int_t num1t(0);            // number of candidats true with  mul=1
+  Int_t num1f(0);            // number of false candidates with mul=1
+  Int_t numtrue(0);          // number of events with mul>1 and a true candidate
+  Int_t numfalse(0);         // number of events with mul>1 and none true candidates
+  Int_t totcand(0);          // total number of candidates
+  Int_t totevt(0);           // total number of events
+  Int_t num_right_choice(0); // number of events with mul>1 in wich it was choosen a true candidate. 
+  Int_t num_wrong_choice(0); // number of events with mul>1 in wich it was choosen a false candidate. 
+  Int_t ntot(0);//
+
+  Double_t multiplicity(0);
+
+  Double_t actualprob(0);
+  Int_t actualevent(0);
+  Int_t actualrunNumber(0);
+  Int_t actualupperID;
+  Int_t actuallowerID;
+  Double_t actualmassD0(0);
+  Double_t actualmes(0);
+  Double_t actualdemk(0);
+  Int_t actualChBtruth(0);
+  Float_t actualm12(0);    
+  Float_t actualm13(0);    
+  Float_t actualm23(0);
+ 
+  Float_t actualq12_truth(0);    
+  Float_t actualq13_truth(0);    
+  Float_t actualq23_truth(0);  
+  Int_t actualchargeB_truth(0);  
+
+  Float_t actualfisherDK(0);
+  Float_t actualppr(0);
+  Float_t actualbeta_gamma(0);
+  Int_t actualchargeB(0);
+  Float_t actualq12(0);
+  Float_t actualq13(0);
+  Float_t actualq23(0);
+  Int_t actualMcEvtType(0);
+
+  Double_t actualSigdlKs(0);
+  Double_t actualmassKs(0);
+  Float_t actualcosthrust(0);
+
+  Int_t actualisMcD0(0);
+  Int_t actualisMcD0Matched(0);
+  Int_t actualisMcD0id(0);
+  Int_t totD0bc(0);          //total number of best candidates with matched D0
+  Int_t actuallundpr(0);
+  Int_t totprRSbc(0);        //total number of best candidates with matched D0 and a K-/pi-, or matched anti-D0 and a K+/pi+
+
+  Int_t totD0(0);            //total number of candidates with matched D0, w/o bc choice
+  Int_t totprRS(0); 
+  Int_t totSigWSbc(0);       //total number of best candidates WS signal
+  Int_t totSigWS(0);         //total number of candidates WS signal
+
+  Int_t RSignWSignalbc(0);
+  Int_t RightSignalbc(0);
+  Int_t WSignalbc(0);
+
+
+  Int_t actualisMcDstar0Pi0(0);
+  Int_t actualisMcDstar0Gam(0);
+  Float_t actualmassDstar0(0); 
+  Float_t actualpD0(0);
+  Float_t actualpD0CM(0);
+  
+  //Int_t actualismcdstar0pi0id(0);
+  //Int_t actualismcdstar0gamid(0);
+  //Int_t totdstar0pi0(0);
+  //Int_t totdstar0gam(0);  
+  //Int_t totdstar0pi0bc(0);  //total number of best candidates with matched pi0
+  //Int_t totdstar0gambc(0);  //total number of best candidates with matched gamma
+  
+  Int_t actualjentry(0);
+
+  Int_t totBkgTreeChMC5matches(0);
+  Int_t totBkgTreeChMC5matchesNothingelse(0);
+  Int_t totBkgTreeChMC4matches(0);
+  Int_t totBkgTreeNeuMCmatches(0);
+  Int_t totBkgTreeAllMCmatches(0);
+  Int_t totBkgTreeChMC5matchesPid(0);
+  Int_t totBkgTreeChMC5matchesPidNothingelse(0);
+  Int_t totBkgTreeChMC4matchesPid(0);
+  Int_t totBkgTreeNeuMCmatchesPid(0);
+  Int_t totBkgTreeAllMCmatchesPid(0);
+
+  Int_t* chargedDauFirstB = new Int_t[30];
+  Int_t* chargedDauSecondB = new Int_t[30];
+  Int_t* chargedDauSoftFirstB = new Int_t[30];
+  Int_t* chargedDauSoftSecondB = new Int_t[30];
+  Int_t* neutralDauFirstB = new Int_t[30];
+  Int_t* neutralDauSecondB = new Int_t[30];
+  Int_t* neutralDauSoftFirstB = new Int_t[30];
+  Int_t* neutralDauSoftSecondB = new Int_t[30];
+
+  
+
+  Float_t actualcoshelyDstar0 (0);
+  Double_t actualegam(0);
+  Double_t actualdeltadeltamd(0);
+  //##############################################
+  //
+  //
+  if (fChain == 0) return;
+  
+  if (nentries<=0 || nentries>fChain->GetEntries()) nentries = Int_t(fChain->GetEntries());
+  cout<< "Number of Entries = " <<nentries<<endl; 
+  
+  // codes for B decay code (ASCII file)
+  Int_t bdecay_code = (_dstar0mode=="d0pi0")? 1 : ( (_dstar0mode=="d0gam")? 2 : 0 ) ; // 0=D0K, 1=D0pi0K, 2=D0gamK
+  Int_t ddecay_code = (_d0mode=="kspipi")? 1 : 2 ;   // 1=kspipi, 2=kskk
+  Int_t bdecay_type_code = (KorPi=="k")? 1000 : 2000 ; // 1000=k, 2000=pi
+  
+  Int_t nbytes = 0, nb = 0;
+  
+  Int_t conttotal=0;
+  Int_t contsameD0=0;
+  Int_t contsamepr=0;
+  Int_t contdiffD0=0;
+  Int_t contdiffpr=0;
+
+
+  for (Int_t jentry=0; jentry<nentries;jentry++) 
+
+    {
+      
+      Int_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   
+      nbytes += nb;
+      //      cout<<"-------------\n"<<endl;
+      //cout<<"ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+
+      /////////   fisher studies             
+      // Float_t fisherDK=(0.595+0.1372*cosChBCM-0.2983*legendrep2+0.1172*legendrep0-1.6151*fabs(costhrust));  ///  old!!!!!!!!!
+      //fisherDK=0.6565-0.9160*fabs(costhrust)+0.0210*legendrep0-0.1186*legendrep2-0.3828*fabs(cosChBCM);//  with cut in costhrust
+      //fisherDK=0.8579-0.9422*fabs(costhrust)+0.0447*legendrep0-0.1819*legendrep2-0.2778*fabs(cosChBCM); // Nicola
+   // fisherDK=0.93416-0.939082*fabs(costhrust)+0.0322243*legendrep0-0.207507*legendrep2-0.272079*fabs(cosChBCM); //PRD
+      fisherDK=0.968912-0.943614*fabs(costhrust)+0.0161328*legendrep0-0.176824*legendrep2-0.279403*fabs(cosChBCM); //an-51
+
+      //Significancia del dl del KS
+      SigdlKs=decayLengthD0/sqrt(mydecayLengthCovD0);
+
+      //   cout<<"before: isMcDstar0Pi0="<<actualisMcDstar0Pi0<<endl;   
+      //if(!isMcD0)continue;   //per al xfeed!!
+      if(Cut(KorPi,cut_code,kFALSE)<0) continue;
+      //cout<<"after: isMcDstar0Pi0="<<actualisMcDstar0Pi0<<endl;
+
+      //      cout<<"after cut!!!"<<endl;
+
+      number=0;
+      back=0;   //VIR
+
+      Float_t ppr2=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr);
+      Float_t mk=0.49368;
+
+      //   TLorentzVector p4ChB(pxChB,pyChB,pzChB,sqrt(pxChB*pxChB+pyChB*pyChB+pzChB*pzChB+massChB*massChB));
+      TLorentzVector p4ChB(pxChB,pyChB,pzChB,eDstar0 + sqrt(ppr2*ppr2+mk*mk));      
+      TLorentzVector p4Dstar0(pxDstar0,pyDstar0,pzDstar0,eDstar0);
+      TLorentzVector p4D0(pxD0,pyD0,pzD0,eD0);
+      Double_t egam= sqrt(pxDstar0Gam*pxDstar0Gam +pyDstar0Gam*pyDstar0Gam+ pzDstar0Gam*pzDstar0Gam);
+
+      Double_t egampi01=sqrt(pxDstar0Pi0g1*pxDstar0Pi0g1+pyDstar0Pi0g1*pyDstar0Pi0g1+pzDstar0Pi0g1*pzDstar0Pi0g1);
+      Double_t egampi02=sqrt(pxDstar0Pi0g2*pxDstar0Pi0g2+pyDstar0Pi0g2*pyDstar0Pi0g2+pzDstar0Pi0g2*pzDstar0Pi0g2);
+
+      Double_t pxDstarp0 = (_dstar0mode=="d0pi0")? pxDstar0Pi0 : (_dstar0mode=="d0gam")? pxDstar0Gam : -999;
+      Double_t pyDstarp0 = (_dstar0mode=="d0pi0")? pyDstar0Pi0 : (_dstar0mode=="d0gam")? pyDstar0Gam : -999;
+      Double_t pzDstarp0 = (_dstar0mode=="d0pi0")? pzDstar0Pi0 : (_dstar0mode=="d0gam")? pzDstar0Gam : -999;
+      Double_t eDstarp0 = (_dstar0mode=="d0pi0")? eDstar0Pi0 : (_dstar0mode=="d0gam")? egam : -999;
+
+      TLorentzVector p4p0(pxDstarp0,pyDstarp0,pzDstarp0,eDstarp0);
+
+
+
+      //      Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+      Float_t coshelyDstar0=CosHely(p4ChB,p4Dstar0,p4D0);
+
+      Float_t pD0=sqrt(pxD0*pxD0+pyD0*pyD0+pzD0*pzD0);
+      Float_t pD0CM=pcmsD0;
+      //TLorentzVector p4cmsD0(pxD0,pyD0,pzD0,eD0);
+      //TVector3 boostVector(pxUps/eUps,pyUps/eUps,pzUps/eUps);
+      //p4cmsD0.Boost(-boostVector);
+      //Float_t pD0CM=sqrt(p4cmsD0.Px()*p4cmsD0.Px()+p4cmsD0.Py()*p4cmsD0.Py()+p4cmsD0.Pz()*p4cmsD0.Pz());
+     
+      // if event accepted, calculate relevant variables for the fit (data members)
+      Int_t ChBtruth= (McEvtType==McEvt || McEvtType==McEvt2) ? 1 : 0;
+      Int_t chargeB= (lundpr>0) ? 1 : 0;
+      Float_t eD0Pi1=sqrt(pxD0Pi1*pxD0Pi1+pyD0Pi1*pyD0Pi1+pzD0Pi1*pzD0Pi1+mTrk_nom*mTrk_nom);
+      Float_t eD0Pi2=sqrt(pxD0Pi2*pxD0Pi2+pyD0Pi2*pyD0Pi2+pzD0Pi2*pzD0Pi2+mTrk_nom*mTrk_nom);
+      Float_t eKs=sqrt(pxKs*pxKs+pyKs*pyKs+pzKs*pzKs+mKs_nom*mKs_nom);
+      TLorentzVector vKs,vPi1,vPi2;
+      vKs.SetPxPyPzE(pxKs,pyKs,pzKs,eKs);
+      vPi1.SetPxPyPzE(pxD0Pi1,pyD0Pi1,pzD0Pi1,eD0Pi1);
+      vPi2.SetPxPyPzE(pxD0Pi2,pyD0Pi2,pzD0Pi2,eD0Pi2);
+      Float_t m12=(lundD0Pi1>0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2p
+      Float_t m13=(lundD0Pi1<0)? (vKs+vPi1).Mag2() : (vKs+vPi2).Mag2() ;  // m2m
+      Float_t m23=(vPi1+vPi2).Mag2();  // m2z
+         
+      Float_t ppr=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr); // cm del prompt
+      //cout << lundmcd0pi1 << " " << lundmcd0pi2 << endl;
+      Float_t beta_gamma=pzUps/sqrt(eUps*eUps-pxUps*pxUps-pyUps*pyUps-pzUps*pzUps); // boost
+      Float_t q12(0.),q13(0.),q23(0.);
+      // evaluate and apply scaling factor
+      //TLorentzVector vKsscal(vKs),vPqi1scal(vPi1),vPi2scal(vPi2);
+      //Double_t alpha;
+      //alpha = Rescaling(vKsscal,vpi1scal,vpi2scal,md0_nom,vks.Mag(),vpi1.Mag(),vpi2.Mag());
+      //q12 = (vksscal+vpi1scal).Mag2();
+      //q13 = (vksscal+vpi2scal).Mag2();
+      //q23 = (vpi1scal+vpi2scal).Mag2(); 
+      // get Dalitz variables from rootuple
+      q12 = m2pDalitzD0;
+      q13 = m2mDalitzD0;
+      q23 = m2zDalitzD0;
+      
+      //   assert(q12>0 && q23>0 && q13>0);       
+      
+      Float_t* dalVarsTruthInfo = new Float_t[4];
+      for(Int_t i=0;i<4;i++) dalVarsTruthInfo[i]=-999;
+      dalVarsTruth(ChBtruth,dalVarsTruthInfo);
+      Int_t chargeB_truth = (Int_t) dalVarsTruthInfo[0];
+      Float_t q12_truth = dalVarsTruthInfo[1];
+      Float_t q13_truth = dalVarsTruthInfo[2];
+      Float_t q23_truth = dalVarsTruthInfo[3];
+
+      Float_t DalCut = (_d0mode=="kskk")? 2. : 3.1;
+      Float_t mD0trk =  (_d0mode=="kskk")? 0.493677 : 0.13957018;
+      
+      if(q12>DalCut || q13>DalCut){
+	cout<<"jentry: "<<jentry<<"   q12: "<<q12<<"   q13: "<<q13<<"   q23: "<<q23<<"   massD0-1.8645: "<<massD0-1.8645<<endl;
+	cout<<"sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(0.497648*0.497648)-(2*mD0trk*mD0trk))-1.8645)<<" sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645: "<<fabs(sqrt(q12+q13+q23-(massKs*massKs)-(2*mD0trk*mD0trk))-1.8645)<<endl;
+	cout<<endl;
+      }
+      
+  
+         // counting w/o bc choice
+      Int_t isMcD0id = idMc[mothMc[indexMcD0Pi1]-1];
+      if (_dtype=="D0") {
+	if (isMcD0) {
+	  totD0++;
+	  if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+	}
+	if ( ( (isMcD0id==-421 && lundpr==-321) || (isMcD0id==421 && lundpr==321) ) && 
+	     ( (KorPi=="k" && (McEvtType&3841==3841 || McEvtType&3842==3842))||
+	       (KorPi=="pi" && (McEvtType&12032==12032 || McEvtType&20224==20224)) ) ) totSigWS++;
+      } else if (_dtype=="Dstar0") {
+	if (_dstar0mode=="d0pi0") {
+	  //totdstar0pi0++;
+          //if(isMcD0 && isMcDstar0Pi0) {
+	  if(isMcD0) {
+	    totD0++;     
+	    if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+	  }
+	  if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+	      ( ( KorPi=="k" && (McEvtType&3865==3865 || McEvtType&3866==3866))||
+		( KorPi=="pi" && (McEvtType&12056==12056 || McEvtType&20248==20248)) ) ) totSigWS++;
+	} else if (_dstar0mode=="d0gam") { 
+	  //totdstar0gam++;
+          //if(isMcD0 && isMcDstar0Gam) {
+	  if(isMcD0) {
+	    totD0++;
+	    if ( (isMcD0id==421 && lundpr==-321) || (isMcD0id==-421 && lundpr==321) ) totprRS++;
+	  }
+	  if( ( (isMcD0id==421 && lundpr==321) || (isMcD0id==-421 && lundpr==-321) )&&
+	      ( ( KorPi=="k" && (McEvtType&3873==3873 || McEvtType&3874==3874))||
+		( KorPi=="pi" && (McEvtType&12064==12064 || McEvtType&20256==20256)) ) ) totSigWS++;
+	}
+      }
+      //      cout<<"actualmes BEFORE BESTCAND=  "<<actualmes<<"   MES  ="<<mes<<endl;      
+      //################################################################
+      //################### best candidate selection ###################
+      //################################################################
+      //	cout<<"ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+      if(event==prevev && runNumber==prevrun)
+	{
+	  //cout<<"***************************************************  same event"<<endl;	  
+	  //cout<<"event= "<<event<<"   prevev ="<<prevev<<"  runNumber ="<<runNumber<<"  prevrun= "<<prevrun<<endl;
+	  
+	  // SAME EVENT
+
+	  conttotal++;
+
+	  Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+	  if (debug) {
+	    cout<<"Questo evento e' uguale al precedente"<<endl;
+	    cout<<"event="<<event<<endl;
+	    cout<<"mes="<<mes<<endl;
+	    cout<<"massD0="<<massD0<<endl;
+	    cout<<"massDstar0="<<massDstar0<<endl;
+	    cout<<"m0Dstar0Pi0="<<m0Dstar0Pi0<<endl;
+	    cout<<"thisprob="<<thisprob<<endl;
+	  }
+
+  
+	    if(massD0==actualmassD0){
+	      //cout<<"same D0"<<endl;
+	      contsameD0++;
+	    }
+	    if(!(massD0==actualmassD0)){
+	      // cout<<"different D0"<<endl;
+	      contdiffD0++;
+	    }
+	    if(ppr==actualppr){
+	      //cout<<"same ppr"<<endl;
+	      contsamepr++;
+	    }
+	    if(!(ppr==actualppr)){ 
+	      //cout<<"different ppr"<<endl;
+	      contdiffpr++;
+	    }
+
+
+
+	  if (thisprob>actualprob) {
+	    if (debug) cout<<"la prob di questo cand e' > del precedente cand"<<endl;
+	    	    
+	    actualevent=event;
+	    actualrunNumber=runNumber;
+	    actualupperID=upperID;
+	    actuallowerID=lowerID;
+	    actualmassD0=massD0;
+	    actualmassDstar0=massDstar0;
+	    actualmes=mes;
+	    actualcoshelyDstar0=coshelyDstar0;
+	    actualdemk=demk2;
+	    actualdeltadeltamd=deltadeltamd;
+	    actualChBtruth=ChBtruth;	    
+	    actualfisherDK=fisherDK;
+	    actualppr=ppr;
+	    actualbeta_gamma=beta_gamma;
+	    actualchargeB=chargeB;
+	    actualMcEvtType=McEvtType;
+	    actualq12=q12;
+	    actualq13=q13;
+	    actualq23=q23;
+
+	    actualq12_truth=q12_truth;
+	    actualq13_truth=q13_truth;
+	    actualq23_truth=q23_truth;
+	    actualchargeB_truth=chargeB_truth;
+
+	    actualm12=m12;
+	    actualm13=m13;
+	    actualm23=m23;
+	    actualcosthrust=costhrust;
+
+	    actualSigdlKs=SigdlKs;
+	    actualmassKs=massKs;
+	    actualprob=thisprob;
+	    actualisMcDstar0Pi0=isMcDstar0Pi0;
+	    actualisMcDstar0Gam=isMcDstar0Gam;
+	    actualisMcD0=isMcD0;
+	    actualisMcD0Matched=isMcD0Matched;
+	    actuallundpr=lundpr;
+	    //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+	    //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+	    actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+	    actualpD0=pD0;
+	    actualpD0CM=pD0CM;
+	    // actuallunddstar0=lunddstar0;
+	    // actuallundd0=lundd0;
+	    actualjentry=jentry;
+	  }
+	  else {
+	    // cout<<"getchi"<<thisprob<<endl;  //lascia tutto invariato
+	  }
+
+	  //fine valutazione probabilita'
+	  //
+	  mul++;
+	  prevev=event;
+	  prevrun=prevrun;
+	  //parte di verita' in eventi con mul>1
+	  if (ChBtruth==1) istrue++;
+	}
+
+      else {
+	// EVENT CHANGED
+
+	//	cout<<"event changed"<<endl;
+	//cout<<"ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+	//cout<<"event= "<<event<<"   prevev ="<<prevev<<"  runNumber ="<<runNumber<<"  prevrun= "<<prevrun<<endl;
+	if (!isfirst)
+	  {
+	    //ORA SI OCCUPA DELL'EVENTO PRECEDENTE
+	    //valuta la probabilita' dell'evento precedente
+	    if (debug) {
+	      cout<<endl<<"La probabilita' dell'ev precedente e' "<<actualprob<<endl;
+	      cout<<"actualdemk dell'ev precedente = "<<actualdemk<<endl;
+	    }
+	    if (opt==1) {
+	      outfile_SigEfi<<actualSigdlKs<<endl;
+	      outfile<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		     <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+		     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<" "
+		     <<actualcoshelyDstar0<<" "<<actualegam<<" "<<actualdeltadeltamd<<endl; 
+	      
+	      //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcDstar0Pi0==0) ||
+              //     (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcDstar0Gam==0) ||
+              //     (_dtype=="D0" && actualisMcD0==0) )
+	      //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcD0==0) ||
+	      //   (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcD0==0) ||
+	      //   (_dtype=="D0" && actualisMcD0==0) )
+
+	      if( 
+		 // (KorPi=="k" && !(actualMcEvtType&3841==3841 || actualMcEvtType&3842==3842)) ||
+		 //(KorPi=="pi" && !(actualMcEvtType&12032==12032 || actualMcEvtType&20224==20224)) 
+		 (!isMcD0Matchedfunction(actualisMcD0Matched))
+		 )
+		outfile_fakeD0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			      << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			      <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			      <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			      <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			      <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+	      //if(actualMcEvtType==McEvt || actualMcEvtType==McEvt2)
+	      if(isMcD0Matchedfunction(actualisMcD0Matched))
+		outfile_matched<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			       << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			       <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+			       <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			       <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			       <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+
+	       if(actualisMcDstar0Pi0)
+		 outfile_mispi0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			       << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			       <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+			       <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			       <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			       <<actualrunNumber<<" "<<actuallowerID<< " "<<actualupperID<<endl;
+	      //B Truth matched
+	     	      
+	      if(isMcBMatchedfunction(actualMcEvtType,KorPi)){
+		outfile_matchedB<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+				<< actualq12 << " " << actualq13 << " " << actualq23 << " " 
+				<<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+				<<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+				<<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+				<<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		//	cout<<"mcEvtType="<<actualMcEvtType<<endl;
+	      }
+
+	      if(!(isMcBMatchedfunction(actualMcEvtType,KorPi))){
+		outfile_fakeB<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			     <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		
+		if(!(isMcprMatchedfunction(actualMcEvtType, KorPi)))
+		  outfile_fakeBfakepr<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+				     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+				     <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+				     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+				     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+				     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		
+	
+		if((isMcprMatchedfunction(actualMcEvtType, KorPi)))
+		  outfile_fakeBtruepr<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+				     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+				     <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+				     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+				     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+				     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		
+		if((isMcD0Matchedfunction_matchedB(actualMcEvtType, KorPi)))
+		  outfile_fakeBtrueD<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+				    << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+				    <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+				    <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+				    <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+				    <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		
+		
+		
+		if(!(isMcD0Matchedfunction_matchedB(actualMcEvtType, KorPi))){
+		  outfile_fakeBfakeD<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+				    << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+				    <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+				    <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+				    <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+				    <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+		
+		  // cout<<"mcEvtType="<<actualMcEvtType<<endl;
+		}
+	      }
+	      
+	      roomes->setVal(actualmes);
+	      roodemk->setVal(actualdemk);
+	      roomassD0->setVal(actualmassD0);
+	      if(_dtype=="Dstar0") roomassDstar0->setVal(actualmassDstar0);
+	      roofisherDK->setVal(actualfisherDK);
+	      dataset->add(roovars);
+	      //
+	      if(
+		 (actualq12_truth != -999) &&
+		 (actualq13_truth != -999) &&
+		 (actualq23_truth != -999) &&                                        
+		 (actualq23_truth > 0.99726) &&                                                    
+		 (actualq23_truth < 1.04156) 
+		 )
+	      {
+		resq12->Fill(actualq12-actualq12_truth);
+		resq13->Fill(actualq13-actualq13_truth);
+		resq23->Fill(actualq23-actualq23_truth);
+	      }
+
+
+	      
+
+	      //	      cout<<"actualmes dumped=  "<<actualmes<<"   MES  ="<<mes<<endl;      
+
+	      TfisherDK->Fill(actualfisherDK);
+	      Tmes->Fill(actualmes);
+	      TcoshelyDstar0->Fill(actualcoshelyDstar0);
+	      Tegam->Fill(actualegam);
+	      Tdeltadeltamd->Fill(actualdeltadeltamd);
+
+
+
+	      //fake D0
+	      if(isMcD0Matchedfunction(actualisMcD0Matched))  TmassD0matched->Fill(actualmassD0);
+	      if(!isMcD0Matchedfunction(actualisMcD0Matched))  TmassD0fake->Fill(actualmassD0);
+	      TmassD0->Fill(actualmassD0);
+
+	      Tdemk->Fill(actualdemk);
+	      Tm12->Fill(actualq12-actualm12);
+	      Tm13->Fill(actualq13-actualm13);
+	      Tm23->Fill(actualq23-actualm23);
+	      Tdalitz->Fill(actualq12,actualq13);
+	      Tcosthrust->Fill(actualcosthrust);
+	      TSigdlKs->Fill(actualSigdlKs);
+	      TmassKs->Fill(actualmassKs);
+	      Tq23->Fill(actualq23);
+	      Tmesdemk->Fill(actualmes,actualdemk);
+	      TpD0->Fill(actualpD0);
+	      TpD0CM->Fill(actualpD0CM);
+	      //cout << actualmcEvtType << endl;
+
+
+	      //cout<<"BEFORE IF ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+
+	      //if (cut_code==100) {
+	      //	      if (cut_code==100 || cut_code==1 || cut_code==2) {
+	      if (cut_code==100 || cut_code==1 || cut_code==2 || cut_code==114) {
+	
+
+		//		cout<<"inside if bug"<<endl;
+		// get actualjentry
+	 	ientry = LoadTree(actualjentry);
+ 		if (ientry < 0) break;
+ 		nb = fChain->GetEntry(actualjentry); 
+	
+
+		//	cout<<"AFTER IF ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+		
+		//	cout<<"before ** BKG_TREE_MC:  event= "<<event<<"   prevev ="<<prevev<<"  runNumber ="<<runNumber<<"  prevrun= "<<prevrun<<endl;	
+		//bkg_tree(KorPi,outfile2,ientry);
+		//cout<<"indexB[]before = ["<<indexB[0]<<"  ";
+		//cout<< indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3]<<"  "<<indexB[4]<<"]"<<endl;
+
+
+		//bkg_tree(KorPi,outfile2,ientry,indexB);
+		//cout<<"before BKG_TREE_MC:  event= "<<event<<"   prevev ="<<prevev<<"  runNumber ="<<runNumber<<"  prevrun= "<<prevrun<<endl;
+
+
+		Int_t out = bkg_tree_MC(KorPi,
+					chargedDauFirstB,neutralDauFirstB,chargedDauSoftFirstB,neutralDauSoftFirstB,
+					chargedDauSecondB,neutralDauSecondB,chargedDauSoftSecondB,neutralDauSoftSecondB,
+					outfile_BkgTree,ientry,actualrunNumber,actuallowerID,actualupperID);
+		//
+		if (out&1) totBkgTreeChMC5matches++;
+		if (out&1 && out&16384) totBkgTreeChMC5matchesNothingelse++;
+		if (out&2) totBkgTreeChMC4matches++;
+		if (out&128) totBkgTreeNeuMCmatches++;
+		if (out&256) totBkgTreeAllMCmatches++;
+		if (out&1 && out&512) totBkgTreeChMC5matchesPid++;
+		if (out&2 && out&512) totBkgTreeChMC4matchesPid++;
+		if (out&128 && out&512) totBkgTreeNeuMCmatchesPid++;
+		if (out&256 && out&512) totBkgTreeAllMCmatchesPid++;
+		//
+
+		if (out&1) Tmes_BkgTreeChMC5matches->Fill(mes);
+		if (out&1 && out&16384) Tmes_BkgTreeChMC5matchesNothingelse->Fill(mes);
+		if (out&2) Tmes_BkgTreeChMC4matches->Fill(mes);
+		if (out&4) Tmes_BkgTreeChMC3matches->Fill(mes);
+		if (out&8) Tmes_BkgTreeChMC2matches->Fill(mes);
+		if (out&256) Tmes_BkgTreeAllMCmatches->Fill(mes);
+		if (out&1 && out&&512) Tdemk_BkgTreeChMC5matches->Fill(demk);
+		if (out&1 && out&&512 && out&16384) Tdemk_BkgTreeChMC5matchesNothingelse->Fill(demk);
+		if (out&2 && out&&512) Tdemk_BkgTreeChMC4matches->Fill(demk);
+		if (out&4 && out&&512) Tdemk_BkgTreeChMC3matches->Fill(demk);
+		if (out&8 && out&&512) Tdemk_BkgTreeChMC2matches->Fill(demk);
+		if (out&256 && out&&512) Tdemk_BkgTreeAllMCmatches->Fill(demk);
+
+
+
+		/*
+		cout<<endl;
+		cout<<"entry # : "<<ientry<<endl;
+	       	//cout<<"indexB[]before = ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  ";
+		//cout<<<indexB[3]<<"  "<<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<endl;
+		
+		if(_dtype=="D0"){
+		  indexB[5] = indexB[6] = indexB[7] = indexB[0];
+		}
+		else if(_dtype=="Dstar0" &&  _dstar0mode=="d0pi0"){
+		  indexB[6] = indexB[7] = indexB[0] ;
+		}
+		else if(_dtype=="Dstar0" && _dstar0mode=="d0gam"){
+		  indexB[5] = indexB[0];
+		}
+
+
+		cout<<"indexB after= ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3];
+		cout<<      "  "       <<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<"]"<<endl;
+		
+
+		if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])&&(indexB[4]==indexB[5])&&(indexB[5]==indexB[6])&&(indexB[6]==indexB[7])){
+
+		  cout<<"agreement of B index !!!! "<<endl;
+		  goodindex++;
+		  //cout<<"goodindex="<<goodindex<<endl;
+		  bkg_tree(KorPi,outfile21,ientry,indexB);
+		  bkg_tree_MC(KorPi,outfile31,ientry);
+
+		  back=bkg_tree_number(0,indexB[0],outfile4,actualjentry);
+		  
+		  cout<<"final state # particles ="<<back<<endl;
+		  
+		  ////--------------------VIR
+		  
+		  // no peaking events
+		  if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+		  if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+		  if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+
+		  // mES peaking events
+
+		  if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+		  if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+		  if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+		  if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+		  if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+		  if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+		  if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+		  if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+		  if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+		  if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+
+		  // maybe/not peaking events
+		  if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+		  if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+		  if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+		  if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+		  if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+		  if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+		  
+		  /////////////////////////////
+		  //if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+		  //if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+		  //if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+		  //if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+		  //if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+		  //if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+ 		  //if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+		  //if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+		  //if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+		  /////////////////////////////
+
+		  
+		  if(back==194  || back==1134 || back==2124) indexOFless++;
+		  if(back==255|| back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+		  if(back==316  || back==356 || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+		     
+
+		  cout<<"indexOFless: "<<indexOFless<<endl;		  
+		  cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+		  cout<<"indexOFmore: "<<indexOFmore<<endl;
+
+		
+		  if(back==194 || back==1134 || back== 2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+		    cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+		  } 
+		  else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+		    withgamma++;
+		    cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+		  }
+		  else if (back==307 || back==387 ||back==317){
+		    with2gamma++;
+		    cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+		  }
+		  else {
+		    unknown++;
+		    cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+		  }      
+		  ////--------------------VIR
+
+		}
+		else{
+		  cout<<"combinatorial error !!!! :("<<endl;
+		  badindex++;
+		  bkg_tree(KorPi,outfile22,ientry,indexB);
+		  bkg_tree_MC(KorPi,outfile32,ientry);
+		  //cout<<"# combinatorial events: "<<badindex<<endl;
+		  cout<<endl;
+		}
+		//bkg_tree_MC(KorPi,outfile3,ientry);
+		// retrieve jentry
+		ientry = LoadTree(jentry);
+		if (ientry < 0) break;
+		nb = fChain->GetEntry(jentry); 
+
+		*/
+		//		cout<<"after BKG_TREE_MC:  event= "<<event<<"   prevev ="<<prevev<<"  runNumber ="<<runNumber<<"  prevrun= "<<prevrun<<endl;
+	      
+
+		// RETRIEVE the current EVENT
+
+	 	ientry = LoadTree(jentry);
+  		if (ientry < 0) break;
+  		nb = fChain->GetEntry(jentry); 
+
+		//	cout<<"AFTER IF ientry = "<<ientry<<"  actualjentry = "<<actualjentry<<endl;
+	      }
+	      
+	    } else if (opt==2) {
+	      //outfile<<mul<<endl; 
+	    } else assert(0);
+	    
+	    totcand+=mul;
+	    totevt++;
+	   
+	    
+	    //	    cout<<"totevt (after loop)="<<totevt<<endl;
+	    //	    cout<<"totcand (after loop)="<<totcand<<endl;
+
+
+
+	    //   cout<<"actualMcEvtType="<<actualMcEvtType<<endl;
+	    //   if(actualMcEvtType&12036==12036)   cout<<"holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"<<endl;	   
+	  
+	    if (_dtype=="D0") {
+	      if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+		totD0bc++;
+		if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;	      
+		//	if ( (actualisMcD0id==-421 && actuallundpr==-321) || (actualisMcD0id==421 && actuallundpr==321) ) totSigWSbc++;//??
+		
+	      }
+	      
+	      //Nou! ########################### per la càlcul de right sign in wrong signal
+	      if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+		if(isMcprMatchedfunction(actualMcEvtType, KorPi))
+		  RightSignalbc++;
+		else {
+		  WSignalbc++;
+		  if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+		}
+	      }
+	    }
+
+	    else if (_dtype=="Dstar0") {
+	      if(isMcD0Matchedfunction(actualisMcD0Matched)){
+		totD0bc++;     
+		if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+		
+	      }
+	      //Nou!   ########################### per la calcul de right sign in wrong signal
+	      if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+		if( isMcDstar0Matchedfunction(actualMcEvtType) && isMcprMatchedfunction(actualMcEvtType, KorPi) )RightSignalbc++; 
+		if( isMcDstar0Matchedfunction(actualMcEvtType) && !isMcprMatchedfunction(actualMcEvtType, KorPi) ){
+		  WSignalbc++;
+		  if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+		}
+		
+	      }
+	      
+	    }
+	    
+	  
+	    
+	    //
+	    if (mul>1) ((istrue>0)?numtrue++:numfalse++);
+	    if (mul>1 && istrue>0 && actualChBtruth==1) num_right_choice++;	
+	    if (mul>1 && istrue>0 && actualChBtruth==0) num_wrong_choice++;
+	    if (mul==1) num1++;
+	    if (mul==1) ((istrue>0)? num1t++:num1f++);
+	    
+	    
+	    //ORA SI OCCUPA DEL NUOVO EVENTO: 
+	    //valuta la probabilita' di questo evento
+	    
+	    Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+	    //	
+
+
+	    //	    cout<<"actualmes dumped (after bkg_tree)=  "<<actualmes<<"   MES  ="<<mes<<endl;      
+      
+	    actualevent=event;
+	    actualrunNumber=runNumber;
+	    actualupperID=upperID;
+	    actuallowerID=lowerID;
+	    actualmassD0=massD0;	
+	    actualmassDstar0=massDstar0; 
+	    actualmes=mes;
+	    actualcoshelyDstar0=coshelyDstar0;
+	    actualegam=egam;
+	    actualdeltadeltamd=deltadeltamd;
+	    actualdemk=demk2;
+	    actualChBtruth=ChBtruth;
+	    actualfisherDK=fisherDK;
+	    actualppr=ppr;
+	    actualbeta_gamma=beta_gamma;
+	    actualchargeB=chargeB;
+	    actualMcEvtType=McEvtType;
+	    actualm12=m12;
+	    actualm13=m13;
+	    actualm23=m23;
+	    actualq12=q12;
+	    actualq13=q13;
+	    actualq23=q23;
+	    actualq12_truth=q12_truth;
+	    actualq13_truth=q13_truth;
+	    actualq23_truth=q23_truth;
+	    actualchargeB_truth=chargeB_truth;
+
+	    actualSigdlKs=SigdlKs;
+	    actualmassKs=massKs;
+	    actualcosthrust=costhrust;	
+	    actualprob=thisprob;
+	    actualisMcD0=isMcD0; 
+	    actualisMcD0Matched=isMcD0Matched; 
+	    actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+	    actualpD0=pD0;
+	    actualpD0CM=pD0CM;
+	    //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+	    //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+	    actuallundpr=lundpr; 
+	    actualjentry=jentry;
+	    actualisMcDstar0Pi0=isMcDstar0Pi0;
+	    actualisMcDstar0Gam=isMcDstar0Gam;
+	    //
+	    //	    cout<<"actualmes new event=  "<<actualmes<<"   MES  ="<<mes<<endl;      
+
+	    if (debug) {
+	      cout<<"event="<<event<<endl;
+	      cout<<"mes="<<mes<<endl;
+	      cout<<"massD0="<<massD0<<endl;
+	      cout<<"massDstar0="<<massDstar0<<endl;
+	      cout<<"la probab di questo evento e' "<<actualprob<<endl;
+	      cout<<"actualdemk di questo evento e' "<<actualdemk<<endl;
+	    }
+	    Tmulti_cand->Fill(mul);
+	    mul=1;
+	    istrue=0;
+	    prevev=event;
+	    prevrun=runNumber;
+	    //parte di verita' in eventi con mul>1
+	    if (ChBtruth==1) istrue++;
+	  }//end !isfirst
+	
+	else {// start ifirst cond
+
+	  Double_t thisprob=getchi(m0Dstar0Pi0,massDstar0,massD0);
+	  //	      
+	  //cout<<"probabilidad = "<<thisprob<<endl;
+	  actualevent=event;
+	  actualrunNumber=runNumber;
+	  actualupperID=upperID;
+	  actuallowerID=lowerID;
+	  actualmassD0=massD0;	
+	  actualmassDstar0=massDstar0; 
+	  actualmes=mes;
+	  actualcoshelyDstar0=coshelyDstar0;
+	  actualegam=egam;
+	  actualdeltadeltamd=deltadeltamd;
+	  actualdemk=demk2;
+	  actualChBtruth=ChBtruth;
+	  actualfisherDK=fisherDK;
+	  actualppr=ppr;
+	  actualbeta_gamma=beta_gamma;
+	  actualchargeB=chargeB;
+	  actualMcEvtType=McEvtType;
+	  actualm12=m12;
+	  actualm13=m13;
+	  actualm23=m23;	
+	  actualq12=q12;
+	  actualq13=q13;
+	  actualq23=q23;
+	  actualq12_truth=q12_truth;
+	  actualq13_truth=q13_truth;
+	  actualq23_truth=q23_truth;
+	  actualchargeB_truth=chargeB_truth;
+
+	  actualSigdlKs=SigdlKs;
+	  actualmassKs=massKs;
+	  actualcosthrust=costhrust;
+	  actualprob=thisprob;
+	  actualisMcD0=isMcD0; 
+	  actualisMcD0Matched=isMcD0Matched; 
+	  actualisMcD0id=idMc[mothMc[indexMcD0Pi1]-1];
+	  //actualismcdstar0pi0id=idMc[mothMc[indexmcdstar0pi0]-1];
+	  //actualismcdstar0gamid=idMc[mothMc[indexmcdstar0gam]-1];
+	  actuallundpr=lundpr; 
+	  actualjentry=jentry;
+	  actualisMcDstar0Pi0=isMcDstar0Pi0;
+	  actualisMcDstar0Gam=isMcDstar0Gam;
+	  //	
+	  if (debug) {
+	    cout<<"event="<<event<<endl;
+	    cout<<"mes="<<mes<<endl;
+	    cout<<"massD0="<<massD0<<endl;
+	    cout<<"massDstar0="<<massDstar0<<endl;
+	    cout<<"thisprob="<<thisprob<<endl;
+	  }
+	  //fine valutazione probabilita'
+
+	  //setta a false il flag isfirst
+	  isfirst=false;
+	  mul=1;
+	  istrue=0;
+	  prevev=event;
+	  prevrun=runNumber;
+	  //parte di verita' in eventi con mul>1
+	  if (ChBtruth==1) istrue++;
+	}
+	
+      }//**** end big else
+
+      ntot++;
+
+    }  // end loop over roople entries
+
+  //###################################################################################
+  
+  //###################################################################################
+  
+  // once I get out of loop, I do a check over the last event of the loop, out of control for code constructionion.
+  
+  totcand+=mul;
+  totevt++;
+
+  //  cout<<"totevt (after loop)="<<totevt<<endl;
+  //cout<<"totcand (after loop)="<<totcand<<endl;
+
+
+  //hola
+  //
+  //
+
+  if (_dtype=="D0") {
+    if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+      totD0bc++;
+      if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;	      
+      //	if ( (actualisMcD0id==-421 && actuallundpr==-321) || (actualisMcD0id==421 && actuallundpr==321) ) totSigWSbc++;//??
+      
+    }
+    
+    //Nou! ########################### per la càlcul de right sign in wrong signal
+    if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+      if(isMcprMatchedfunction(actualMcEvtType, KorPi))
+	RightSignalbc++;
+		else {
+		  WSignalbc++;
+		  if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+		}
+    }
+  }
+  
+  else if (_dtype=="Dstar0") {
+    if(isMcD0Matchedfunction(actualisMcD0Matched)){
+      totD0bc++;     
+      if ( (actualisMcD0id==421 && actuallundpr==-321) || (actualisMcD0id==-421 && actuallundpr==321) ) totprRSbc++;
+      
+    }
+    //Nou!   ########################### per la calcul de right sign in wrong signal
+    if (isMcD0Matchedfunction(actualisMcD0Matched)) {
+      if( isMcDstar0Matchedfunction(actualMcEvtType) && isMcprMatchedfunction(actualMcEvtType, KorPi) )RightSignalbc++; 
+      if( isMcDstar0Matchedfunction(actualMcEvtType) && !isMcprMatchedfunction(actualMcEvtType, KorPi) ){
+	WSignalbc++;
+	if((actualisMcD0id==-421 && actuallundpr==321) || (actualisMcD0id==421 && actuallundpr==-321))  RSignWSignalbc++;
+      }
+      
+    }
+    
+  }
+  
+  
+  
+  //
+  //
+  //
+  if (mul>1) ((istrue>0)?numtrue++:numfalse++);
+  if (mul>1 && istrue>0 && actualChBtruth==1)num_right_choice++;
+  if (mul>1 && istrue>0 && actualChBtruth==0)num_wrong_choice++;
+  if (mul==1) num1++;
+  if (mul==1) ((istrue>0)?num1t++:num1f++);
+  Tmulti_cand->Fill(mul); 
+  //
+  if (opt==1) {
+    
+    outfile_SigEfi<<SigdlKs<<endl;
+    outfile<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+	   << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+	   <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+	   <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+	   <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+	   <<actualrunNumber<<" "<<actuallowerID<< " "<<actualupperID<<" "
+	   <<actualcoshelyDstar0<<" "<<actualegam<<" "<<actualdeltadeltamd<<endl; 
+    
+    //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcDstar0Pi0==0) ||
+    //     (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcDstar0Gam==0) ||
+    //     (_dtype=="D0" && actualisMcD0==0) )
+    //if ( (_dtype=="Dstar0" && _dstar0mode=="d0pi0" && actualisMcD0==0) ||
+    // (_dtype=="Dstar0" && _dstar0mode=="d0gam" && actualisMcD0==0) ||
+    // (_dtype=="D0" && actualisMcD0==0) )
+
+    if(actualisMcDstar0Pi0)
+      outfile_mispi0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		    << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		     <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+		    <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		    <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		    <<actualrunNumber<<" "<<actuallowerID<< " "<<actualupperID<<endl;
+
+    if(! isMcD0Matchedfunction(actualisMcD0Matched) )
+      outfile_fakeD0<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		    << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		    <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+		    <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		    <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		    <<actualrunNumber<<" "<<actuallowerID<< " "<<actualupperID<<endl;
+    
+    if(isMcD0Matchedfunction(actualisMcD0Matched))
+      outfile_matched<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		     << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		     <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+		     <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		     <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		     <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+    
+    if(isMcBMatchedfunction(actualMcEvtType,KorPi))
+      outfile_matchedB<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		      << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		      <<actualchargeB_truth << " " <<actualq12_truth << " " << actualq13_truth<< " " << actualq23_truth<< " "
+		      <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		      <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		      <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+    
+
+
+    if(!isMcBMatchedfunction(actualMcEvtType,KorPi)){
+      outfile_fakeB<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+		   << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+		   <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+		   <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+		   <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+		   <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+      
+      if(!(isMcprMatchedfunction(actualMcEvtType, KorPi)))
+	outfile_fakeBfakepr<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			   << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			   <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			   <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			   <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			   <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+      
+      
+      if((isMcprMatchedfunction(actualMcEvtType, KorPi)))
+	outfile_fakeBtruepr<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			   << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			   <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			   <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			   <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			   <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+      
+      if((isMcD0Matchedfunction_matchedB(actualMcEvtType, KorPi)))
+	outfile_fakeBtrueD<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			  << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			  <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			  <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			  <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			  <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+      
+      
+      
+      if(!(isMcD0Matchedfunction_matchedB(actualMcEvtType, KorPi)))
+	outfile_fakeBfakeD<<"1"<<" "<< bdecay_type_code+100*bdecay_code+ddecay_code << " " <<" " << actualchargeB<<" " 
+			  << actualq12 << " " << actualq13 << " " << actualq23 << " " 
+			  <<"0" << " " <<"0" << " " << "0"<< " " << "0"<< " "
+			  <<actualdemk << " " << actualppr << " " << actualbeta_gamma<< " " 
+			  <<actualmes << " " << actualmassD0 << " " <<" " << actualfisherDK<< " " 
+			  <<actualrunNumber <<" "<<actuallowerID<< " "<<actualupperID<<endl; 
+      
+      
+     
+    }
+    
+    roomes->setVal(actualmes);
+    roodemk->setVal(actualdemk);
+    roomassD0->setVal(actualmassD0);
+    if(_dtype=="Dstar0") roomassDstar0->setVal(actualmassDstar0);
+    roofisherDK->setVal(actualfisherDK);
+    dataset->add(roovars);
+    //
+    if(
+       (actualq12_truth != -999) &&
+       (actualq13_truth != -999) &&
+       (actualq23_truth != -999) &&                                                       
+       (actualq23_truth > 0.99726) &&                                                    
+       (actualq23_truth < 1.04156)                                                        
+       ){
+      resq12->Fill(actualq12-actualq12_truth);
+      resq13->Fill(actualq13-actualq13_truth);
+      resq23->Fill(actualq23-actualq23_truth);
+    }
+    TfisherDK->Fill(actualfisherDK);
+    Tmes->Fill(actualmes);
+    TcoshelyDstar0->Fill(actualcoshelyDstar0);
+    Tdeltadeltamd->Fill(actualdeltadeltamd);
+    TmassD0->Fill(actualmassD0);
+    Tegam->Fill(actualegam);
+    Tdemk->Fill(actualdemk);
+    Tm12->Fill(actualq12-actualm12);
+    Tm13->Fill(actualq13-actualm13);
+    Tm23->Fill(actualq23-actualm23);
+    Tq23->Fill(actualq23);
+    Tcosthrust->Fill(actualcosthrust);
+    TSigdlKs->Fill(actualSigdlKs);
+    TmassKs->Fill(actualmassKs);
+    Tdalitz->Fill(actualq12,actualq13);
+    Tmesdemk->Fill(actualmes,actualdemk);   
+    TpD0->Fill(actualpD0);
+    TpD0CM->Fill(actualpD0CM);
+
+    //if (cut_code==100) {
+
+    
+    //  cout<<"totevt (BEFORE bkg_tree_MC)= "<<totevt<<endl;
+
+
+    //    if (cut_code==100 || cut_code==1 || cut_code==2 )  { //original '09 /10/08/09
+    if (cut_code==100 || cut_code==1 || cut_code==2 || cut_code==114)  {
+      // get actualjentry
+      Int_t ientry = LoadTree(actualjentry);
+      nb = fChain->GetEntry(actualjentry);
+      //      bkg_tree(KorPi,outfile2,ientry);
+
+      //bkg_tree(KorPi,outfile2,ientry,indexB);
+
+      Int_t out = bkg_tree_MC(KorPi,
+			      chargedDauFirstB,neutralDauFirstB,chargedDauSoftFirstB,neutralDauSoftFirstB,
+			      chargedDauSecondB,neutralDauSecondB,chargedDauSoftSecondB,neutralDauSoftSecondB,
+			      outfile_BkgTree,ientry,actualrunNumber,actuallowerID,actualupperID);
+      //
+      if (out&1) totBkgTreeChMC5matches++;
+      if (out&1 && out&16384) totBkgTreeChMC5matchesNothingelse++;
+      if (out&2) totBkgTreeChMC4matches++;
+      if (out&128) totBkgTreeNeuMCmatches++;
+      if (out&256) totBkgTreeAllMCmatches++;
+      if (out&1 && out&512) totBkgTreeChMC5matchesPid++;
+      if (out&1 && out&512 && out&16384) totBkgTreeChMC5matchesPidNothingelse++;
+      if (out&2 && out&512) totBkgTreeChMC4matchesPid++;
+      if (out&128 && out&512) totBkgTreeNeuMCmatchesPid++;
+      if (out&256 && out&512) totBkgTreeAllMCmatchesPid++;
+      //
+      if (out&1) Tmes_BkgTreeChMC5matches->Fill(mes);
+      if (out&1 && out&16384) Tmes_BkgTreeChMC5matchesNothingelse->Fill(mes);
+      if (out&2) Tmes_BkgTreeChMC4matches->Fill(mes);
+      if (out&4) Tmes_BkgTreeChMC3matches->Fill(mes);
+      if (out&8) Tmes_BkgTreeChMC2matches->Fill(mes);
+      if (out&256) Tmes_BkgTreeAllMCmatches->Fill(mes);
+      if (out&1 && out&&512) Tdemk_BkgTreeChMC5matches->Fill(demk);
+      if (out&1 && out&&512 && out&16384) Tdemk_BkgTreeChMC5matchesNothingelse->Fill(demk);
+      if (out&2 && out&&512) Tdemk_BkgTreeChMC4matches->Fill(demk);
+      if (out&4 && out&&512) Tdemk_BkgTreeChMC3matches->Fill(demk);
+      if (out&8 && out&&512) Tdemk_BkgTreeChMC2matches->Fill(demk);
+      if (out&256 && out&&512) Tdemk_BkgTreeAllMCmatches->Fill(demk);
+
+
+      //      cout<<"totevt (INSIDE bkg_tree_MC)= "<<totevt<<endl;
+
+      /*
+
+      cout<<endl;
+      
+      cout<<"entry # : "<<ientry<<endl;
+      //cout<<"index_first B = "<<indexB[0]<<endl;
+      
+      if(_dtype=="D0"){
+      indexB[5] = indexB[6] = indexB[7] = indexB[0];
+      }
+      else if(_dtype=="Dstar0" &&  _dstar0mode=="d0pi0"){
+	indexB[6] = indexB[7] = indexB[0] ;
+      }
+      else if(_dtype=="Dstar0" && _dstar0mode=="d0gam"){
+	indexB[5] = indexB[0];
+      }
+      
+      cout<<"indexB after= ["<<indexB[0]<<"  "<<indexB[1]<<"  "<<indexB[2]<<"  "<<indexB[3];
+      cout<<"  "<<indexB[4]<<"  "<<indexB[5]<<"  "<<indexB[6]<<"  "<<indexB[7]<<"]"<<endl;
+      
+      
+      if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])&&(indexB[4]==indexB[5])&&(indexB[5]==indexB[6])&&(indexB[6]==indexB[7])){
+	//if((indexB[0]==indexB[1])&&(indexB[1]==indexB[2])&&(indexB[2]==indexB[3])&&(indexB[3]==indexB[4])){
+	
+	cout<<"agreement of B index !!!! "<<endl;
+	goodindex++;
+	//cout<<"goodindex="<<goodindex<<endl;
+	
+	bkg_tree(KorPi,outfile21,ientry,indexB);
+	bkg_tree_MC(KorPi,outfile31,ientry);
+	
+	back = bkg_tree_number(0,indexB[0],outfile4,actualjentry); //VIR
+	cout<<"final state # particles ="<<back <<endl;
+	
+	
+	////--------------------VIR
+	
+	// no peaking events
+	if(back==194)     cout<<"number: 4,   pi+: 3, pi0: 1                              "<<endl;
+	if(back==1134)    cout<<"number: 4,   pi+: 2, pi0: 1, K+: 1                       "<<endl;
+	if(back==2124)    cout<<"number: 4,   pi+: 2,         K+: 2                       "<<endl;
+	
+	// mES peaking events
+	
+	if(back==255)     cout<<"number: 5,   pi+: 4, pi0:1                               "<<endl;
+	if(back==305)     cout<<"number: 5,   pi+: 5                                      "<<endl;
+	if(back==345)     cout<<"number: 5,   pi+: 4,                e+: 1                "<<endl;
+	if(back==385)     cout<<"number: 5,   pi+: 3,                e+: 2                "<<endl;
+	if(back==845)     cout<<"number: 5,   pi+: 4,                        mu: 1        "<<endl;
+	if(back==1245)    cout<<"number: 5,   pi+: 4,         K+ :1                       "<<endl;
+	if(back==1385)    cout<<"number: 5,   pi+: 3,                        mu: 2        "<<endl;
+	if(back==1785)    cout<<"number: 5,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+	if(back==2185)    cout<<"number: 5,   pi+: 3,         K+: 2                       "<<endl;
+	if(back==2725)    cout<<"number: 5,   pi+: 2,         K+: 2,         mu: 1, nu:1------review!"<<endl;
+	
+	// maybe/not peaking events
+	if(back==316)     cout<<"number: 6,   pi+: 5, pi0: 1                              "<<endl;
+	if(back==356)     cout<<"number: 6,   pi+: 4, pi0: 1,        e-: 1 ,        nu:1-----review!"<<endl;
+	if(back==366)     cout<<"number: 6,   pi+: 6                                      "<<endl;
+	if(back==1256)    cout<<"number: 6,   pi+: 5, pi0: 1, K+: 1                       "<<endl;
+	if(back==2196)    cout<<"number: 6,   pi+: 3, pi0: 1, K+ :2                       "<<endl;
+	if(back==101786)  cout<<"number: 6,   pi+: 3,         K+: 1,         mu: 1, nu:1  "<<endl;
+	
+	/////////////////////////////
+	//if(back==306)  cout<<"number: 6,   pi+: 5,        gamma: 1 "<<endl;
+	//if(back==346)  cout<<"number: 6,   pi+: 4, e+: 1, gamma: 1 "<<endl;
+	//if(back==386)  cout<<"number: 6,   pi+: 3, e+: 2, gamma: 1 "<<endl;
+	//if(back==846)  cout<<"number: 6,   pi+: 3, mu: 1, gamma: 1 "<<endl;
+	//if(back==1246) cout<<"number: 6,   pi+: 4, K+: 2, gamma: 1------review!"<<endl;
+	//if(back==2186) cout<<"number: 6,   pi+: 3, K+: 1, gamma: 1------review!"<<endl;
+	//if(back==307)  cout<<"number: 7,   pi+: 5,        gamma: 2 "<<endl;
+	//if(back==317)  cout<<"number: 7,   pi+: 5, pi0:1  gamma: 1 "<<endl;
+	//if(back==387)  cout<<"number: 7,   pi+: 3, e+: 2, gamma: 2 "<<endl;
+	/////////////////////////////
+	
+	
+	if(back==194 || back==1134 || back==2124) indexOFless++;
+	if(back==255 || back==305  || back==345 || back==385 || back==845  || back==1245   || back==1385 || back==1785|| back==2185 || back==2725) indexOFequal++;
+	if(back==316 || back==356  || back==366 || back==1256|| back==2196 || back==101786)indexOFmore++;
+	
+	
+	cout<<"indexOFless: "<<indexOFless<<endl;		  
+	cout<<"indexOFequal: "<<indexOFequal<<endl;		  
+	cout<<"indexOFmore: "<<indexOFmore<<endl;
+	
+	
+	if(back==194 || back==1134 || back==2124 || back==255 || back==305 || back==345 || back==385 || back==845|| back==1245   || back==1385 || back==1785 || back==2185|| back==2725 || back==316 || back==356 || back==366 ||back==1256|| back==2196||  back==101786){
+	  cout <<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+	} 
+	else if (back==306 || back==346 || back==386 || back==846 || back==1246 || back==2186){
+	  withgamma++;
+	  cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  1 photon !!!! =  "<<withgamma<<endl;
+	}
+	else if (back==307 || back==387 ||back==317){
+	  with2gamma++;
+	  cout<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state   +  2 photon !!!! =  "<<with2gamma<<endl;
+	}
+	else {
+	  unknown++;
+	  cout<<"any of the known!!!!!!!!!!!!!!!!!!!!!!   "<<unknown<<endl;
+	}      
+	////--------------------VIR
+      }
+      else{
+	cout<<"combinatorial error !!!! :("<<endl;
+	badindex++;
+	
+	bkg_tree(KorPi,outfile22,ientry,indexB);
+	bkg_tree_MC(KorPi,outfile32,ientry);
+	
+	//cout<<"# combinatorial events: "<<badindex<<endl;
+	cout<<endl;
+      }
+      // bkg_tree_MC(KorPi,outfile3,ientry);
+
+      */
+        
+      
+    }
+    
+
+  } else if (opt==2) {    
+    // outfile<<mul<<endl;
+  } else assert(0);
+  
+
+  cout<<"conttotal"<<conttotal<<endl;
+  cout<<"contd0same"<<contsameD0<<endl;
+  cout<<"contprsame"<<contsamepr<<endl;
+  cout<<"contd0diff"<<contdiffD0<<endl;
+  cout<<"contprdiff"<<contdiffpr<<endl;
+
+
+
+  cout<<endl;
+  cout<<"#NUMBERS FOR THE SCANS"<<endl;
+  cout<<"totD0 ="<<totD0<<endl;
+  //cout<<"totdstar0pi0="<<totdstar0pi0<<endl;
+  //cout<<"totdstar0gam="<<totdstar0gam<<endl;
+  cout<<"totprRS ="<<totprRS<<endl;
+  cout<<"totSigWS ="<<totSigWS<<endl;
+  cout<<"totD0bc ="<<totD0bc<<endl;
+  //cout<<"totdstar0pi0bc="<<totdstar0pi0bc<<endl;
+  //cout<<"totdstar0gambc="<<totdstar0gambc<<endl;
+  cout<<"totprRSbc ="<<totprRSbc<<endl;
+  cout<<"totSigWSbc ="<<totSigWSbc<<endl;
+  cout<<"final # non combinatorial events: "<<goodindex<<endl;                           //VIR
+  cout<<"final # combinatorial events:     "<<badindex<<endl;                            //VIR
+  cout<<"   TOTAL number of analized bkg ev: "<< goodindex <<"+"<< badindex<< "  this has to be = to "<<totevt<<endl; //VIR
+  cout<<"# of ev with <5 reco particle in final state:  "<<indexOFless <<endl;           //VIR
+  cout<<"# of ev with =5 reco particle in final state:  "<<indexOFequal<<endl;           //VIR
+  cout<<"# of ev with >5 reco particle in final state:  "<<indexOFmore <<endl;           //VIR
+  cout<<"# of ev with =5 reco particle in final state + 1 photon:  "<<withgamma <<endl;  //VIR
+  cout<<"# of ev with =5 reco particle in final state + 2 photon:  "<<with2gamma <<endl; //VIR
+  cout<<"# of ev    unknown   particle in final state:  "<<unknown<<endl;                //VIR
+
+  cout<<"   TOTAL number of analized bkg ev: "<< indexOFless  <<"+"<< indexOFequal <<"+"<<indexOFmore<< "+"<<withgamma<< "+"<<with2gamma<<"+"<<unknown<<"  this has to be = to "<<goodindex<<endl;
+  cout<<endl;
+  cout<<"#############################"<<endl;  
+  cout<<endl;
+  cout<<"Summary of candidate multiplicity"<<endl;
+  cout<<"totcand = "<<totcand<<endl;
+  cout<<"totevt = "<<totevt<<endl;
+  cout<<"num1 = "<<num1<<endl;
+  cout<<"num1t = "<<num1t<<endl;
+  cout<<"num1f = "<<num1f<<endl;
+  cout<<"numtrue = "<<numtrue<<endl;
+  cout<<"numfalse = "<<numfalse<<endl;
+  cout<<"num_right_choice = "<<num_right_choice<<endl;
+  cout<<"num_wrong_choice = "<<num_wrong_choice<<endl;
+  cout<<"fraction correct choice = "<<(Double_t) num_right_choice/(num_right_choice+num_wrong_choice)<<endl;
+  multiplicity=(Double_t)totcand/totevt;
+  cout<<"multiplicity = "<<multiplicity<<endl;
+  //
+  cout<<"totD0bc = "<<totD0bc<<endl;
+  cout<<"fraction real D0s bc = "<<(Double_t)totD0bc/totevt<<" +/- "
+      <<sqrt(Double_t(totD0bc)*(1-(Double_t)totD0bc/totevt))/totevt<<endl;
+  cout<<"fraction RS D0s bc = "<<(Double_t)totprRSbc/totD0bc<<" +/- "
+      <<sqrt(Double_t(totprRSbc)*(1-(Double_t)totprRSbc/totD0bc))/totD0bc<<endl;
+  cout<<"fraction WS D0s bc = "<<(Double_t)(totD0bc-totprRSbc)/Double_t(totD0bc)
+      <<" +/- " << sqrt((Double_t)(totD0bc-totprRSbc)*(1-(Double_t)(totD0bc-totprRSbc)/Double_t(totD0bc)))/Double_t(totD0bc) <<endl;
+  cout<<"totD0 w/o bc = "<<totD0<<endl;
+  cout<<"fraction real D0s w/o bc = "<<(Double_t)totD0/totcand<<" +/- "
+      <<sqrt(Double_t(totD0)*(1-(Double_t)totD0/(Double_t)totcand))/totcand<<endl;
+  cout<<"fraction RS D0s w/o bc = "<<(Double_t)totprRS/(Double_t)totD0
+      <<" +/- "<<sqrt(Double_t(totprRS)*(1-(Double_t)totprRS/(Double_t)totD0))/totD0<<endl;  
+
+  cout<<"totprRSbc = "<<totprRSbc<<endl;
+  cout<<"totSigWSbc = "<<totSigWSbc<<endl;
+  
+  cout<<"fraction WS signal bc = "<< (Double_t)totSigWSbc/(Double_t)totevt<<" +/- "
+      << sqrt((Double_t)totSigWSbc*(1-(Double_t)totSigWSbc/(Double_t)totevt))/(Double_t)totevt << endl; 
+  cout<<"totprRS w/o bc = "<<totprRS<<endl;
+  cout<< "totSigWS = " << totSigWS << endl;
+  cout<< "fraction WS signal w/o bc = " << (Double_t)totSigWS/(Double_t)totcand<<" +/- "
+      << sqrt((Double_t)totSigWS*(1-(Double_t)totSigWS/(Double_t)totcand))/(Double_t)totcand << endl; 
+  
+  cout<<".-.-..-.-.-.-.-..-------.-.-.-.-.-..--.--.-.-.-.-.-.----.-.-.....-.-."<<endl;
+  cout<<"WSignalbc = "<<WSignalbc<<endl;
+  cout<<"RightSignalbc = "<<RightSignalbc<<endl;
+  cout<<"RSignWSignalbc = "<<RSignWSignalbc<<endl;
+  cout<<"fraction of WS over RS = "<<(Double_t)WSignalbc /(Double_t)RightSignalbc<<" +/- "
+      << sqrt((Double_t)WSignalbc*(1-(Double_t)WSignalbc/(Double_t)RightSignalbc))/(Double_t) RightSignalbc<< endl; 
+  
+  cout<<"fraction of right sign  over WS = "<<(Double_t)RSignWSignalbc/(Double_t)WSignalbc<<" +/- "
+      << sqrt((Double_t)RSignWSignalbc*(1-(Double_t)RSignWSignalbc/(Double_t)WSignalbc))/(Double_t) WSignalbc<< endl; 
+  
+
+  cout<<".-.-..-.-.-.-.-..-------.-.-.-.-.-..--.--.-.-.-.-.-.----.-.-.....-.-."<<endl;  
+
+  cout<<endl;
+  cout<<"totBkgTreeChMC5matches="<<totBkgTreeChMC5matches<<endl;
+  cout<<"totBkgTreeChMC5matchesNothingelse="<<totBkgTreeChMC5matchesNothingelse<<endl;
+  cout<<"totBkgTreeChMC4matches="<<totBkgTreeChMC4matches<<endl;
+  cout<<"totBkgTreeNeuMCmatches="<<totBkgTreeNeuMCmatches<<endl;
+  cout<<"totBkgTreeAllMCmatches="<<totBkgTreeAllMCmatches<<endl;
+  cout<<"totBkgTreeChMC5matchesPid="<<totBkgTreeChMC5matchesPid<<endl;
+  cout<<"totBkgTreeChMC5matchesPidNothingelse="<<totBkgTreeChMC5matchesPidNothingelse<<endl;
+  cout<<"totBkgTreeChMC4matchesPid="<<totBkgTreeChMC4matchesPid<<endl;
+  cout<<"totBkgTreeNeuMCmatchesPid="<<totBkgTreeNeuMCmatchesPid<<endl;
+  cout<<"totBkgTreeAllMCmatchesPid="<<totBkgTreeAllMCmatchesPid<<endl;
+  cout<<endl;
+
+  //  
+  //
+  //
+  // make histograms and save in root file
+  // save dataset in same root file
+  //
+  //
+  //
+  Int_t style(1);
+  if (_super_sig_type=="btdsk"||_super_sig_type=="btdk"||_super_sig_type=="btdspi"||_super_sig_type=="btdpi") style=2;
+  if (_super_sig_type=="chb") style=3;
+  if (_super_sig_type=="chbk"||_super_sig_type=="chbpi") style=4;
+  if (_super_sig_type=="b0b0bar") style=5;
+  if (_super_sig_type=="bbbar") style=3;
+  //if (_super_sig_type=="bbbark"||_super_sig_type=="bbbarpi") style=4;
+  if (_super_sig_type=="uds")  style=6;
+  if (_super_sig_type=="ccbar")  style=7;
+  if (_super_sig_type=="udsccbar")  style=6;
+  cout << "Making histograms with style = " << style << endl;
+  
+  TString filename_ASCII="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str;
+  
+  TFile* file = new TFile(filename_ASCII+".root","recreate");
+  file->cd();
+ 
+  TSigdlKs->Write();
+  TmassKs->Write();
+  Tcosthrust->Write();
+  Tq23->Write();
+ 
+  TCanvas* canvasprime= new TCanvas("canvasprime","canvasprime",500,500);
+  canvasprime->Divide(3,2);
+  //draw dalitz plot
+  canvasprime->cd(1);
+  gStyle->SetPalette(1);
+  Tdalitz->Draw("colZ");
+  Tdalitz->Write();
+  gStyle->SetOptStat(1);
+  //draw q12-m12 control check
+  canvasprime->cd(2); //Tm12->Fit("gaus","V");
+  Tm12->Draw();
+  Tm12->Write();
+  //draw q13-m13 control check
+  canvasprime->cd(3); //Tm13->Fit("gaus","V");
+  Tm13->Draw();
+  Tm13->Write();
+  //draw q23-m23 control check
+  canvasprime->cd(4); //Tm23->Fit("gaus","V");
+  Tm23->Draw();
+  Tm23->Write();
+  // draw mES vs DeltaE
+  canvasprime->cd(5); 
+  Tmesdemk->Draw("COLZ");
+  Tmesdemk->Write();
+  // draw multiplicity
+  canvasprime->cd(6);
+  gPad->SetLogy(1);
+  Tmulti_cand->GetXaxis()->SetTitle("N candidates per event");
+  Tmulti_cand->GetXaxis()->SetTitleSize(0.05);
+  Tmulti_cand->SetTitleOffset(1.1,"X");
+  Tmulti_cand->SetFillColor(style);
+  Tmulti_cand->SetLineColor(style);
+  Tmulti_cand->Draw();
+  Tmulti_cand->Write();
+  canvasprime->Print(filename_ASCII+".eps");
+  canvasprime->Print(filename_ASCII+".gif");
+
+  delete canvasprime;
+
+  TCanvas* testTruth= new TCanvas("testTruth","testTruth",500,500);
+  testTruth->Divide(2,2);
+  testTruth->cd(1);
+  resq12->Draw();
+  testTruth->cd(2);
+  resq13->Draw();
+  testTruth->cd(3);
+  resq23->Draw();
+  testTruth->Print(filename_ASCII+"_testTruth.eps");
+
+  TCanvas* canvas_2 = new TCanvas("canvas_2","canvas_2",500,500);
+  canvas_2->Divide(1,2);
+  canvas_2->cd(1);
+  TpD0->Draw();
+  TpD0->Write();
+  canvas_2->cd(2);
+  TpD0CM->Draw();
+  TpD0CM->Write();
+ 
+  delete canvas_2;
+
+  //for (Int_t j=0;j<=4;j++){
+  TCanvas* canvasotro = new TCanvas("canvas","canvas",500,500);
+  canvasotro->Divide(1);
+  for (Int_t j=0;j<=15;j++){
+    canvasotro->cd();
+    vect[j]->SetLineColor(style);
+    vect[j]->SetFillColor(style);
+    vect[j]->Draw();
+    vect[j]->Write();
+    TString name(vect[j]->GetName());
+    //     if (name=="demk") vect[j]->Fit("gaus","L");
+    canvasotro->Print(filename_ASCII+"_"+name+".eps");
+    canvasotro->Print(filename_ASCII+"_"+name+".gif");
+  }
+  delete canvasotro;
+
+  //if (cut_code==100) {
+  if (cut_code==100 || cut_code==1) {
+    TCanvas* canvas_3= new TCanvas("canvas_3","canvas_3",500,500);
+    canvas_3->Divide(2,3);
+    canvas_3->cd(1);
+    Tmes_BkgTreeChMC5matches->Draw();
+    Tmes_BkgTreeChMC5matches->Write();
+    canvas_3->cd(2);
+    Tmes_BkgTreeChMC5matchesNothingelse->Draw();
+    Tmes_BkgTreeChMC5matchesNothingelse->Write();
+    canvas_3->cd(3);
+    Tmes_BkgTreeChMC4matches->Draw();
+    Tmes_BkgTreeChMC4matches->Write();
+    canvas_3->cd(4);
+    Tmes_BkgTreeChMC3matches->Draw();
+    Tmes_BkgTreeChMC3matches->Write();
+    canvas_3->cd(5);
+    Tmes_BkgTreeChMC2matches->Draw();
+    Tmes_BkgTreeChMC2matches->Write();
+    canvas_3->cd(6);
+    Tmes_BkgTreeAllMCmatches->Draw();
+    Tmes_BkgTreeAllMCmatches->Write();
+    canvas_3->Print(filename_ASCII+"_mes_BkgTreeMCmatches.eps");
+    canvas_3->Print(filename_ASCII+"_mes_BkgTreeMCmatches.gif");
+    delete canvas_3;
+  }
+  if (cut_code==100 || cut_code==2) {
+    TCanvas* canvas_4= new TCanvas("canvas_4","canvas_4",500,500);
+    canvas_4->Divide(2,3);
+    canvas_4->cd(1);
+    Tdemk_BkgTreeChMC5matches->Draw();
+    Tdemk_BkgTreeChMC5matches->Write();
+    canvas_4->cd(2);
+    Tdemk_BkgTreeChMC5matchesNothingelse->Draw();
+    Tdemk_BkgTreeChMC5matchesNothingelse->Write();
+    canvas_4->cd(3);
+    Tdemk_BkgTreeChMC4matches->Draw();
+    Tdemk_BkgTreeChMC4matches->Write();
+    canvas_4->cd(4);
+    Tdemk_BkgTreeChMC3matches->Draw();
+    Tdemk_BkgTreeChMC3matches->Write();
+    canvas_4->cd(5);
+    Tdemk_BkgTreeChMC2matches->Draw();
+    Tdemk_BkgTreeChMC2matches->Write();
+    canvas_4->cd(6);
+    Tdemk_BkgTreeAllMCmatches->Draw();
+    Tdemk_BkgTreeAllMCmatches->Write();
+    canvas_4->Print(filename_ASCII+"_demk_BkgTreeMCmatches.eps");
+    canvas_4->Print(filename_ASCII+"_demk_BkgTreeMCmatches.gif");
+    delete canvas_4;
+  }
+
+  dataset->Write("dataset");
+  delete dataset;
+
+  file->Close();
+  delete file;
+  //
+  //
+}  // end loopbest
+
+
+
+
+void btdkpi_final::Fits(TString KorPi, Int_t cut_code, TString varname)
+{
+  TString sdec=  "btdkpi_";
+  char cut_code_str[10];
+  sprintf(cut_code_str,"Cut%i",cut_code);
+  
+  TString filename_ASCII="ASCII/"+sdec+_dstar0mode+KorPi+"_"+_d0mode+"_"+_sig_type+"_Bbest_"+cut_code_str;
+  TFile* file = new TFile(filename_ASCII+".root","read");
+  if (file->IsZombie()) {
+    cout << "Error opening file: " << filename_ASCII+".root" << endl;
+    return;
+  } else {
+    cout << "File read succesfully: " << filename_ASCII+".root" << endl;
+  }
+
+  Double_t demk_lo_old = roodemk->getMin();
+  Double_t demk_hi_old = roodemk->getMax();
+  Double_t demk_lo = KorPi=="k"? -0.080 : -0.080;
+  Double_t demk_hi = KorPi=="k"? 0.120 : 0.100;
+  if (cut_code!=2) roodemk->setRange(demk_lo,demk_hi);
+
+  RooDataSet* dataset = (RooDataSet*)file->Get("dataset");
+  RooDataSet* dataset_reduced = (RooDataSet*)dataset->reduce(roovars);
+  delete dataset;
+  dataset = dataset_reduced;
+  Int_t nevts = dataset->numEntries();
+  cout << "dataset has " << nevts << " entries " << endl;
+  
+  TCanvas* canvas= new TCanvas("canvas","canvas",500,500);
+  //
+  Int_t style(1);
+  if (_super_sig_type=="btdsk"||_super_sig_type=="btdk"||_super_sig_type=="btdspi"||_super_sig_type=="btdpi") style=2;
+  if (_super_sig_type=="chb") style=4;
+  if (_super_sig_type=="chbk"||_super_sig_type=="chbpi") style=3;
+  if (_super_sig_type=="b0b0bar") style=5;
+  if (_super_sig_type=="bbbar") style=4;
+  if (_super_sig_type=="uds")  style=6;
+  if (_super_sig_type=="ccbar")  style=7;
+  if (_super_sig_type=="udsccbar")  style=6;
+  cout << "Making histograms with style = " << style << endl;
+  //
+  Int_t nbins(50);
+  roovars.Print("v");
+  TIterator* iter = roovars.createIterator();
+  RooRealVar* var;
+  while ((var = (RooRealVar*)iter->Next())) 
+    {
+      TString name(var->GetName());
+      cout << "Fitting distribution for variable: " << name << endl;
+      RooAbsPdf* pdf(0);
+      if (varname=="" || varname==name) {
+	if (name=="mes") {
+	  if (cut_code==1 || cut_code==112 || cut_code==115) pdf = getPdf(KorPi,*var);
+	} else if (name=="demk") {      
+	  if (cut_code==2 || cut_code==112 ||cut_code==115) pdf = getPdf(KorPi,*var);
+	} else if (name=="fisherDK") {
+	  if (cut_code==1 || cut_code==112) pdf = getPdf(KorPi,*var);
+	} else if (name=="massD0") {
+	  if (cut_code==3) pdf = getPdf(KorPi,*var);
+	} else if (name=="massDstar0") {
+	  continue;
+	} //else assert(0);
+      }
+      
+      if (pdf) {
+	//Double_t lo = (name=="demk")? (KorPi=="k"? -0.080 : 0.020) : var->getMin();
+	//Double_t hi = (name=="demk")? (KorPi=="k"? 0.120 : 0.080) : var->getMax();
+	//Double_t lo = (name=="demk")? (KorPi=="k"? -0.080 : -0.020) : var->getMin();
+	//Double_t hi = (name=="demk")? (KorPi=="k"? 0.120 : 0.120) : var->getMax();
+	//Double_t lo = (name=="demk")? (KorPi=="k"? -0.080 : 0.000) : var->getMin();
+	//Double_t hi = (name=="demk")? (KorPi=="k"? 0.120 : 0.100) : var->getMax();
+	Double_t lo = (name=="demk")? (KorPi=="k"? -0.080 : -0.080) : var->getMin();
+	Double_t hi = (name=="demk")? (KorPi=="k"? 0.120 : 0.100) : var->getMax();
+	RooPlot* xframe = var->frame(lo,hi,nbins);
+	TString title(name); title+=" ("; title+=_dstar0mode; title+=")"; title+=KorPi; title+=" "; title+=_d0mode;
+	xframe->SetTitle(title);
+	dataset->plotOn(xframe);
+	xframe->getAttLine()->SetLineColor(style);
+	xframe->getAttFill()->SetFillColor(style);
+	xframe->getAttMarker()->SetMarkerColor(style);
+	dataset->statOn(xframe,Layout(0.15,0.4,0.9),What("N"));
+	xframe->getAttText()->SetTextSize(0.02);
+	pdf->fitTo(*dataset,"mh");
+	//RooArgSet projDeps;
+	//pdf->plotOn(xframe,ProjWData(projDeps,*dataset));
+	pdf->plotOn(xframe);
+	xframe->getAttLine()->SetLineColor(style);
+	pdf->paramOn(xframe);
+	xframe->getAttText()->SetTextSize(0.02);
+	xframe->Draw();
+	canvas->Print(filename_ASCII+"_"+name+"_fit.eps");
+	canvas->Print(filename_ASCII+"_"+name+"_fit.gif");
+	if (pdf) delete pdf;
+	//cout << "press any key to continue..."; getchar(); cout << endl;
+      }
+    }//end while
+  delete iter; 
+  
+  //file->Close();
+  //delete file;
+  
+  roodemk->setRange(demk_lo_old,demk_hi_old); 
+
+} //end Fits
+
+
+
+RooAbsPdf* btdkpi_final::getPdf(TString KorPi, RooRealVar& var) 
+{
+  TString varname(var.GetName());
+  if (varname=="mes") {
+    RooRealVar* mesGMean  = new RooRealVar("mesGMean","mES Gaussian mean",5.279,5.25,5.30,"GeV") ;
+    RooRealVar* mesGWidth = new RooRealVar("mesGWidth","mES Gaussian width",0.0026,0.001,0.015,"GeV") ;
+    RooAbsPdf* mesGPdf    = new RooGaussian("mesGPdf","mES Gauss PDF",var,*mesGMean,*mesGWidth) ;  
+    //
+    RooRealVar* mesGWidthL = new RooRealVar("mesGWidthL","mES Gaussian width left",0.0026,0.001,0.015,"GeV") ;
+    RooRealVar* mesGWidthR = new RooRealVar("mesGWidthR","mES Gaussian width right",0.0026,0.001,0.015,"GeV") ;
+    RooAbsPdf* mesBGPdf  = new RooBifurGauss("mesBGPdf","mES Bifurcated Gauss PDF",var,*mesGMean,*mesGWidthL,*mesGWidthR) ;
+    //
+    RooRealVar* mesArgMax = new RooRealVar("mesArgMax","mES Argus cutoff of mES",5.291,"GeV") ;
+    RooRealVar* mesArgPar = new RooRealVar("mesArgPar","mES Argus slope",-23.0,-1000.0,0.0) ;    
+    RooAbsPdf* mesArgPdf  = new RooArgusBG("mesArgPdf","mES Argus PDF",var,*mesArgMax,*mesArgPar) ;
+    //
+    RooRealVar* mesCBalpha = new RooRealVar("mesCBalpha","mES CB alpha",-0.69,-100.,0.) ;
+    RooRealVar* mesCBn = new RooRealVar("mesCBn","mES CB n",2.) ;
+    RooAbsPdf* mesCBPdf = new RooCBShape("mesCBPdf", "mES CB PDF",var,*mesGMean,*mesGWidth,*mesCBalpha,*mesCBn);
+    //
+    RooRealVar* fmesG     = new RooRealVar("fmesG","mES Gaussian fraction",0.,0,1) ;  
+    RooAbsPdf* mesPdf     = new RooAddPdf("mesPdf","mES PDF",RooArgList(*mesGPdf,*mesArgPdf),*fmesG) ;
+    RooAbsPdf* mesPdfBG   = new RooAddPdf("mesPdfBG","mES PDF BG",RooArgList(*mesBGPdf,*mesArgPdf),*fmesG) ;
+    RooAbsPdf* mesPdfCB = new RooAddPdf("mesPdfCB","mES PDF CB",RooArgList(*mesCBPdf,*mesArgPdf),*fmesG) ;
+
+    if(_super_sig_type=="on" && KorPi=="k"){
+      //      mesGWidth->setVal(0.00254);
+      //            mesGWidth->setVal(0.00270);
+      //      mesGWidth->setVal(0.00225);
+      //      mesGWidth->setConstant();
+      //      cout<<"****************************************************holaaaaaaaaaaaaaaaa des del fitting "<<endl;
+    }
+
+    if (_super_sig_type=="bbbar") {
+      mesGMean->setConstant();
+      mesGMean->setVal(5.2792); 
+      if (KorPi=="k") {
+	mesGWidthL->setConstant(); mesGWidthR->setConstant();
+	if (_d0mode=="kspipi") {
+	  if (_dstar0mode=="d0") { mesGWidthL->setVal(0.0066); mesGWidthR->setVal(0.0037); } 
+	  if (_dstar0mode=="d0pi0") { mesGWidthL->setVal(0.0074); mesGWidthR->setVal(0.0039); } 
+	  if (_dstar0mode=="d0gam") { mesGWidthL->setVal(0.0082); mesGWidthR->setVal(0.0042); }
+	  //if (_dstar0mode=="d0pi0") fmesG->setConstant();
+	  //if (_dstar0mode=="d0gam") fmesG->setConstant();
+	} else if (_d0mode=="kskk") {
+	  if (_dstar0mode=="d0") { mesGWidthL->setVal(0.0059); mesGWidthR->setVal(0.0035); } 
+	  if (_dstar0mode=="d0pi0") { mesGWidthL->setVal(0.0041); mesGWidthR->setVal(0.0036); } 
+	  if (_dstar0mode=="d0gam") { mesGWidthL->setVal(0.0083); mesGWidthR->setVal(0.0044); }
+	  if (_dstar0mode=="d0") fmesG->setVal(0.5);
+	  //fmesG->setConstant();
+	}
+      }
+      //return mesPdf;
+      return mesPdfBG;
+      //return mesPdfCB;
+    }
+    
+    else if (_super_sig_type=="btdsk" || _super_sig_type=="btdk" || _super_sig_type=="btdspi" || _super_sig_type=="btdpi" || 
+	     _super_sig_type=="chb" || _super_sig_type=="chbk" || _super_sig_type=="chbpi" || _super_sig_type=="b0b0bar" ||
+	     _super_sig_type=="on" ) {
+      return mesPdf;
+    } 
+    
+    else if (_super_sig_type=="uds" || _super_sig_type=="ccbar" || _super_sig_type=="udsccbar" || _super_sig_type=="off") {
+      return mesArgPdf;
+    } else assert(0);   
+    
+  } //end mES if 
+  
+  if (varname=="demk") {
+    RooRealVar* deGMean  = new RooRealVar("deGMean","DeltaE Gaussian mean",0.,-0.12,0.12,"GeV") ;
+    RooRealVar* deG2Mean  = new RooRealVar("deG2Mean","DeltaE Gaussian 2 mean",0.,-0.12,0.12,"GeV") ;
+    RooRealVar* deGWidth = new RooRealVar("deGWidth","DeltaE Gaussian width",0.015,0.001,0.12,"GeV") ;
+    RooRealVar* deG2Width = new RooRealVar("deG2Width","DeltaE Gaussian 2 width",0.025,0.001,0.12,"GeV") ;
+    RooAbsPdf* deGPdf = new RooGaussian("deGPdf","DeltaE Gauss PDF",var,*deGMean,*deGWidth) ;
+    RooAbsPdf* deG2Pdf = new RooGaussian("deG2Pdf","DeltaE Gauss 2 PDF",var,*deGMean,*deG2Width) ;
+    RooRealVar* fdeG = new RooRealVar("fdeG","DeltaE Gaussian fraction",0.5,0,1) ; 
+    RooAbsPdf* deGG2Pdf = new RooAddPdf("deTwoGPdf","DeltaE Gauss Gauss 2 PDF",RooArgList(*deGPdf,*deG2Pdf),*fdeG) ; 
+    // 
+    RooRealVar* dePolyC1 = new RooRealVar("dePolyC1","DeltaE polynomial coefficient C1",0.,-1e2,1e2) ;
+    RooRealVar* dePolyC2 = new RooRealVar("dePolyC2","DeltaE polynomial coefficient C2",0.,-1e3,1e3) ; 
+    RooAbsPdf* dePolyPdf = new RooPolynomial("dePolyPdf","DeltaE polynomial PDF",var,RooArgList(*dePolyC1,*dePolyC2));
+    //
+    RooRealVar* deExpC = new RooRealVar("deExpC","DeltaE exponential coefficient C",0.,-1e4,0.) ;
+    RooAbsPdf* deExpPdf = new RooExponential("deExpPdf","DeltaE exponential PDF",var,*deExpC);
+    //
+    RooRealVar* fdeExp = new RooRealVar("fdeExp","DeltaE exponential fraction",0.0,0,1) ;
+    RooAbsPdf* deExpPolyPdf = new RooAddPdf("deExpPolyPdf","DeltaE exponential and polynomial PDF", 
+					    RooArgList(*deExpPdf,*dePolyPdf),*fdeExp) ;
+    //
+    RooAbsPdf* deSigPdf = new RooAddPdf("deSigPdf","DeltaE PDF signal",RooArgList(*deGPdf,*dePolyPdf),*fdeG) ;
+    RooRealVar* fdeGG2 = new RooRealVar("fdeGG2","DeltaE Gaussian fraction",0.5,0,1) ; 
+    RooAbsPdf* deSigPdf2G = new RooAddPdf("deSigPdf2G","DeltaE PDF signal with 2 Gaussians",RooArgList(*deGG2Pdf,*dePolyPdf),*fdeGG2) ; 
+    RooAbsPdf* dePdf = new RooAddPdf("dePdf","DeltaE PDF",RooArgList(*deGPdf,*dePolyPdf),*fdeG) ;
+    RooAbsPdf* dePdfExp = new RooAddPdf("dePdfExp","DeltaE PDF with exponential",RooArgList(*deGPdf,*deExpPolyPdf),*fdeG) ;
+
+    if(KorPi=="pi") deGMean->setVal(0.049);
+
+    if (_super_sig_type=="btdsk" || _super_sig_type=="btdk") {
+      dePolyC2->setConstant();
+      //dePolyC1->setConstant();
+      return deSigPdf;
+      //return deSigPdf2G;
+    }
+    if (_super_sig_type=="btdspi" || _super_sig_type=="btdpi") {
+      dePolyC2->setConstant();
+      dePolyC1->setConstant();
+      return deSigPdf;
+      //return deSigPdf2G;
+    }
+    
+    if (_super_sig_type=="bbbar" && KorPi=="k") {
+      deGMean->setConstant();
+      deGWidth->setConstant();
+      dePolyC2->setConstant();
+      if (_d0mode=="kspipi") {
+	if (_dstar0mode=="d0") deGWidth->setVal(0.017);
+	if (_dstar0mode=="d0pi0") deGWidth->setVal(0.019);
+	if (_dstar0mode=="d0gam") deGWidth->setVal(0.017);
+	if (_dstar0mode=="d0gam") dePolyC2->setConstant(kFALSE);
+      } else if (_d0mode=="kskk") {
+	dePolyC1->setConstant();
+	fdeG->setVal(0.); fdeG->setConstant();
+      }
+      return dePdf;
+    }
+
+    if (_super_sig_type=="bbbar" && KorPi=="pi") {
+      dePolyC2->setConstant();
+      deGMean->setConstant();
+      if (_dstar0mode=="d0") deGWidth->setVal(0.020);
+      if (_dstar0mode=="d0pi0") deGWidth->setVal(0.022);
+      if (_dstar0mode=="d0gam") deGWidth->setVal(0.020);
+      deGWidth->setConstant();
+      //fdeG->setVal(0.2); //fdeG->setConstant();
+      dePolyC1->setVal(-3.);
+      deExpC->setVal(-35.);
+      fdeExp->setVal(0.3);
+      if (_d0mode=="kskk") {
+	dePolyC1->setConstant();
+	//if (_dstar0mode=="d0pi0" || _dstar0mode=="d0gam") {
+	//  deExpC->setVal(0.); deExpC->setConstant();
+	//  fdeExp->setVal(0.); fdeExp->setConstant();
+	//}
+      }
+      return dePdfExp;
+      //return dePdf;
+      //return deSigPdf2G;
+    }
+
+
+    if (_super_sig_type=="btdspi" || _super_sig_type=="btdpi") {
+      dePolyC2->setConstant();
+      dePolyC1->setConstant();
+      return deSigPdf;
+      //return deSigPdf2G;
+    }
+
+    if (_super_sig_type=="bbbar" && KorPi=="k") {
+      if (_d0mode=="kspipi") {
+	deGMean->setConstant();
+	if (_dstar0mode=="d0") deGWidth->setVal(0.017);
+	if (_dstar0mode=="d0pi0") deGWidth->setVal(0.019);
+	if (_dstar0mode=="d0gam") deGWidth->setVal(0.017);
+	deGWidth->setConstant();
+      } else if (_d0mode=="kskk") {
+	dePolyC2->setConstant();
+	dePolyC1->setConstant();
+	fdeG->setVal(0.); fdeG->setConstant();
+      }
+      return dePdf;
+    }
+
+    if (_super_sig_type=="bbbar" && KorPi=="pi") {
+      dePolyC2->setConstant();
+      if (_d0mode=="kskk") dePolyC1->setConstant();
+      deGMean->setConstant();
+      if (_dstar0mode=="d0") deGWidth->setVal(0.020);
+      if (_dstar0mode=="d0pi0") deGWidth->setVal(0.022);
+      if (_dstar0mode=="d0gam") deGWidth->setVal(0.020);
+      deGWidth->setConstant();
+      fdeG->setVal(0.2); //fdeG->setConstant();
+      dePolyC1->setVal(-3.);
+      deExpC->setVal(-35.);
+      fdeExp->setVal(0.6);
+      return dePdfExp;
+      //return dePdf;
+    }
+    
+    if (_super_sig_type=="chb" || _super_sig_type=="bbbar" || 
+	_super_sig_type=="chbk" || _super_sig_type=="chbpi" || 
+	_super_sig_type=="b0b0bar" || _super_sig_type=="on") {
+      dePolyC2->setConstant();
+      if (_dtype=="D0") dePolyC1->setConstant();
+      if (_dtype=="Dstar0" && _dstar0mode=="d0gam") dePolyC2->setConstant(kFALSE);
+      if (KorPi=="k") {
+	if (_dtype=="Dstar0") {
+	  deExpC->setConstant();
+	  fdeExp->setConstant();
+	  if (_dstar0mode=="d0pi0") dePolyC2->setConstant(kFALSE);
+	}
+      }
+      return dePdf;
+    }
+
+    if (_super_sig_type=="uds" || _super_sig_type=="ccbar" || _super_sig_type=="udsccbar" || _super_sig_type=="off") {
+      dePolyC2->setConstant();
+      return dePolyPdf;
+    }
+    
+    assert(0);  
+    
+  } //end demk if
+  
+ 
+  if (varname=="fisherDK") {
+    // double Gaussian
+    RooRealVar* fiG1Mean    = new RooRealVar("fiG1Mean","Fisher 1st Gaussian mean",-6.66955e-02,-1.4,1.4) ;
+    RooRealVar* fiG1WidthL  = new RooRealVar("fiG1WidthL","Fisher 1st Gaussian width left",2.24733e-01,0.05,1.0) ;
+    RooRealVar* fiG1WidthR  = new RooRealVar("fiG1WidthR","Fisher 1st Gaussian width right",3.20997e-01,0.05,1.0) ;
+    RooRealVar* fiG2Mean    = new RooRealVar("fiG2Mean","Fisher 2nd Gaussian mean",8.14991e-01,-1.4,1.4) ;
+    RooRealVar* fiG2WidthL  = new RooRealVar("fiG2WidthL","Fisher 2nd Gaussian width left",5.52978e-01,0.05,1.0) ;
+    RooRealVar* fiG2WidthR  = new RooRealVar("fiG2WidthR","Fisher 2nd Gaussian width right",1.60717e-01,0.05,1.0) ;
+    RooAbsPdf* fiG1Pdf      = new RooGaussian("fiG1Pdf","Fisher 1st Gaussian",var,*fiG1Mean,*fiG1WidthL) ;
+    RooAbsPdf* fiG2Pdf      = new RooGaussian("fiG2Pdf","Fisher 2nd Gaussian",var,*fiG2Mean,*fiG2WidthL) ;
+    RooAbsPdf* fiBG1Pdf     = new RooBifurGauss("fiG1Pdf","Fisher 1st Gaussian",var,*fiG1Mean,*fiG1WidthL,*fiG1WidthR) ;
+    RooAbsPdf* fiBG2Pdf     = new RooBifurGauss("fiG2Pdf","Fisher 2nd Gaussian",var,*fiG2Mean,*fiG2WidthL,*fiG2WidthR) ;
+    RooRealVar* fiG1Frac    = new RooRealVar("fiG1Frac","Fisher fraction of 1st Gaussian",4.20686e-01,0,1) ;
+    RooAbsPdf* fiPdf(0);
+    if (_super_sig_type=="btdsk" || _super_sig_type=="btdk" || _super_sig_type=="btdspi" || _super_sig_type=="btdpi" || _super_sig_type=="chbk" || _super_sig_type=="chbpi" || 
+	_super_sig_type=="on" || _super_sig_type=="chb" || _super_sig_type=="b0b0bar" || _super_sig_type=="bbbar") {
+      fiPdf = new RooAddPdf("fiPdf","Fisher PDF",RooArgList(*fiBG1Pdf,*fiBG2Pdf),*fiG1Frac) ;
+    } else {
+      fiPdf = new RooAddPdf("fiPdf","Fisher PDF",RooArgList(*fiG1Pdf,*fiG2Pdf),*fiG1Frac) ;
+    }
+    //
+    return fiPdf;
+  } // end  fisherDK
+  
+  return 0;
+  
+}//end getpdf
+//##############################################################################################################################################
+
+
+//##############################################################################################################################################
+
+Int_t btdkpi_final::bkg_tree_MC(TString KorPi, 
+			       Int_t* chargedDauFirstB, Int_t* neutralDauFirstB, Int_t* chargedDauSoftFirstB, Int_t* neutralDauSoftFirstB,
+			       Int_t* chargedDauSecondB, Int_t* neutralDauSecondB, Int_t* chargedDauSoftSecondB, Int_t* neutralDauSoftSecondB, 
+			       ofstream& outfile,Int_t ientry, Int_t myrunnumber, Int_t mylowerID, Int_t myupperID )
+{
+  if (_super_sig_type!="chb" && _super_sig_type!="b0b0bar" && _super_sig_type!="btdsk") return 0;
+  //
+  outfile<<"entry # : "<<ientry<<endl;
+  outfile<<"runnumber : "<<myrunnumber;
+  outfile<<" lowerid : "<<mylowerID;
+  outfile<<" upperid : "<<myupperID<<endl;;
+
+  //
+  chargedDauFirstB[0]=0;
+  chargedDauSecondB[0]=0;
+  chargedDauSoftFirstB[0]=0;
+  chargedDauSoftSecondB[0]=0;
+  neutralDauFirstB[0]=0;
+  neutralDauSecondB[0]=0;
+  neutralDauSoftFirstB[0]=0;
+  neutralDauSoftSecondB[0]=0;
+  //
+  Int_t indexFirstB(-1),indexSecondB(-1);
+  for (Int_t i=0; i<nMc;i++) {
+    if (abs(idMc[i])==521 || abs(idMc[i])==511) {
+      if (indexFirstB!=-1) indexSecondB=i;
+      if (indexFirstB==-1) indexFirstB=i;
+    }
+  }
+  assert(indexFirstB!=-1 && indexSecondB!=-1);
+  assert(indexFirstB!=indexSecondB);
+  //
+  giveMeDauVisible(indexFirstB, chargedDauFirstB, neutralDauFirstB, chargedDauSoftFirstB, neutralDauSoftFirstB);
+  giveMeDauVisible(indexSecondB, chargedDauSecondB, neutralDauSecondB, chargedDauSoftSecondB, neutralDauSoftSecondB);
+  //
+  outfile<<"  chargedDauFirstB[0]+neutralDauFirstB[0] = " << chargedDauFirstB[0] << "+" << neutralDauFirstB[0] << ": " 
+	 << getName(idMc[indexFirstB]) << " -> ";
+  for (Int_t i=1;i<=chargedDauFirstB[0];i++) outfile<< getName(idMc[chargedDauFirstB[i]]) << " ";
+  for (Int_t i=1;i<=neutralDauFirstB[0];i++) outfile<< getName(idMc[neutralDauFirstB[i]]) << " ";
+  outfile<<endl;
+  //
+  outfile<<endl<<"  chargedDauSecondB[0]+neutralDauSecondB[0] = " << chargedDauSecondB[0] << "+" << neutralDauSecondB[0] << ": " 
+	 << getName(idMc[indexSecondB]) << " -> ";
+  for (Int_t i=1;i<=chargedDauSecondB[0];i++) outfile<< getName(idMc[chargedDauSecondB[i]]) << " ";
+  for (Int_t i=1;i<=neutralDauSecondB[0];i++) outfile<< getName(idMc[neutralDauSecondB[i]]) << " ";
+  outfile<<endl;
+  //
+  /*
+  outfile<<endl;
+  outfile<<"  k or pi:     i:      idMc :(nDauMc , pMc)         mothMc :"<<endl;
+  outfile<<endl;
+  for (Int_t i=1; i<nMc;i++) {
+    outfile<<"      "<<KorPi<<"        "<<i<<"       "<<getName(idMc[i])<<" ( "<<nDauMc[i]<<" , "<< pMc[i]<<")          "
+	   <<getName(idMc[mothMc[i]-1])<<endl;      
+  }
+  */
+  outfile<<endl;
+  writeDecay(indexFirstB,outfile);
+  outfile<<endl;
+  writeDecay(indexSecondB,outfile);
+  outfile<<"---------------------------------------------------------------------------------------------------------"<<endl;
+
+  //
+  /*
+  // charged treatment
+  Int_t outCh(0);
+  Int_t idxMc[5];
+  idxMc[0]=indexMcpr;
+  idxMc[1]=indexMcD0KsPi1;
+  idxMc[2]=indexMcD0KsPi2;
+  idxMc[3]=indexMcD0Pi1;
+  idxMc[4]=indexMcD0Pi2;
+  Float_t pRec[5];
+  pRec[0]=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr);
+  pRec[1]=sqrt(pxKsPi1*pxKsPi1+pyKsPi1*pyKsPi1+pzKsPi1*pzKsPi1);
+  pRec[2]=sqrt(pxKsPi2*pxKsPi2+pyKsPi2*pyKsPi2+pzKsPi2*pzKsPi2);
+  pRec[3]=sqrt(pxD0Pi1*pxD0Pi1+pyD0Pi1*pyD0Pi1+pzD0Pi1*pzD0Pi1);
+  pRec[4]=sqrt(pxD0Pi2*pxD0Pi2+pyD0Pi2*pyD0Pi2+pzD0Pi2*pzD0Pi2);
+  //
+  Int_t matchChFirstB[6],matchChSecondB[6];
+  matchChFirstB[0]=0; 
+  matchChSecondB[0]=0;
+  //
+  for (Int_t i=1;i<=5;i++) {
+    matchChFirstB[i]=indexExists(idxMc[i-1],chargedDauFirstB);
+    matchChSecondB[i]=indexExists(idxMc[i-1],chargedDauSecondB);
+    matchChFirstB[0] += matchChFirstB[i];
+    matchChSecondB[0] += matchChSecondB[i];
+  }
+  //
+  if (matchChFirstB[0]>=matchChSecondB[0]) {
+    if (matchChFirstB[0]==5) outCh += 1;
+    if (matchChFirstB[0]==4)
+      //for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+      for (Int_t i=1;i<=5;i++) if (matchChFirstB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+  } else if (matchChFirstB[0]<matchChSecondB[0]) {
+    if (matchChSecondB[0]==5) outCh += 1;
+    if (matchChSecondB[0]==4)
+      //for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pMc[idxMc[i-1]]<0.5) outCh += 2;
+      for (Int_t i=1;i<=5;i++) if (matchChSecondB[i]==0 && pRec[i-1]<0.6) outCh += 2;
+  }
+  // neutrals treatment
+  //
+  return outCh;
+  */
+  /*
+  //
+  // charged treatment
+  Int_t outCh(0);
+  if (_super_sig_type=="chb") {
+    if ( chargedDauFirstB[0]==5 ) outCh += 1;
+    if ( chargedDauSecondB[0]==5 ) outCh += 2;
+  } else if (_super_sig_type=="b0b0bar") {
+    if ( ( chargedDauFirstB[0]==4 && chargedDauSoftSecondB[0]>=1 ) ||
+	 ( chargedDauFirstB[0]==6 && chargedDauSoftFirstB[0]>=1 ) ) outCh += 1;
+    if ( ( chargedDauSecondB[0]==4 && chargedDauSoftFirstB[0]>=1 ) ||
+	 ( chargedDauSecondB[0]==6 && chargedDauSoftSecondB[0]>=1 ) ) outCh += 2;
+  }
+  // neutrals treatment
+  Int_t outNeu(0);
+  if (outCh&1) {
+    if (_dtype=="D0") {
+      assert(_dstar0mode=="d0");
+      if ( (neutralDauFirstB[0]==0) || (neutralDauFirstB[0]==1&&idMc[neutralDauFirstB[1]]==22) || 
+	   //(neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1) ) outNeu += 1;
+	   (neutralDauFirstB[0]==neutralDauSoftFirstB[0]) ) outNeu += 1;
+    } else if (_dtype=="Dstar0") {
+      if (_dstar0mode=="d0pi0") {
+	if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111) ||
+	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==111&&idMc[neutralDauFirstB[2]]==22) ||
+	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==111) ) outNeu += 1;
+      } else if (_dstar0mode=="d0gam") {
+	if ( (neutralDauFirstB[0]==1&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22) ||
+	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==1&&idMc[neutralDauSoftFirstB[1]]==22&&idMc[neutralDauFirstB[2]]==22) ||
+	     (neutralDauFirstB[0]==2&&neutralDauSoftFirstB[0]==2&&idMc[neutralDauSoftFirstB[1]]==22) ) outNeu += 1;
+      } else assert(0);
+    } else assert(0);
+  }
+  if (outCh&2) {
+    if (_dtype=="D0") {
+      assert(_dstar0mode=="d0");
+      if ( (neutralDauSecondB[0]==0) || (neutralDauSecondB[0]==1&&idMc[neutralDauSecondB[1]]==22) || 
+	   //(neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1) ) outNeu += 2;
+	   (neutralDauSecondB[0]==neutralDauSoftSecondB[0]) ) outNeu += 2;
+    } else if (_dtype=="Dstar0") {
+      if (_dstar0mode=="d0pi0") {
+	if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111) ||
+	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==111&&idMc[neutralDauSecondB[2]]==22) ||
+	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==111) ) outNeu += 2;
+      } else if (_dstar0mode=="d0gam") {
+	if ( (neutralDauSecondB[0]==1&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22) ||
+	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==1&&idMc[neutralDauSoftSecondB[1]]==22&&idMc[neutralDauSecondB[2]]==22) ||
+	     (neutralDauSecondB[0]==2&&neutralDauSoftSecondB[0]==2&&idMc[neutralDauSoftSecondB[1]]==22) ) outNeu += 2;
+      } else assert(0);
+    } else assert(0);
+  }
+  //
+  Int_t out(0);
+  if (outCh&1 && outNeu&1) out += 1;
+  if (outCh&2 && outNeu&2) out += 2;
+  // mass hypho treatment
+  //
+  //Int_t nPi(0),nK(0);
+  ////if (out>0 && (chargedDau[0]==5||chargedDau[0]==6)) {
+  //if (out>0 && chargedDau[0]==5) {
+  //  for (Int_t i=1;i<=chargedDau[0];i++) {
+  //    if (abs(idMc[chargedDau[i]])==211) nPi++;
+  //    else if (abs(idMc[chargedDau[i]])==321) nK++;
+  //  }
+  //}
+  //Int_t nNeuOk(0);
+  //if (out>0 && _dtype=="Dstar0") {
+  //  if (idMc[neutralDau[1]]==111 && _dstar0mode=="d0pi0") nNeuOk++;
+  //  if (idMc[neutralDau[1]]==22 && _dstar0mode=="d0gam") nNeuOk++;
+  //}
+  ////    
+  //if (KorPi=="pi" && (nPi==5||nPi==6) && (_dtype=="D0" || (_dtype=="Dstar0"&&nNeuOk==1)) ) out=1001;
+  //if (KorPi=="k" && (nPi==4||nPi==5) && nK==1 && (_dtype=="D0" || (_dtype=="Dstar0"&&nNeuOk==1)) ) out=1001;
+  //
+  return out;
+  */
+  
+  // final state treatment
+  Int_t out(0);
+  Int_t idxMc[6];
+  idxMc[0]=indexMcpr;
+  idxMc[1]=indexMcD0KsPi1;
+  idxMc[2]=indexMcD0KsPi2;
+  idxMc[3]=indexMcD0Pi1;
+  idxMc[4]=indexMcD0Pi2;
+  idxMc[5]=0;
+  Float_t pRec[6];
+  pRec[0]=sqrt(pxpr*pxpr+pypr*pypr+pzpr*pzpr);
+  pRec[1]=sqrt(pxKsPi1*pxKsPi1+pyKsPi1*pyKsPi1+pzKsPi1*pzKsPi1);
+  pRec[2]=sqrt(pxKsPi2*pxKsPi2+pyKsPi2*pyKsPi2+pzKsPi2*pzKsPi2);
+  pRec[3]=sqrt(pxD0Pi1*pxD0Pi1+pyD0Pi1*pyD0Pi1+pzD0Pi1*pzD0Pi1);
+  pRec[4]=sqrt(pxD0Pi2*pxD0Pi2+pyD0Pi2*pyD0Pi2+pzD0Pi2*pzD0Pi2);
+  pRec[5]=0.;
+  if (_dstar0mode=="d0pi0") {
+    idxMc[5]=indexMcDstar0Pi0;
+    pRec[5]=sqrt(pxDstar0Pi0*pxDstar0Pi0+pyDstar0Pi0*pyDstar0Pi0+pzDstar0Pi0*pzDstar0Pi0);
+  } else if (_dstar0mode=="d0gam") {
+    idxMc[5]=indexMcDstar0Gam;
+    pRec[5]=sqrt(pxDstar0Gam*pxDstar0Gam+pyDstar0Gam*pyDstar0Gam+pzDstar0Gam*pzDstar0Gam);
+  }
+  Int_t ididxMc[6];
+  ididxMc[0]=(KorPi=="pi")? 211 : 321;
+  ididxMc[1]=211;
+  ididxMc[2]=211;
+  ididxMc[3]=211;
+  ididxMc[4]=211;
+  ididxMc[5]=0;
+  if (_dtype=="Dstar0") ididxMc[5]=(_dstar0mode=="d0pi0")? 111 : 22 ;
+  //
+  Int_t matchFirstB[7],matchSecondB[7];
+  matchFirstB[0]=0; 
+  matchSecondB[0]=0;
+  matchFirstB[6]=0; 
+  matchSecondB[6]=0; 
+  Int_t matchPid[7];  
+  matchPid[0]=0; 
+  matchPid[6]=0; 
+  //
+  Int_t npart = (_dtype=="D0")? 5 : 6;
+  for (Int_t i=1;i<=npart;i++) {
+    //assert(idxMc[i-1]>=0);
+    matchFirstB[i] = isMcMother(indexFirstB,idxMc[i-1]);
+    matchSecondB[i] = isMcMother(indexSecondB,idxMc[i-1]);
+    matchFirstB[0] += matchFirstB[i];
+    matchSecondB[0] += matchSecondB[i];
+    matchPid[i] = (idxMc[i-1]>=0)? (ididxMc[i-1] == abs(idMc[idxMc[i-1]])) : 0 ;
+    matchPid[0] += matchPid[i];
+  }
+  //
+  if ((matchFirstB[0]-matchFirstB[6])>=(matchSecondB[0]-matchSecondB[6])) {
+   outfile<<" Win first B!"<<endl;
+    if ((matchFirstB[0]-matchFirstB[6])==5) out += 1;
+    if ((matchFirstB[0]-matchFirstB[6])==4)
+      for (Int_t i=1;i<=5;i++) {
+	assert( (matchFirstB[6]==0&&matchSecondB[6]==1) || (matchFirstB[6]==1&&matchSecondB[6]==0) || (matchFirstB[6]==0&&matchSecondB[6]==0) );
+	if (matchFirstB[i]==0) out += 2;
+	//if (matchFirstB[i]==0 && pRec[i-1]<0.4) out += 2;
+	//if (matchFirstB[i]==0 && isIdMcMother(413,423,idxMc[i-1])) out += 2;
+      }
+    if ((matchFirstB[0]-matchFirstB[6])==3) out += 4;
+    if ((matchFirstB[0]-matchFirstB[6])<=2) out += 8;
+    assert( (matchFirstB[6]==0&&matchSecondB[6]==1) || (matchFirstB[6]==1&&matchSecondB[6]==0) || (matchFirstB[6]==0&&matchSecondB[6]==0) );
+    if (matchFirstB[6]==1) out += 128;
+    if (matchFirstB[0]==npart) out += 256;
+    if (out>0 && matchPid[0]==matchFirstB[0]) out += 512;
+    if (out&1 && chargedDauFirstB[0]==5 && neutralDauFirstB[0]==0) out += 16384;
+    //if (out&1 && chargedDauFirstB[0]!=5 && neutralDauFirstB[0]==0) out += 32768;
+    //if (out&1 && chargedDauFirstB[0]==5 && neutralDauFirstB[0]!=0) out += 65536;
+  } else {
+  outfile<<" Win second B!"<<endl;
+    if ((matchSecondB[0]-matchSecondB[6])==5) out += 1;
+    if ((matchSecondB[0]-matchSecondB[6])==4)
+      for (Int_t i=1;i<=5;i++) {
+	assert( (matchFirstB[6]==0&&matchSecondB[6]==1) || (matchFirstB[6]==1&&matchSecondB[6]==0) || (matchFirstB[6]==0&&matchSecondB[6]==0) );
+	if (matchSecondB[i]==0) out += 2;
+	//if (matchSecondB[i]==0 && pRec[i-1]<0.4) out += 2;
+	//if (matchSecondB[i]==0 && isIdMcMother(413,423,idxMc[i-1])) out += 2;
+      }
+    if ((matchSecondB[0]-matchSecondB[6])==3) out += 4;
+    if ((matchSecondB[0]-matchSecondB[6])<=2) out += 8;
+    assert( (matchFirstB[6]==0&&matchSecondB[6]==1) || (matchFirstB[6]==1&&matchSecondB[6]==0) || (matchFirstB[6]==0&&matchSecondB[6]==0) );
+    if (matchSecondB[6]==1) out += 128;
+    if (matchSecondB[0]==npart) out += 256;
+    if (out>0 && matchPid[0]==matchSecondB[0]) out += 512;
+    if (out&1 && chargedDauSecondB[0]==5 && neutralDauSecondB[0]==0) out += 16384;
+    //if (out&1 && chargedDauSecondB[0]!=5 && neutralDauSecondB[0]==0) out += 32768;
+    //if (out&1 && chargedDauSecondB[0]==5 && neutralDauSecondB[0]!=0) out += 65536;
+  }
+  //
+  outfile<<"out= "<<out<<" "<<endl;
+  outfile<<"------------------------------------------------------------------------------"<<endl;
+  return out;
+}
+
+
+void btdkpi_final::giveMeDauVisible(Int_t indexMother, Int_t* chargedDau, Int_t* neutralDau, Int_t* chargedDauSoft, Int_t* neutralDauSoft) 
+{
+  Int_t* dau = new Int_t[30];
+  for(Int_t k=0; k<30;k++)dau[k]=-9;
+  giveMeDau(indexMother,dau);
+  for(Int_t j=1; j<=dau[0]; j++){
+    Int_t idj = abs(idMc[dau[j]]);
+    if ( (idj==211) || (idj==321) || (idj==2212) || (idj==11) || (idj==13) ) {  // pi+, K+, p+, e-, mu-
+      // charged
+      chargedDau[0]++;
+      chargedDau[chargedDau[0]]=dau[j];
+      if (isIdMcMother(413,423,dau[j])) {
+	chargedDauSoft[0]++;
+	chargedDauSoft[chargedDauSoft[0]]=dau[j];
+      }
+    } else if ( (idj==111) || (idj==22) ) { // pi0, gamma
+      // neutrals
+      neutralDau[0]++;
+      neutralDau[neutralDau[0]]=dau[j];
+      if (isIdMcMother(413,423,dau[j])) {
+	neutralDauSoft[0]++;
+	neutralDauSoft[neutralDauSoft[0]]=dau[j];
+      }
+    } else {
+      giveMeDauVisible(dau[j], chargedDau, neutralDau, chargedDauSoft, neutralDauSoft); 
+    }
+  }      
+  delete dau;
+}
+
+
+void btdkpi_final::writeDecay(Int_t indexMother, ofstream& outfile)
+{
+  Int_t* dau = new Int_t[30];
+  for(Int_t k=0; k<30;k++)dau[k]=-9;
+  giveMeDau(indexMother,dau);
+  outfile << "  " << getName(idMc[indexMother]) << " -> ";
+  for (Int_t i=1; i<=dau[0];i++) outfile << getName(idMc[dau[i]]) << " ";
+  // outfile << endl;
+  //for (Int_t i=1; i<=dau[0];i++) if (getCtau(idMc[dau[i]])<50. && nDauMc[dau[i]]>0) writeDecay(dau[i],outfile);
+  for (Int_t j=1; j<=dau[0];j++) {
+    Int_t idj = abs(idMc[dau[j]]);
+    if ( !((idj==211) || (idj==321) || (idj==2212) || (idj==11) || (idj==13) || (idj==111) || (idj==22)) && nDauMc[dau[j]]>0 ) writeDecay(dau[j],outfile);
+  }
+  delete dau;
+}
+
+
+Bool_t btdkpi_final::indexExists(Int_t index, Int_t* listOfIndex)
+{
+  Bool_t out(false);
+  for (Int_t i=1;i<=listOfIndex[0];i++) out = out || (listOfIndex[i]==index);
+  return out;
+}
+ 
+
+Bool_t btdkpi_final::isMcMother(Int_t indexMcMother, Int_t indexMcDau) 
+{
+  if (indexMcMother<0 || indexMcDau<0) return false;
+  Int_t idx = mothMc[indexMcDau]-1;
+  if (idx<0) return false;
+  if (idx==indexMcMother) return true;
+  return isMcMother(indexMcMother,idx);
+}
+
+
+Bool_t btdkpi_final::isIdMcMother(Int_t idMcMother, Int_t indexMcDau) 
+{
+  if (indexMcDau<0) return false;
+  Int_t idx = mothMc[indexMcDau]-1;
+  if (idx<0) return false;
+  if (abs(idMc[idx])==abs(idMcMother)) return true;
+  return isIdMcMother(idMcMother,idx);
+}
+
+
+Bool_t btdkpi_final::isIdMcMother(Int_t idMcMother1, Int_t idMcMother2, Int_t indexMcDau) 
+{
+  if (indexMcDau<0) return false;
+  Int_t idx = mothMc[indexMcDau]-1;
+  if (idx<0) return false;
+  if ( abs(idMc[idx])==abs(idMcMother1) || abs(idMc[idx])==abs(idMcMother2) ) return true;
+  return isIdMcMother(idMcMother1,idMcMother2,idx);
+}
+
+
+/*
+//##############################################################################################################################################
+
+Int_t btdkpi_final::bkg_tree_number(Int_t back, Int_t index, ofstream & outfile4, Int_t ientry){
+
+  outfile4<<"****-----------------------------------------------------------------"<<endl;
+  outfile4<<"entry # : "<<ientry<<endl;
+
+  Int_t nDau(0);
+  
+  Int_t numberPI0(0);
+  Int_t numberPIch(0);
+  Int_t numberKch(0);
+  Int_t numberEL(0);
+  Int_t numberMU(0);
+  Int_t numberPROT(0);
+  Int_t numberSoftPION(0);
+  Int_t numberGAM(0);
+  //  Int_t softPionnumber(0);
+
+
+  Int_t* dau = new Int_t[30];
+
+  for(Int_t k=0; k<30;k++)dau[k]=-9;
+  
+  outfile4<<"index_first B = "<<index<<endl;
+  
+  giveMeDau(index,dau);
+
+  outfile4<<"dau=["<<dau[0]<<"  "<<idMc[dau[1]]<<"  "<<idMc[dau[2]]<<" "<<idMc[dau[3]]<<"  "<<idMc[dau[4]]<<" ]"<<endl;
+  
+  nDau = nDauMc[index];
+  
+  for(Int_t j=1; j<=nDau; j++){
+    
+    // ---------------- VIR    
+    // if (pi0, charge pi,   charge K,  electron, muon , proton ,  SoftPION, photons)
+
+    if ((abs(idMc[dau[j]])==111 )|| (abs(idMc[dau[j]])==211) || (abs(idMc[dau[j]])==321) || (abs(idMc[dau[j]])==11) || (abs(idMc[dau[j]])==13)|| (abs(idMc[dau[j]])==2212) || (abs(idMc[dau[j]])==22)){
+      
+      
+      if(abs(idMc[dau[j]])==111){
+	back+= 10;
+	numberPI0++;
+	outfile4<<" # of Pi0 = "<<numberPI0<<"      ";
+      } 
+      else  if(abs(idMc[dau[j]])==211){
+	back += 60;
+	numberPIch++;
+	outfile4<<" # of Pi+ = "<<numberPIch<<"      ";
+      }   
+      else if(abs(idMc[dau[j]])==321){
+      	back += 1000;
+ 	numberKch++;
+       	outfile4<<" # of K+ = "<<numberKch<<"      ";
+      } 
+      else if(abs(idMc[dau[j]])==11){
+	back += 100;
+	numberEL++;
+	outfile4<<" # of Electron = "<<numberEL<<"      ";
+      }
+      else if(abs(idMc[dau[j]])==13){
+	back += 600;
+	numberMU++;
+	outfile4<<" # of Muon = "<<numberMU<<"      ";
+      }
+      else if(abs(idMc[dau[j]])==2212){
+	back += 10000;
+	numberPROT++;
+	outfile4<<" # of Protons = "<<numberPROT<<"      ";
+      }
+      else if(((abs(idMc[dau[j]])==111) || (abs(idMc[dau[j]])==211)) && pMc[j]<0.2){
+	//	back += 20000;
+	numberSoftPION++;
+	outfile4<<" # of soft Pion  = "<<numberSoftPION<<"      ";
+      }
+      else if(abs(idMc[dau[j]])==22){
+	//back += 100000;
+	numberGAM++;
+	outfile4<<" # of Photons = "<<numberGAM<<"      ";
+      }
+
+      back += 1;
+      
+      outfile4<<"number of pi0, pi+, gamma, K+, muons and electrons in the final state = "<<back<<endl;
+    }else{
+      //outfile4<<" idMc[dau[j]] ="<<idMc[dau[j]]<<endl;
+      
+      back = bkg_tree_number(back, dau[j],outfile4,ientry);
+      //number = bkg_tree_number(number, dau[j],outfile4,ientry); //ORIGIN
+    }
+    
+    //-----------------VIR
+    
+    // pi soft
+    if(abs(idMc[dau[j]])==211 && (idMc[mothMc[dau[j]]-1]== 10411 || idMc[mothMc[dau[j]]-1]== 10421 || idMc[mothMc[dau[j]]-1]== 413 ||idMc[mothMc[dau[j]]-1]== 423)){
+      
+      Int_t pippo[7]={0};
+
+      pippo[j]= idMc[mothMc[dau[j]]-1];
+      if(abs(idMc[dau[j]])==211  && pMc[j]<0.2){
+	cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pippo[j])<<" "<<pippo[j]<<"------> soft Pion"<< endl;
+	//cout<<"--------------------------------------> aaa "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pippo[j])<<endl;
+	//softPionnumber++;
+      }
+    }
+
+
+    // gamma Brem
+   
+    Int_t pluto[7]={0};
+    pluto[j]= idMc[mothMc[dau[j]]-1];
+
+    if(abs(idMc[dau[j]])==22 && getChg3(pluto[j])==0){
+      cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(pluto[j])<<" "<<pluto[j]<<"------> gamma Brem"<< endl;
+      //cout<<"--------------------------------------> bbb "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(pluto[j])<<endl;
+      //gammaBrem++;
+      //cout<<"-------------------------------------->"<<gammaBrem<<endl;
+    }
+ 
+
+    // gamma rad
+
+    Int_t paperino[7]={0};
+    paperino[j]= idMc[mothMc[dau[j]]-1];
+    if(abs(idMc[dau[j]])==22 && getChg3(paperino[j])!=0){
+      cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getName(paperino[j])<<" "<<paperino[j]<<"------> gamma Rad"<< endl;
+      //cout<<"--------------------------------------> ccc "<< getName(idMc[dau[j]])<<" with mother:  "<<getChg3(paperino[j])<<endl;
+      //if( back==316 || back==356 || back==366 || back==1256|| back==2196 || back==101786){
+      //gammaRAD++;
+      //	cout<<"-------------------------------------->"<<gammaRAD<<endl;
+      //}
+    }
+
+    //-----------------VIR
+  }
+  
+  
+  return back;
+  
+}
+//##############################################################################################################################################
+*/
+
+//##############################################################################################################################################
+
+//void btdkpi_final::bkg_tree(TString KorPi, ofstream& outfile2,Int_t ientry){
+void btdkpi_final::bkg_tree(TString KorPi, ofstream& outfile2,Int_t ientry,Int_t index_B[]) {  
+  
+  //cout<<"start bkg_tree"<<endl;
+  
+  //defining the mothers of the traces candidates 
+  // cout<<"index_B[0] ="<<index_B[0]<<endl;
+  Int_t gmD0Pi1(0);
+  Int_t gmD0Pi2(0);
+  Int_t gmD0KsPi1(0);
+  Int_t gmD0KsPi2(0);
+  
+  Int_t gmpr(0);
+  
+  Int_t gmDstar0Pi0Gam1(0);
+  Int_t gmDstar0Pi0Gam2(0);  
+  Int_t gmDstar0Gamma(0);
+  
+  //Int_t lpr(0);
+  Int_t lD0(0);
+  Int_t lDstar0(0);
+  
+  Bool_t check=kTRUE;
+  
+  //outfile2<<endl;
+  outfile2<<"######-----------------------------------------------------------"<<endl;
+  outfile2<<"entry # : "<<ientry<<endl;
+  //if(signal_code==1) outfile2<<"event number:"<<event<<" D0 o D*0 : "<<_dtype<<" D0 ="<<isMcD0/*<<"D0Ks="<<isMcD0k*/<<" D0mode ="<<D0_decay_code<<endl;
+  
+  //else outfile2<<"event number :"<<event<<" D0 o D*0 :"<<signal_code<<" D0 ="<<isMcD0/*<<"D0Ks="<<isMcD0k*/<<" Dstar0Gam ="<<isMcDstar0Gam<<" DstarPi0 ="<< isMcDstar0Pi0<< " D0mode="<<D0mode<<endl;
+  
+  //#############################
+  //########### prompt track ####
+  //#############################
+  
+  
+  //  if((McEvtType & 3842) ==3842)  {outfile2<< "D0 match brem! "<<endl;}
+  //  if((McEvtType & 3074) ==3074)   outfile2<< "Ks match brem! "<<endl;
+  //  if((McEvtType & 20224) ==20224) outfile2<< "D0 match brem! "<<endl;
+  //  if((McEvtType & 19456) ==19456) outfile2<< "Ks match brem! "<<endl;
+  
+  
+  //  outfile2<<" B promt daughter k or pi= "<<KorPi<<"   :";//------------ VIR--------
+  outfile2<<"  "<<KorPi<<endl;                               //------------ VIR----------
+  
+  if (indexMcpr>0 && indexMcpr<110){
+    outfile2<<getName(idMc[indexMcpr])<<":"<<nDauMc[indexMcpr]<<":"<<indexMcpr<<"   ";   //------------ VIR----------
+    gmpr=indexMcpr;
+    check=kTRUE;
+    while ( (abs(idMc[gmpr]) != 70553) && (abs(idMc[gmpr]) != 521) && (abs(idMc[gmpr]) != 10022) && (abs(idMc[gmpr]) != 511) && gmpr>0 && gmpr<110 && check) {
+      check=kFALSE;
+      if (  ((mothMc[gmpr]-1)>0) && ((mothMc[gmpr]-1)<110) ){
+	gmpr=mothMc[gmpr]-1;
+	
+	outfile2<<getName(idMc[gmpr])<<":"<<nDauMc[gmpr]<<":"<<gmpr<<"   ";  //------------ VIR----------
+	
+	check=kTRUE;
+      }
+      //	else  break;
+      
+    }
+    index_B[0]=gmpr;
+    //    cout<<endl;
+    //cout<<"index_first B = "<<index_B[0]<<endl;
+    //    cout<<"index_B[0] inside = "<<index_B[0]<<endl;
+    outfile2<<endl;
+  }	
+  
+  
+  //##########################################
+  //##############D0 candidate tracKs########
+  //#########################################
+  
+  outfile2<<"D0 daughter D0Pi1 cand.: ";
+  
+  if (indexMcD0Pi1>0 && indexMcD0Pi1<110){
+    
+    outfile2<<getName(idMc[indexMcD0Pi1])<<":"<<nDauMc[indexMcD0Pi1]<<":"<<indexMcD0Pi1<<"   "; 
+    gmD0Pi1=indexMcD0Pi1;
+    check=kTRUE;
+    while ( (abs(idMc[gmD0Pi1]) != 70553) && (abs(idMc[gmD0Pi1]) != 521) && (abs(idMc[gmD0Pi1]) != 10022) && (abs(idMc[gmD0Pi1]) != 511) && gmD0Pi1>0 && gmD0Pi1<110 && check) 
+      {
+	check=kFALSE;
+	if (  ((mothMc[gmD0Pi1]-1)>0) && ((mothMc[gmD0Pi1]-1)<110) ){
+	  gmD0Pi1=mothMc[gmD0Pi1]-1;
+	  outfile2<<getName(idMc[gmD0Pi1])<<":"<<nDauMc[gmD0Pi1]<<":"<<gmD0Pi1<<"   ";
+	  check=kTRUE;
+	}
+	//	else  break;
+	
+	if (_dtype=="D0")
+	  //if (signal_code == 1)
+	  {
+	    if (abs(idMc[gmD0Pi1])==421) lD0=idMc[gmD0Pi1];
+	  }
+	
+	else if (_dtype=="Dstar0")
+	  //else if (signal_code ==0)
+	  {
+	    if (abs(idMc[gmD0Pi1])==423) lDstar0=idMc[gmD0Pi1];
+	  }
+      }
+    index_B[1]=gmD0Pi1;
+    //cout<<endl;
+    //    cout<<"index_B[1] inside = "<<index_B[1]<<endl;
+    
+    outfile2<<endl;
+    
+    //    outfile2<<"#####"<<endl;
+    //       outfile2<<getName(idMc[gmpr])<<"("<<nDauMc[gmpr]<<","<<gmpr<<") --->  "<< dtype <<"  "<< getName(idMc[indexMcpr])<<"("<<nDauMc[indexMcpr]<<","<<indexMcpr<<" )   "<<"ecco"<<endl;   //------------ VIR----------
+    //       outfile2<<getName(idMc[indexMcD0Pi1])<<":"<<nDauMc[indexMcD0Pi1]<<":"<<indexMcD0Pi1<<"   "; 
+    //      outfile2<<"#####"<<endl;
+    
+  }	
+  
+  
+  if(idMc[gmD0Pi1] == idMc[gmpr]){
+    
+    
+    outfile2<<"D0 daughter D0Pi2 cand.: ";
+    if (indexMcD0Pi2>0 && indexMcD0Pi2<110)
+      {
+	
+	outfile2<<getName(idMc[indexMcD0Pi2])<<":"<<nDauMc[indexMcD0Pi2]<<":"<<indexMcD0Pi2<<"   "; 
+	gmD0Pi2=indexMcD0Pi2;
+	check=kTRUE;
+	while ( (abs(idMc[gmD0Pi2]) != 70553) && (abs(idMc[gmD0Pi2]) != 521) && (abs(idMc[gmD0Pi2]) != 10022) && (abs(idMc[gmD0Pi2]) != 511) && gmD0Pi2>0 && gmD0Pi2<110 && check) 
+	  {
+	    
+	    check=kFALSE;
+	    if (  ((mothMc[gmD0Pi2]-1)>0) && ((mothMc[gmD0Pi2]-1)<110) )
+	      {
+		gmD0Pi2=mothMc[gmD0Pi2]-1;
+		outfile2<<getName(idMc[gmD0Pi2])<<":"<<nDauMc[gmD0Pi2]<<":"<<gmD0Pi2<<"   ";
+		check=kTRUE;
+	      }
+	    //	else  break;
+	  }
+	index_B[2]=gmD0Pi2;
+	outfile2<<endl;
+      }
+    
+    //##############D0 candidate tracks:  KS daughters   ####################################
+    if(idMc[gmD0Pi2] == idMc[gmpr]){
+      outfile2<<"D0 daughter KsPi1 cand.: ";
+      if (indexMcD0KsPi1>0 && indexMcD0KsPi1<110)
+	{
+	  
+	  outfile2<<getName(idMc[indexMcD0KsPi1])<<":"<<nDauMc[indexMcD0KsPi1]<<":"<<indexMcD0KsPi1<<"   "; 
+	  gmD0KsPi1=indexMcD0KsPi1;
+	  check=kTRUE;
+	  while ( (abs(idMc[gmD0KsPi1]) != 70553) && (abs(idMc[gmD0KsPi1]) != 521) && (abs(idMc[gmD0KsPi1]) != 10022) && (abs(idMc[gmD0KsPi1]) != 511) && gmD0KsPi1>0 && gmD0KsPi1<110 && check) 
+	    {
+	      
+	      check=kFALSE;
+	      if (  ((mothMc[gmD0KsPi1]-1)>0) && ((mothMc[gmD0KsPi1]-1)<110) ) 
+		{
+		  gmD0KsPi1=mothMc[gmD0KsPi1]-1;
+		  outfile2<<getName(idMc[gmD0KsPi1])<<":"<<nDauMc[gmD0KsPi1]<<":"<<gmD0KsPi1<<"   ";
+		  check=kTRUE;
+		}
+	      //	else  break;
+	      
+	    }
+	  index_B[3]=gmD0KsPi1;
+	  outfile2<<endl;
+	}
+      
+      
+      if(idMc[gmD0KsPi1] == idMc[gmpr]){
+	outfile2<<"D0 daughter KsPi2 cand.: ";
+	if (indexMcD0KsPi2>0 && indexMcD0KsPi2<110)
+	  {
+	    
+	    outfile2<<getName(idMc[indexMcD0KsPi2])<<" :"<<nDauMc[indexMcD0KsPi2]<<":"<<indexMcD0KsPi2<<"   "; 
+	    gmD0KsPi2=indexMcD0KsPi2;
+	    check=kTRUE;
+	    while ( (abs(idMc[gmD0KsPi2]) != 70553) && (abs(idMc[gmD0KsPi2]) != 521) && (abs(idMc[gmD0KsPi2]) != 10022) && (abs(idMc[gmD0KsPi2]) != 511) && gmD0KsPi2>0 && gmD0KsPi2<110 && check ) 
+	      {
+		
+		check=kFALSE;
+		if (  ((mothMc[gmD0KsPi2]-1)>0) && ((mothMc[gmD0KsPi2]-1)<110) )
+		  {
+		    gmD0KsPi2=mothMc[gmD0KsPi2]-1;
+		    outfile2<<getName(idMc[gmD0KsPi2])<<":"<<nDauMc[gmD0KsPi2]<<":"<<gmD0KsPi2<<"  ";
+		    check=kTRUE;
+		  }
+		//	else  break;
+	      }
+	    index_B[4]=gmD0KsPi2;
+	    // index_B[5]= index_B[0];
+	    // index_B[6]= index_B[0];
+	    // index_B[7]= index_B[0];
+	    outfile2<<endl;
+	  }
+	
+	//outfile2<<endl;
+	//outfile2<<endl;
+	
+	
+	
+	//#####################################
+	//###############   Dstar0   ##########
+	//#####################################
+	
+	if(_dtype=="Dstar0") {	  
+	  //if(signal_code==0)
+	  
+	  if(_dstar0mode=="d0pi0"){
+	    
+	    if(idMc[gmD0KsPi2] == idMc[gmpr]){
+	      outfile2<<"Dstar0 daughter Gamma1 cand. from Pi0: ";
+	      if(indexMcDstar0Pi0g1>0 && indexMcDstar0Pi0g1<110)
+		{
+		  
+		  outfile2<<getName(idMc[indexMcDstar0Pi0g1])<<" :"<<nDauMc[indexMcDstar0Pi0g1]<<":"<<indexMcDstar0Pi0g1<<"   "; 
+		  gmDstar0Pi0Gam1=indexMcDstar0Pi0g1;
+		  check=kTRUE;
+		  while ( (abs(idMc[gmDstar0Pi0Gam1]) != 70553) && (abs(idMc[gmDstar0Pi0Gam1]) != 521) && (abs(idMc[gmDstar0Pi0Gam1]) != 10022) && (abs(idMc[gmDstar0Pi0Gam1]) != 511) && gmDstar0Pi0Gam1>0 && gmDstar0Pi0Gam1<110 && check ) 
+		    {
+		      
+		      check=kFALSE;
+		      if (  ((mothMc[gmDstar0Pi0Gam1]-1)>0) && ((mothMc[gmDstar0Pi0Gam1]-1)<110) )
+			{
+			  gmDstar0Pi0Gam1=mothMc[gmDstar0Pi0Gam1]-1;
+			  outfile2<<getName(idMc[gmDstar0Pi0Gam1])<<" :"<<nDauMc[gmDstar0Pi0Gam1]<<":"<<gmDstar0Pi0Gam1<<"   ";
+			  check=kTRUE;
+			}
+		      //	else  break;
+		    }
+		  index_B[5]=gmDstar0Pi0Gam1;
+		  outfile2<<endl;
+		}
+	      if(idMc[gmDstar0Pi0Gam1] == idMc[gmpr]){
+		outfile2<<"Dstar0 daughter Gamma2 cand. from Pi0: ";
+		
+		cout<<"0 ?< "<<indexMcDstar0Pi0g2<<"<110  "<<endl; 
+		if(indexMcDstar0Pi0g2>0 && indexMcDstar0Pi0g2<110)
+		  {
+		    outfile2<<getName(idMc[indexMcDstar0Pi0g2])<<":"<<nDauMc[indexMcDstar0Pi0g2]<<":"<<indexMcDstar0Pi0g2<<"   ";  
+		    gmDstar0Pi0Gam2=indexMcDstar0Pi0g2;
+		    check=kTRUE;
+		    while ( (abs(idMc[gmDstar0Pi0Gam2]) != 70553) && (abs(idMc[gmDstar0Pi0Gam2]) != 521) && (abs(idMc[gmDstar0Pi0Gam2]) != 10022) && (abs(idMc[gmDstar0Pi0Gam2]) != 511) && gmDstar0Pi0Gam2>0 && gmDstar0Pi0Gam2<110 && check ) 
+		      {
+			
+			check=kFALSE;
+			if (  ((mothMc[gmDstar0Pi0Gam2]-1)>0) && ((mothMc[gmDstar0Pi0Gam2]-1)<110) )
+			  {
+			    gmDstar0Pi0Gam2=mothMc[gmDstar0Pi0Gam2]-1;
+			    outfile2<<getName(idMc[gmDstar0Pi0Gam2])<<" :"<<nDauMc[gmDstar0Pi0Gam2]<<":"<<gmDstar0Pi0Gam2<<"   ";
+			    check=kTRUE;
+			  }
+			//	else  break;
+		      }
+		    index_B[6]=gmDstar0Pi0Gam2;
+		    outfile2<<endl;
+		  }
+		else {
+		  cout<<"0 ?< "<<indexMcDstar0Pi0g2<<"<110  "<<"entry # : "<<ientry<<endl; //VIR
+		}
+	      }
+	    }
+	  }
+	  else if(_dstar0mode=="d0gam"){
+	    
+	    if(idMc[gmD0KsPi2] == idMc[gmpr]){
+	      outfile2<<"Dstar0 daughter Gamma: ";
+	      if(indexMcDstar0Gam>0 && indexMcDstar0Gam<110)
+		{
+		  
+		  outfile2<<getName(idMc[indexMcDstar0Gam])<<":"<<nDauMc[indexMcDstar0Gam]<<":"<<indexMcDstar0Gam<<"   "; 
+		  gmDstar0Gamma=indexMcDstar0Gam;
+		  check=kTRUE;
+		  while ( (abs(idMc[gmDstar0Gamma]) != 70553) && (abs(idMc[gmDstar0Gamma]) != 521) && (abs(idMc[gmDstar0Gamma]) != 10022) && (abs(idMc[gmDstar0Gamma]) != 511) && gmDstar0Gamma>0 && gmDstar0Gamma<110 && check )
+		    {
+		      
+		      check=kFALSE;
+		      if (  ((mothMc[gmDstar0Gamma]-1)>0) && ((mothMc[gmDstar0Gamma]-1)<110) ){
+			gmDstar0Gamma=mothMc[gmDstar0Gamma]-1;
+			outfile2<<getName(idMc[gmDstar0Gamma])<<":"<<nDauMc[gmDstar0Gamma]<<":"<<gmDstar0Gamma<<"   ";
+			check=kTRUE;
+		      }
+		      //	else  break;
+		    }
+		  index_B[7]=gmDstar0Gamma;
+		  outfile2<<endl;
+		}
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
+
+
+void btdkpi_final::giveMeDau(Int_t index,Int_t* dauarray){
+  // cout<<"inside giveMeDau"<<endl;
+  Int_t ndau=0;
+  if (index>=0) {
+    for (Int_t j=0;j<nMc;j++){
+      if ((mothMc[j]-1)==index){ 
+	dauarray[++ndau]=j; 
+	//	cout<<"dauarray="<<idMc[j]<<endl;
+      }
+    }
+  }
+  dauarray[0]=ndau;
+  // ordering from higher to lower abs(lundId)
+  for (Int_t j=1;j<=ndau;j++) {
+    Int_t tmp=dauarray[j];
+    Int_t j_max=j;
+    for (Int_t k=j+1;k<=ndau;k++) if (abs(idMc[dauarray[j_max]])<abs(idMc[dauarray[k]])) j_max=k;
+    dauarray[j]=dauarray[j_max];
+    dauarray[j_max]=tmp;
+  }
+  return;
+}//end giveMeDau
+
+
+void btdkpi_final::giveMeDau(Int_t* motharray, Int_t id, Int_t* dauarray){
+  Int_t j(1);
+  while  ( j<=motharray[0] && abs(idMc[motharray[j]])!=abs(id) ) j++;
+  if (j>motharray[0]) j=-1;
+  Int_t index = (j<=motharray[0])? motharray[j] : -1;
+  giveMeDau(index,dauarray);
+}//end giveMeDau
+
+
+
+void btdkpi_final::readPDT(const std::string fname){
+
+  ifstream indec;
+  
+  indec.open(fname.c_str());
+
+  char cmnd[100];
+  char xxxx[100];
+
+  char pname[100];
+  int  stdhepid;
+  double mass;
+  double pwidth;
+  double pmaxwidth;
+  int    chg3;  
+  int    spin2;
+  double ctau;
+  int    lundkc;
+
+  if (!indec) {
+    cout << "Error in btdkpi_final::readPDT: Could not open:"<<fname.c_str()<<endl;
+    return;
+  }
+
+  do{
+
+    char ch,ch1;
+
+    do{
+
+      indec.get(ch);  
+      if (ch=='\n') indec.get(ch);
+      if (ch!='*') {
+	indec.putback(ch);
+      }
+      else{
+	while (indec.get(ch1),ch1!='\n');
+      }
+    } while(ch=='*');
+
+    indec >> cmnd;
+
+    if (strcmp(cmnd,"end")){
+
+      if (!strcmp(cmnd,"add")){
+
+        indec >> xxxx;
+        indec >> xxxx;
+        indec >> pname;
+        indec >> stdhepid;
+        indec >> mass;
+        indec >> pwidth;
+        indec >> pmaxwidth;
+        indec >> chg3;  
+        indec >> spin2;
+        indec >> ctau;
+        indec >> lundkc;
+
+	//add to hash table
+	//cout << pname << " " << stdhepid << " " << endl;
+	_map_pname[stdhepid]=pname;
+	_map_stdhepid[pname]=stdhepid;
+	_map_chg3[stdhepid]=chg3;
+	_map_ctau[stdhepid]=ctau;
+
+      }
+
+      // if find a set read information and discard it
+
+      if (!strcmp(cmnd,"set")){
+
+        indec >> xxxx;
+        indec >> xxxx;
+        indec >> xxxx;
+        indec >> xxxx;
+      }
+
+    }
+
+  }while(strcmp(cmnd,"end"));
+  
+}
+
+
+const char* btdkpi_final::getName(Int_t stdhepid)
+{
+  TString pname = _map_pname[stdhepid];
+  if (pname=="") {
+    cout << "PANIC in btdkpi_final::getName: stdhepid = " << stdhepid << " unknown" << endl;
+    assert(0);
+  }
+  return pname;
+}
+
+
+Int_t btdkpi_final::getStdhepid(const char* pname)
+{
+  Int_t stdhepid = _map_stdhepid[pname];
+  if (stdhepid==0) {
+    cout << "PANIC in btdkpi_final::getStdhepid: pname = " << pname << " unknown" << endl;
+    assert(0);
+  }
+  return stdhepid;
+}
+
+
+
+Int_t btdkpi_final::getChg3(Int_t stdhepid)
+{
+  TString pname = _map_pname[stdhepid];
+  if (pname=="") {
+    cout << "PANIC in btdkpi_final::getchg3: stdhepid = " << stdhepid << " unknown" << endl;
+    assert(0);
+  }
+  Int_t chg3 = _map_chg3[stdhepid];
+  return chg3;
+}
+
+
+double btdkpi_final::getCtau(Int_t stdhepid)
+{
+  TString pname = _map_pname[stdhepid];
+  if (pname=="") {
+    cout << "PANIC in btdkpi_final::getCtau: stdhepid = " << stdhepid << " unknown" << endl;
+    assert(0);
+  }
+  double ctau = _map_ctau[stdhepid];
+  return ctau;
+}
+
+Float_t btdkpi_final::CosHely(const TLorentzVector & P,const TLorentzVector & Q, const TLorentzVector & D)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Float_t out=-999;
+  //
+  Double_t M2P= P.Mag2();
+  //  cout << "MP=" << sqrt(M2P) << endl; 
+
+  Double_t M2Q= Q.Mag2();
+  //  cout << "MQ=" << sqrt(M2Q) << endl; 
+
+  Double_t M2D= D.Mag2();
+  //  cout << "MD=" << sqrt(M2D) << endl; 
+  //
+  Double_t Num  = (P*D)*M2Q -(P*Q)*(Q*D);
+  Double_t Den2 = ( (P*Q)*(P*Q) - M2P * M2Q ) * ( (D*Q)*(D*Q)- M2D * M2Q );
+
+  if (Den2 > 0) out = Num/sqrt(Den2);
+
+  //  
+  return out;
+
+}//end CosHely;
+
+void btdkpi_final::dalVarsTruth(Int_t mcTruth,Float_t* dalVars)
+{
+   if(!mcTruth) return;
+
+  Int_t recState = (idMc[indexMcpr]>0)? 1 : 0;
+
+  Float_t mD0_nom = 1.8645;
+  Float_t mKs_nom = 0.49767;
+  Float_t mPi_nom = 0.13957;
+  Float_t mK_nom = 0.49368;
+  Float_t mTrk_nom = (_d0mode=="kspipi")? mPi_nom : mK_nom;
+
+  Float_t pPi1x = pMc[indexMcD0Pi1]*sin(thetaMc[indexMcD0Pi1])*cos(phiMc[indexMcD0Pi1]);
+  Float_t pPi1y = pMc[indexMcD0Pi1]*sin(thetaMc[indexMcD0Pi1])*sin(phiMc[indexMcD0Pi1]);
+  Float_t pPi1z = pMc[indexMcD0Pi1]*cos(thetaMc[indexMcD0Pi1]);
+  Float_t ePi1 = sqrt(pPi1x*pPi1x+pPi1y*pPi1y+pPi1z*pPi1z+mTrk_nom*mTrk_nom);
+
+  Float_t pPi2x = pMc[indexMcD0Pi2]*sin(thetaMc[indexMcD0Pi2])*cos(phiMc[indexMcD0Pi2]);
+  Float_t pPi2y = pMc[indexMcD0Pi2]*sin(thetaMc[indexMcD0Pi2])*sin(phiMc[indexMcD0Pi2]);
+  Float_t pPi2z = pMc[indexMcD0Pi2]*cos(thetaMc[indexMcD0Pi2]);
+  Float_t ePi2 = sqrt(pPi2x*pPi2x+pPi2y*pPi2y+pPi2z*pPi2z+mTrk_nom*mTrk_nom);
+
+  Float_t pKsx = pMc[indexMcKs]*sin(thetaMc[indexMcKs])*cos(phiMc[indexMcKs]);
+  Float_t pKsy = pMc[indexMcKs]*sin(thetaMc[indexMcKs])*sin(phiMc[indexMcKs]);
+  Float_t pKsz = pMc[indexMcKs]*cos(thetaMc[indexMcKs]);
+  Float_t eKs = sqrt(pKsx*pKsx+pKsy*pKsy+pKsz*pKsz+mKs_nom*mKs_nom);
+
+  TLorentzVector pPi1(pPi1x,pPi1y,pPi1z,ePi1);
+  TLorentzVector pPi2(pPi2x,pPi2y,pPi2z,ePi2);
+  TLorentzVector pKs(pKsx,pKsy,pKsz,eKs);
+
+  Float_t q12 = pPi1*pPi1+pKs*pKs+2.*pPi1*pKs;
+  Float_t q13 = pPi2*pPi2+pKs*pKs+2.*pPi2*pKs;
+  Float_t q23 = pPi1*pPi1+pPi2*pPi2+2.*pPi1*pPi2;
+  
+  dalVars[0]= recState;
+  dalVars[1]= (_d0mode=="kspipi")? q12 : q13;
+  dalVars[2]= (_d0mode=="kspipi")? q13 : q12;
+  dalVars[3]= q23;
+
+  return;
+}
+
+//proves
+// Bool_t btdkpi_final::isMcD0Matchedfunction(Int_t a)
+// {
+//   Int_t out(0);
+//   if(
+//      ((a&BIT_ON(0) || a&BIT_ON(1)))&&
+//      ((a&BIT_ON(8) || a&BIT_ON(20)))&&
+//      ((a&BIT_ON(9) || a&BIT_ON(21)))&&
+//      (!(a&BIT_ON(10) || a&BIT_ON(22)))&&
+//      (!(a&BIT_ON(11) || a&BIT_ON(23)))
+//      //   ) out=1;
+//      ) out=0;
+//   else out=1;
+//   return out;
+// }
+
+
+Bool_t btdkpi_final::isMcD0Matchedfunction(Int_t a)
+{
+  Int_t out(0);
+  if(
+     ((a&BIT_ON(0) || a&BIT_ON(1)))&&
+     ((a&BIT_ON(8) || a&BIT_ON(20)))&&
+     ((a&BIT_ON(9) || a&BIT_ON(21)))&&
+     ((a&BIT_ON(10) || a&BIT_ON(22)))&&
+     ((a&BIT_ON(11) || a&BIT_ON(23)))
+     ) out=1;
+  else out=0;
+  return out;
+}
+
+Bool_t btdkpi_final::isMcD0Matchedfunction_matchedB(Int_t a, TString KorPi)
+{
+  Int_t out(0);
+  if(KorPi=="k")
+    if(
+       ((a&BIT_ON(0) || a&BIT_ON(1)))&&
+       ((a&BIT_ON(8) || a&BIT_ON(20)))&&
+       ((a&BIT_ON(9) || a&BIT_ON(21)))&&
+       ((a&BIT_ON(10) || a&BIT_ON(22)))&&
+       ((a&BIT_ON(11) || a&BIT_ON(23)))
+       ) out=1;
+    else out=0;
+  else if(KorPi=="pi")
+    if(
+       //   ((a&BIT_ON(0) || a&BIT_ON(1)))&& // bug que viene de la reducida. 
+       ((a&BIT_ON(13) || a&BIT_ON(14)))&&
+       ((a&BIT_ON(8) || a&BIT_ON(20)))&&
+       ((a&BIT_ON(9) || a&BIT_ON(21)))&&
+       ((a&BIT_ON(10) || a&BIT_ON(22)))&&
+       ((a&BIT_ON(11) || a&BIT_ON(23)))
+       ) out=1;
+    else out=0;
+    return out;
+}
+
+
+
+Bool_t btdkpi_final::isMcDstar0Matchedfunction(Int_t a)
+{
+  Int_t out(0); 
+  if( isMcD0Matchedfunction(a) ){
+    if ( _dstar0mode == "d0pi0" ) 
+      if( a&BIT_ON(3) && a&BIT_ON(4) )
+	out=1;
+      else out=0;
+    else if ( _dstar0mode == "d0gam" ) 
+      if( a&BIT_ON(5) )
+	out=1;
+      else out=0;
+  }
+  else out=0;
+  return out;
+}
+
+Bool_t btdkpi_final::isMcDstar0Matchedfunction_matchedB(Int_t a, TString KorPi)
+{
+  Int_t out(0); 
+  if( isMcD0Matchedfunction_matchedB(a, KorPi) ){
+    if ( _dstar0mode == "d0pi0" ) 
+      if( a&BIT_ON(3) && a&BIT_ON(4) )
+	out=1;
+      else out=0;
+    else if ( _dstar0mode == "d0gam" ) 
+      if( a&BIT_ON(5) )
+	out=1;
+      else out=0;
+  }
+  else out=0;
+  return out;
+}
+
+
+Bool_t btdkpi_final::isMcprMatchedfunction(Int_t a, TString KorPi)
+{
+  Int_t out(0);
+ 
+  if(KorPi=="k")
+    if(
+       (a&BIT_ON(0) || a&BIT_ON(1)) &&
+       (a&BIT_ON(2) || a&BIT_ON(24)) 
+       )out=1;
+    else out=0;
+  else if(KorPi=="pi")
+    if(
+       //       (a&BIT_ON(0) || a&BIT_ON(1)) &&  // bug 
+       (a&BIT_ON(13) || a&BIT_ON(14)) &&
+       (a&BIT_ON(2) || a&BIT_ON(24)) 
+       )out=1;
+    else out=0;
+  return out;
+}
+
+Bool_t btdkpi_final::isMcBMatchedfunction(Int_t a, TString KorPi)
+{
+  Int_t out(0);
+  if ( _dstar0mode == "d0" ) 
+    if(isMcprMatchedfunction(a, KorPi) && isMcD0Matchedfunction_matchedB(a,KorPi))
+      out=1;
+    else out=0;
+  else 
+    if(isMcprMatchedfunction(a, KorPi) && isMcDstar0Matchedfunction_matchedB(a, KorPi))
+      out=1;
+    else out=0;
+
+  return out;
+}
+
+
+// Bool_t btdkpi_final::isMcBMatchedfunction(Int_t a, TString KorPi)
+// {
+//   Int_t out(0);
+  
+//   if(KorPi=="k"){
+//     if ( _dstar0mode == "d0" ) 
+//       if((a&3845)==3845 || (a&3846)==3846
+// 	 )out=1;
+//       else out=0;
+//     else if ( _dstar0mode == "d0pi0" )
+//       if((a&3869)==3869 || (a&3870)==3870
+// 	 )out=1;
+//       else out=0;
+//     else if( _dstar0mode == "d0gam" ) 	
+//       if((a&3877)==3877 || (a&3878)==3878
+// 	 )out=1;
+//       else out=0;}
+  
+//   else if(KorPi=="pi"){
+//     if ( _dstar0mode == "d0" ) 
+//       if((a&12036)==12036 || (a&20228)==20228
+// 	 )out=1;
+//       else out=0;
+//     else if ( _dstar0mode == "d0pi0" )
+//       if((a&12060)==12060 || (a&20252)==20252
+// 	 )out=1;
+//       else out=0;
+//     else if( _dstar0mode == "d0gam" ) 	
+//       if((a&12068)==12068 || (a&20260)==20260
+// 	 )out=1;
+//       else out=0;}
+//   return out;
+// }

@@ -1,0 +1,14 @@
+D0,kspipi
+
+  demk_lo_cut=       -0.03
+  demk_hi_cut=        0.030
+  costhrust_cut =     0.8
+  deltamD0_cut =      0.012
+  deltamKs_cut =      0.009
+  cosKs_cut =         0.99
+  mes_cut =           5.272
+  mD0_nom=            1.8645
+  mKs_nom=            0.4976
+  probChi2D0_cut =    0.
+  probChi2ChB_cut=    0.
+  chi2ChB_cut=        0.

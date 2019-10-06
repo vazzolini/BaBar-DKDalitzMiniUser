@@ -1,0 +1,583 @@
+#!/usr/bin/perl 
+#argv 0 : full report
+#argv 1 : configfile
+
+open(OUTFILE,">$ARGV[0]") || die "cannot open $ARGV[0] $!\n";
+open(OUTCONFIG,">$ARGV[1]") || die "cannot open $ARGV[1] $!\n";
+
+print OUTFILE "This program calculates the D0 fractions from background.\n";
+print OUTFILE "Diego Milanes. 2007.\n";
+print OUTFILE "\n";
+
+#$path = "ASCII/log/";
+$path = "ASCIIlog/";
+#$path = "ASCII/../ASCII-noCosTheta_noFish/log/";
+
+@bkgTypes = ("chb","b0b0bar","ccbar","uds","signal");
+@channelCodes = (
+		 1100,     # 1) B->D0K, D0->kspipi
+		 1200,     # 2) B->D0K, D0->kskk
+		 2100,     # 3) B->D0pi, D0->kspipi
+		 2200,     # 4) B->D0pi, D0->kskk
+		 3110,     # 5) B->D*0k, D*0->D0pi0, D0->kspipi
+		 3120,     # 6) B->D*0k, D*0->D0gam, D0->kspipi
+		 3210,     # 7) B->D*0k, D*0->D0pi0, D0->kskk
+		 3220,     # 8) B->D*0k, D*0->D0gam, D0->kskk		 
+		 4110,     # 9) B->D*0pi, D*0->D0pi0, D0->kspipi
+		 4120,     # 10) B->D*0pi, D*0->D0gam, D0->kspipi
+		 4210,     # 11) B->D*0pi, D*0->D0pi0, D0->kskk
+		 4220,     # 12) B->D*0pi, D*0->D0gam, D0->kskk
+ 		 5101,      # 13) B->D0k*, k*->kspi, D0->kspipi
+		 5102
+		 );
+
+foreach $channelCode (@channelCodes){
+   
+# 1) B->D0K, D0->kspipi
+    
+    if($channelCode==1100){
+	$ddecay = "kspipi";
+	$dtype = "D0";
+	$KorPi = "k";
+	$dstar0mode = "d0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdk";
+	$name = "B->D0K, D0->kspipi";
+	$configname = "_{DK;KsPiPi}";
+    }
+    
+# 2) B->D0K, D0->kskk
+    
+    elsif($channelCode==1200){
+	$ddecay = "kskk";
+	$dtype = "D0";
+	$KorPi = "k";
+	$dstar0mode = "d0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdk";
+	$name = "B->D0K, D0->kskk";
+        $configname = "_{DK;KsKK}";   
+    }
+    
+# 3) B->D0pi, D0->kspipi
+    
+    if($channelCode==2100){
+	$ddecay = "kspipi";
+	$dtype = "D0";
+	$KorPi = "pi";
+	$dstar0mode = "d0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdpi";
+	$name = "B->D0pi, D0->kspipi";
+        $configname = "_{DPi;KsPiPi}";
+    }
+    
+# 4) B->D0pi, D0->kskk
+    
+    if($channelCode==2200){
+	$ddecay = "kskk";
+	$dtype = "D0";
+	$KorPi = "pi";
+	$dstar0mode = "d0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdpi";
+	$name = "B->D0pi, D0->kskk";
+        $configname = "_{DPi;KsKK}";
+    }
+    
+# 5) B->D*0k, D*0->D0pi0, D0->kspipi
+    
+    if($channelCode==3110){
+	$ddecay = "kspipi";
+	$dtype = "Dstar0";
+	$KorPi = "k";
+	$dstar0mode = "d0pi0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdsk";
+	$name = "B->D*0k, D*0->D0pi0, D0->kspipi";
+	$configname = "_{Dpi0K;KsPiPi}";
+    }
+    
+# 6) B->D*0k, D*0->D0gam, D0->kspipi
+    
+    if($channelCode==3120){
+	$ddecay = "kspipi";
+	$dtype = "Dstar0";
+	$KorPi = "k";
+	$dstar0mode = "d0gam";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdsk";
+	$name = "B->D*0k, D*0->D0gam, D0->kspipi";
+	$configname = "_{DgammaK;KsPiPi}";
+    }
+	
+# 7) B->D*0k, D*0->D0pi0, D0->kskk
+	
+	if($channelCode==3210){
+	$ddecay = "kskk";
+	$dtype = "Dstar0";
+	$KorPi = "k";
+	$dstar0mode = "d0pi0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdsk";
+	$name = "B->D*0k, D*0->D0pi0, D0->kskk";
+	$configname = "_{Dpi0K;KsKK}";
+    }
+    
+# 8) B->D*0k, D*0->D0gam, D0->kskk
+    
+    if($channelCode==3220){
+	$ddecay = "kskk";
+	$dtype = "Dstar0";
+	$KorPi = "k";
+	$dstar0mode = "d0gam";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdsk";
+	$name = "B->D*0k, D*0->D0gam, D0->kskk";
+	$configname = "_{DgammaK;KsKK}";
+    }
+    
+# 9) B->D*0pi, D*0->D0pi0, D0->kspipi
+    
+    if($channelCode==4110){
+	$ddecay = "kspipi";
+	$dtype = "Dstar0";
+	$KorPi = "pi";
+	$dstar0mode = "d0pi0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdspi";
+	$name = "B->D*0pi, D*0->D0pi0, D0->kspipi";
+	$configname = "_{Dpi0Pi;KsPiPi}";
+    }
+    
+# 10) B->D*0pi, D*0->D0gam, D0->kspipi
+    
+    if($channelCode==4120){
+	$ddecay = "kspipi";
+	$dtype = "Dstar0";
+	$KorPi = "pi";
+	$dstar0mode = "d0gam";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdspi";
+	$name = "B->D*0pi, D*0->D0gam, D0->kspipi";
+	$configname = "_{DgammaPi;KsPiPi}";
+    }
+    
+# 11) B->D*0pi, D*0->D0pi0, D0->kskk
+    
+    if($channelCode==4210){
+	$ddecay = "kskk";
+	$dtype = "Dstar0";
+	$KorPi = "pi";
+	$dstar0mode = "d0pi0";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdspi";
+	$name = "B->D*0pi, D*0->D0pi0, D0->kskk";
+	$configname = "_{Dpi0Pi;KsKK}";
+    }
+    
+# 12) B->D*0k, D*0->D0gam, D0->kskk
+    
+    if($channelCode==4220){
+	$ddecay = "kskk";
+	$dtype = "Dstar0";
+	$KorPi = "pi";
+	$dstar0mode = "d0gam";
+	$macroFile = "btdkpi";
+	$MCSigType = "btdspi";
+	$name = "B->D*0k, D*0->D0gam, D0->kskk";
+	$configname = "_{DgammaPi;KsKK}";
+    }
+    
+# 13) B->D0k*, k*->kspi, D0->kspipi
+    
+    if($channelCode==5101){
+	$ddecay = "kspipi";
+	$dtype = "D0";
+	$KorPi = "k";
+	$dstar0mode = "d0";
+	$macroFile = "btdkstarc";
+	$MCSigType = "btdkstarc";
+	$name = "B->D0k*, k*->kspi, D0->kspipi";
+	$configname = "_{DKspi;KsPiPi}";
+    }
+
+ #13b) B->D0k*, k*->kspi, D0->kskk
+    
+    if($channelCode==5102){
+	$ddecay = "kskk";
+	$dtype = "D0";
+	$KorPi = "k";
+	$dstar0mode = "d0";
+	$macroFile = "btdkstarc";
+	$MCSigType = "btdkstarc";
+	$name = "B->D0k*, k*->kspi, D0->kskk";
+	$configname = "_{DKspi;KsKK}";
+    }    
+    print OUTFILE "\n";	
+    print OUTFILE "*************************************************\n";
+    print OUTFILE "*************************************************\n";
+    print OUTFILE "Channel : $name \n";
+    print OUTFILE "*************************************************\n";	
+    print OUTFILE "*************************************************\n";	
+
+
+    foreach $bkgType (@bkgTypes){
+
+
+
+	if($bkgType ne "signal"){
+
+	    print OUTFILE "Background type  : $bkgType \n";
+	    print OUTFILE "******************************* \n";
+	    
+	    if($macroFile eq "btdkstarc"){	
+		$logname="${path}${macroFile}\_kspi\_${ddecay}\_${bkgType}.log";
+	    }
+	    if($macroFile eq "btdkpi"){	    
+		$logname="${path}${macroFile}\_${KorPi}\_${ddecay}\_${dstar0mode}\_${dtype}\_${bkgType}.log";
+	    }
+	}
+	
+	$totcand = 0;
+	$totD0bc = 0;
+	$fracRealD0 = 0;
+	$fracRealD0_error = 0;
+	$fracRSD0 = 0;
+	$fracRSD0_error = 0;
+	$fracWSD0 = 0;
+	$fracWSD0_error = 0;
+	$totprRS = 0;
+	$totprRS = 0;
+
+	open (INFILE,$logname) || die "cannot open $logname: $!\n";
+	while($line=<INFILE>){
+	    chop $line;   
+	    @lineVect = split(' ',$line);
+	    
+	    
+            #totcand
+#	    if((@lineVect[0] eq "totcand") 
+	    if((@lineVect[0] eq "totevt") 
+	       && (@lineVect[1] eq "=")){		   
+		$totcand = @lineVect[2];
+	    }
+            #totD0bc
+	    if((@lineVect[0] eq "totD0bc") 
+	       && (@lineVect[1] eq "=")){		   
+		$totD0bc = @lineVect[2];
+	    }
+            #Real d0 fraction
+	    if((@lineVect[0] eq "fraction") 
+	       && (@lineVect[1] eq "real") 
+	       && (@lineVect[2] eq "D0s")
+	       && (@lineVect[3] eq "bc")
+	       && (@lineVect[4] eq "=")){		   
+		$fracRealD0 = @lineVect[5];
+		$fracRealD0_error = @lineVect[7];
+	    }
+            #RS d0 fraction
+	    if((@lineVect[0] eq "fraction") 
+	       && (@lineVect[1] eq "RS") 
+	       && (@lineVect[2] eq "D0s")
+	       && (@lineVect[3] eq "bc")
+	       && (@lineVect[4] eq "=")){		   
+		$fracRSD0 = @lineVect[5];
+		$fracRSD0_error = @lineVect[7];
+	    }  
+	    #WS d0 fraction
+	    if((@lineVect[0] eq "fraction") 
+	       && (@lineVect[1] eq "WS") 
+	       && (@lineVect[2] eq "D0s")
+	       && (@lineVect[3] eq "bc")
+	       && (@lineVect[4] eq "=")){		   
+		$fracWSD0 = @lineVect[5];
+		$fracWSD0_error = @lineVect[7];
+	    }
+            #num prompt RSbc 
+	    if(($macroFile eq "btdkpi")
+	       &&(@lineVect[0] eq "totprRSbc") 
+	       && (@lineVect[1] eq "=")){		   
+		$totprRS = @lineVect[2];
+	    }
+	    if(($macroFile eq "btdkstarc")
+	       &&(@lineVect[0] eq "totKstarRSbc") 
+	       && (@lineVect[1] eq "=")){		   
+		$totprRS = @lineVect[2];
+	    }
+            #quit
+	    if((@lineVect[0] eq "Making")
+	       && (@lineVect[1] eq "histogramns")
+	       && (@lineVect[2] eq "with")
+	       && (@lineVect[3] eq "style")){
+		last;}
+    	}
+	close(INFILE);
+
+	if($totcand == 0) {print "-----ATTENTION----- Check manually logfile: $name ( sigtype = $bkgType ).\n"}
+
+	#*************************************
+	print OUTFILE "Total number of candidates      :   $totcand \n";
+	print OUTFILE "Total number of D0s             :   $totD0bc \n";
+	print OUTFILE "      Fraction of real D0s      :   $fracRealD0 +- $fracRealD0_error \n";
+	print OUTFILE "      Total number of RS D0s    :   $totprRS \n";
+	print OUTFILE "           D0s RightSign        :   $fracRSD0 +- $fracRSD0_error \n";
+	print OUTFILE "           D0s WrongSign        :   $fracWSD0 +- $fracWSD0_error \n";
+	print OUTFILE "\n";
+    
+
+	if($bkgType eq "signal"){
+  
+
+	    if($macroFile eq "btdkstarc"){
+		foreach(`cat ASCII/${macroFile}_kspi_${ddecay}_${MCSigType}_Bbest_Cut114.dat | wc -l`){
+		    chop $_;
+		    $fromfile = $_ ; 
+		}
+		$TrueFakeD_sig = $fromfile;
+		
+		
+		foreach(`cat ASCII/${macroFile}_kspi_${ddecay}_${MCSigType}_Bbest_Cut114_fakeBfakeD.dat | wc -l`){
+		    chop $_;
+		    $fromfile = ${fromfile} - $_; 
+		    $fromfile2 = $_;
+		}
+		$TrueD_sig = $fromfile;
+		$FakeD_sig = $fromfile2;
+	    }
+	    if($macroFile eq "btdkpi"){
+		foreach(`cat ASCII/${macroFile}_${dstar0mode}${KorPi}_${ddecay}_${MCSigType}_Bbest_Cut114.dat | wc -l`){
+		    chop $_;
+		    $fromfile = $_ ; 
+		}
+		$TrueFakeD_sig = $fromfile;
+		
+		
+		foreach(`cat ASCII/${macroFile}_${dstar0mode}${KorPi}_${ddecay}_${MCSigType}_Bbest_Cut114_fakeBfakeD.dat | wc -l`){
+		    chop $_;
+		    $fromfile = ${fromfile} - $_; 
+		    $fromfile2 = $_;
+		}
+		$TrueD_sig = $fromfile;
+		$FakeD_sig = $fromfile2;
+	    }
+	    
+	    
+	    $totcand_sig = $totcand;
+	    $totD0bc_sig = $totD0bc;
+	    $fracRealD0_sig = $fracRealD0;
+	    $fracRealD0_error_sig = $fracRealD0_error;
+	    $totprRS_sig = $totprRS;
+	    $fracRSD0_sig = $fracRSD0;
+	    $fracRSD0_error_sig = $fracRSD0_error;
+	    $fracWSD0_sig = $fracWSD0;
+	    $fracWSD0_error_sig =$fracWSD0_error;
+	}
+
+	if($bkgType eq "chb"){
+	    $totcand_chb = $totcand;
+	    $totD0bc_chb = $totD0bc;
+	    $fracRealD0_chb = $fracRealD0;
+	    $fracRealD0_error_chb = $fracRealD0_error;
+	    $totprRS_chb = $totprRS;
+	    $fracRSD0_chb = $fracRSD0;
+	    $fracRSD0_error_chb = $fracRSD0_error;
+	    $fracWSD0_chb = $fracWSD0;
+	    $fracWSD0_error_chb =$fracWSD0_error;
+	}
+	if($bkgType eq "b0b0bar"){
+	    $totcand_b0b0bar = $totcand;
+	    $totD0bc_b0b0bar = $totD0bc;
+	    $fracRealD0_b0b0bar = $fracRealD0;
+	    $fracRealD0_error_b0b0bar = $fracRealD0_error;
+	    $totprRS_b0b0bar = $totprRS;
+	    $fracRSD0_b0b0bar = $fracRSD0;
+	    $fracRSD0_error_b0b0bar = $fracRSD0_error;
+	    $fracWSD0_b0b0bar = $fracWSD0;
+	    $fracWSD0_error_b0b0bar =$fracWSD0_error;
+	}
+	if($bkgType eq "ccbar"){
+	    $totcand_ccbar = $totcand;
+	    $totD0bc_ccbar = $totD0bc;
+	    $fracRealD0_ccbar = $fracRealD0;
+	    $fracRealD0_error_ccbar = $fracRealD0_error;
+	    $totprRS_ccbar = $totprRS;
+	    $fracRSD0_ccbar = $fracRSD0;
+	    $fracRSD0_error_ccbar = $fracRSD0_error;
+	    $fracWSD0_ccbar = $fracWSD0;
+	    $fracWSD0_error_ccbar =$fracWSD0_error;
+	}
+	if($bkgType eq "uds"){
+	    $totcand_uds = $totcand;
+	    $totD0bc_uds = $totD0bc;
+	    $fracRealD0_uds = $fracRealD0;
+	    $fracRealD0_error_uds = $fracRealD0_error;
+	    $totprRS_uds = $totprRS;
+	    $fracRSD0_uds = $fracRSD0;
+	    $fracRSD0_error_uds = $fracRSD0_error;
+	    $fracWSD0_uds = $fracWSD0;
+	    $fracWSD0_error_uds =$fracWSD0_error;
+	}
+
+    }
+
+    print OUTFILE "Background fractions   \n";
+    print OUTFILE "********************** \n";
+
+    #Rcont calculation
+    $Rcont_num = Wlumi($totD0bc_ccbar,"ccbar"); 
+    $Rcont_den = Wlumi($totcand_ccbar,"ccbar")+Wlumi($totcand_uds,"uds"); 
+    $Rcont = $Rcont_num/$Rcont_den;
+    $Rcont_error = errorCalculation($Rcont_num,$Rcont_den);
+    
+    #Rbbbar calculation
+    $Rbbbar_num = Wlumi($totD0bc_chb,"chb")+Wlumi($totD0bc_b0b0bar,"b0b0bar"); 
+    $Rbbbar_den = Wlumi($totcand_chb,"chb")+Wlumi($totcand_b0b0bar,"b0b0bar")+ Wlumi($FakeD_sig,$configname); 
+    $Rbbbar = $Rbbbar_num/$Rbbbar_den;
+    $Rbbbar_error = errorCalculation($Rbbbar_num,$Rbbbar_den);
+
+    #Rbkg calculation
+    $Rbkg_num = Wlumi($totD0bc_ccbar,"ccbar")+Wlumi($totD0bc_chb,"chb")+Wlumi($totD0bc_b0b0bar,"b0b0bar"); 
+    $Rbkg_den = Wlumi($totcand_ccbar,"ccbar")+Wlumi($totcand_uds,"uds")+Wlumi($totcand_chb,"chb")+Wlumi($totcand_b0b0bar,"b0b0bar"); 
+    $Rbkg = $Rbkg_num/$Rbkg_den;
+    $Rbkg_error = errorCalculation($Rbkg_num,$Rbkg_den);
+
+    #RcontRS calculation   
+    $RcontRS_num = Wlumi($totprRS_ccbar,"ccbar"); 
+    $RcontRS_den = Wlumi($totD0bc_ccbar,"ccbar")+Wlumi($totD0bc_uds,"uds"); 
+    $RcontRS = $RcontRS_num/$RcontRS_den;
+    $RcontRS_error = errorCalculation($RcontRS_num,$RcontRS_den);
+
+    #RbbbarRS calculation   
+    $RbbbarRS_num = Wlumi($totprRS_chb,"chb")+Wlumi($totprRS_b0b0bar,"b0b0bar"); 
+    $RbbbarRS_den = Wlumi($totD0bc_chb,"chb")+Wlumi($totD0bc_b0b0bar,"b0b0bar"); 
+    $RbbbarRS = $RbbbarRS_num/$RbbbarRS_den;
+    $RbbbarRS_error = errorCalculation($RbbbarRS_num,$RbbbarRS_den);
+
+    print OUTFILE "fmDContPkg${configname}       =   $Rcont +\/- $Rcont_error C L(0 - 1)\n";
+    print OUTFILE "fmDBBPkg${configname}         =   $Rbbbar +\/- $Rbbbar_error C L(0 - 1)\n";
+    print OUTFILE "Rbkg${configname}             =   $Rbkg +\/- $Rbkg_error C L(0 - 1)\n";
+    print OUTFILE "fContGoodDRS${configname}     =   $RcontRS +\/- $RcontRS_error C L(0 - 1)\n";
+    print OUTFILE "fBBGoodDRS${configname}        =   $RbbbarRS +\/- $RbbbarRS_error C L(0 - 1)\n";
+    print OUTFILE "\n";
+
+    print OUTCONFIG "\/\/ ${name}\n";
+    print OUTCONFIG "fmDContPkg${configname}       =   $Rcont +\/- $Rcont_error C L(0 - 1)\n";
+    print OUTCONFIG "fmDBBPkg${configname}         =   $Rbbbar +\/- $Rbbbar_error C L(0 - 1)\n";
+    print OUTCONFIG "fContGoodDRS${configname}     =   $RcontRS +\/- $RcontRS_error C L(0 - 1)\n";
+    print OUTCONFIG "fBBGoodDRS${configname}        =   $RbbbarRS +\/- $RbbbarRS_error C L(0 - 1)\n";
+
+
+    if($macroFile eq "btdkstarc"){	
+	$logname="${path}${macroFile}\_kspi\_${ddecay}\_${MCSigType}.log";
+    }
+    if($macroFile eq "btdkpi"){	    
+	$logname="${path}${macroFile}\_${KorPi}\_${ddecay}\_${dstar0mode}\_${dtype}\_${MCSigType}.log";
+    }
+
+    open (INFILESig,$logname) || die "cannot open $logname: $!\n";
+    while($line=<INFILESig>){
+	chop $line;   
+	@lineVect = split(' ',$line);
+	
+	#WS d0 fraction in RSSig
+	if((@lineVect[0] eq "fraction") 
+	   && (@lineVect[1] eq "of") 
+	   && (@lineVect[2] eq "WS")
+	   && (@lineVect[3] eq "over")
+	   && (@lineVect[4] eq "RS")
+	   && (@lineVect[5] eq "=")){		   
+	    $WSfracRS = @lineVect[6];
+	    $WSfracRS_error = @lineVect[8];
+	}
+	#RS in WSig
+	if((@lineVect[0] eq "fraction") 
+	   && (@lineVect[1] eq "of") 
+	   && (@lineVect[2] eq "right")
+	   && (@lineVect[3] eq "sign")
+	   && (@lineVect[4] eq "over")
+	   && (@lineVect[5] eq "WS")
+	   && (@lineVect[6] eq "=")){		   
+	    $RSinWS = @lineVect[7];
+	    $RSinWS_error = @lineVect[9];
+	}
+    }
+    close(INFILESig);
+    print OUTFILE "Background fractions in Signal   \n";
+    print OUTFILE "******************************* \n";
+    print OUTFILE "kappaSigWS${configname}       =   $WSfracRS +\/- $WSfracRS_error C L(0 - 1)\n";
+    print OUTFILE "fSigWSRS${configname}         =   $RSinWS +\/- $RSinWS_error C L(0 - 1)\n";
+    print OUTFILE "\n";    
+
+    print OUTCONFIG "kappaSigWS${configname}       =   $WSfracRS +\/- $WSfracRS_error C L(0 - 1)\n";
+    print OUTCONFIG "fSigWSRS${configname}         =   $RSinWS +\/- $RSinWS_error C L(0 - 1)\n";
+    print OUTCONFIG "\n";
+}
+
+close(OUTFILE);
+close(OUTCONFIG);
+
+sub errorCalculation{
+    my ($num,$den)=@_;
+    $frac = $num/$den; 
+    return(sqrt($num*(1-$frac))/$den);    
+}
+
+sub Wlumi{
+    my($val,$type)=@_;
+    $W=0;
+
+    #$lumi_chb = 1010.1;
+    #$lumi_b0b0bar = 1004.4;
+    #$lumi_ccbar = 454.8 ;
+    #$lumi_uds = 337.0 ;
+    #$lumi_data = 350.6 ;
+
+
+    if ($type=="_{DK;KsPiPi}"){$lumi_sig = 117608.482;}
+    if ($type=="_{DK;KsKK}"){$lumi_sig = 745152.355;}
+    if ($type=="_{Dpi0K;KsPiPi}"){$lumi_sig = 226975.073;}
+    if ($type=="_{Dpi0K;KsKK}"){$lumi_sig = 1438420.348;}
+    if ($type=="_{DgammaK;KsPiPi}"){$lumi_sig = 226975.073;}
+    if ($type=="_{DgammaK;KsKK}"){$lumi_sig = 1438420.348;}
+    
+    if ($type=="_{DPi;KsPiPi}"){$lumi_sig =9767.7880;}
+    if ($type=="_{DPi;KsKK}") {$lumi_sig = 61878.199;}
+    if ($type=="_{Dpi0Pi;KsPiPi}"){$lumi_sig =  18192.746;}
+    if ($type=="_{Dpi0Pi;KsKK}"){$lumi_sig = 115246.420;}
+    if ($type=="_{DgammaPi;KsPiPi}"){$lumi_sig =18192.746;}
+    if ($type=="_{DgammaPi;KsKK}"){$lumi_sig =115246.420;}
+    
+    
+  #kstar
+    if ($type=="_{DKspi;KsPiPi}"){$lumi_sig =387093.7024;}
+    if ($type=="_{DKspi;KsKK}"){$lumi_sig =2452140.191;}
+
+    
+
+    $lumi_chb = 1288.6582;
+    $lumi_b0b0bar = 1305.4454;
+    $lumi_ccbar = 868.1107;
+    $lumi_uds = 778.863;
+    $lumi_data = 425.472;
+    
+
+    $Wuds = $lumi_data/$lumi_uds;
+    $Wccbar = $lumi_data/$lumi_ccbar;
+    $Wb0b0bar = $lumi_data/$lumi_b0b0bar;
+    $Wchb = $lumi_data/$lumi_chb;
+
+    $Wsig = $lumi_data/$lumi_sig;
+
+    if($type eq "uds"){$W = $Wuds;}
+    if($type eq "ccbar"){$W = $Wccbar;}
+    if($type eq "b0b0bar"){$W = $Wb0b0bar;}
+    if($type eq "chb"){$W = $Wchb;}
+    if($type ne "chb" and $type ne "uds" and $type ne "ccbar" and $type ne "b0b0bar"){$W = $Wsig;}
+
+
+    
+    if($W==0){die "---ATTENTION--- Bad weight calculation.\n";}
+
+    return($val*$W);
+}

@@ -1,0 +1,98 @@
+entry # : 11997
+runnumber : 14026911 lowerid : -2051258940 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+0: B- -> K- pi+ pi+ pi- e-
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B+ -> pi+ pi- pi- pi+ K+ pi0
+
+  B- -> D'_10 anti-nu_tau tau-   D'_10 -> D*+ pi-   D*+ -> D0 pi+   D0 -> K- pi+   tau- -> nu_tau anti-nu_e e-
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -----------------------------------------------------------------\
+----------------------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 12010
+runnumber : 14026911 lowerid : -2051251083 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+5: B+ -> pi- K+ pi- pi+ pi+ pi0 pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> anti-D*0 K*0 anti-K0 rho- pi+ pi+   anti-D*0 -> anti-D0 pi0   anti-D0 -> a_1- K+   a_1- -> rho- pi0   rho- -> pi- pi0   K*0 -> K0 pi0   K0 -> K_L0 \
+  anti-K0 -> K_L0   rho- -> pi- pi0
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 513
+------------------------------------------------------------------------------
+entry # : 12022
+runnumber : 14026911 lowerid : -2051243226 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 3+2: B- -> K- pi+ mu- pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B+ -> pi+ pi- pi- pi+ K+ pi0
+
+  B- -> D*0 anti-nu_mu mu-   D*0 -> D0 pi0   D0 -> K- pi+ pi0
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -----------------------------------------------------------------\
+----------------------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 12044
+runnumber : 14026911 lowerid : -2051241480 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+8: B+ -> pi+ pi- pi+ pi+ pi- pi0 pi0 pi0 gamma gamma pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> b_1+ anti-D0 eta pi0 pi0 pi0   b_1+ -> omega pi+   omega -> pi+ pi- pi0   anti-D0 -> K*0 pi0   K*0 -> K0 pi0   K0 -> K_S0   K_S0 -> pi+ pi-   eta -\
+> gamma gamma
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 12050
+runnumber : 14026911 lowerid : -2051239734 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 3+2: B- -> pi- pi+ e- pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+2: B+ -> pi+ pi- pi- pi+ K+ gamma pi0
+
+  B- -> D0 anti-nu_e e-   D0 -> anti-K0 pi- pi+ pi0 pi0   anti-K0 -> K_L0
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- gamma -----------------------------------------------------------\
+----------------------------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 12058
+runnumber : 14026911 lowerid : -2051232750 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 7+7: B- -> pi- pi+ pi+ pi- pi- pi+ pi- pi0 pi0 gamma gamma pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+2: B+ -> pi+ pi- pi- pi+ K+ gamma pi0
+
+  B- -> D_0*0 h_1 pi- pi0 pi0   D_0*0 -> D+ pi- gamma   D+ -> phi pi+ pi0 gamma   phi -> pi- pi+ pi0   h_1 -> rho0 pi0   rho0 -> pi- pi+
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+ gamma   K_S0 -> pi+ pi- -----------------------------------------------------------\
+----------------------------------------------
+ Win second B!
+out= 513
+------------------------------------------------------------------------------
+entry # : 12073
+runnumber : 14026911 lowerid : -2051216163 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 7+5: B+ -> K+ pi+ pi- pi- pi+ pi- pi+ pi0 pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> anti-D0 eta rho+ pi- pi+   anti-D0 -> K+ omega pi-   omega -> pi+ pi- pi0   eta -> pi0 pi0 pi0   rho+ -> pi+ pi0
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 12090
+runnumber : 14026911 lowerid : -2051199576 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+1: B- -> K- pi+ pi+ pi- e- pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+2: B+ -> pi+ pi- pi- pi+ K+ gamma pi0
+
+  B- -> D*0 anti-nu_e e-   D*0 -> D0 pi0   D0 -> K- pi+ pi+ pi-
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- gamma -----------------------------------------------------------\
+----------------------------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------

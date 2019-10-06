@@ -1,0 +1,81 @@
+entry # : 14732
+runnumber : 14026911 lowerid : -2049700635 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+2: B+ -> pi+ pi- pi+ pi- pi+ pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> anti-D*0 pi+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K*+ rho-   K*+ -> K0 pi+   K0 -> K_S0   K_S0 -> pi+ pi-   rho- -> pi- pi0
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 513
+------------------------------------------------------------------------------
+entry # : 14744
+runnumber : 14026911 lowerid : -2049685794 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 9+5: B+ -> pi+ pi- pi- pi+ pi- pi+ pi- pi+ K+ gamma pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> D0 anti-D0 K+ eta pi0   D0 -> anti-K0 pi- pi+ gamma   anti-K0 -> K_S0   K_S0 -> pi+ pi-   anti-D0 -> K0 pi- pi+ pi- pi+   K0 -> K_L0   eta -> pi0 p\
+i0 pi0
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 14746
+runnumber : 14026911 lowerid : -2049684048 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 7+3: B+ -> K- pi+ pi+ pi- p+ pi+ pi+ pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+2: B- -> pi+ pi- pi- pi+ K- gamma pi0
+
+  B+ -> D*+ D- K0 pi+   D*+ -> D+ pi0   D+ -> K- pi+ pi+   D- -> a_1- K0   a_1- -> rho- pi0   rho- -> pi- pi0   K0 -> K_L0   K0 -> K_L0   K_L0 -> p+ pi+
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+ gamma   K_S0 -> pi+ pi- -------------------------------------------------------------------------------\
+--------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 16300
+runnumber : 14026911 lowerid : -2048743827 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+5: B- -> K- K+ pi- pi- pi+ pi0 pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B+ -> pi+ pi- pi- pi+ K+ pi0
+
+  B- -> D_s0*- D0   D_s0*- -> D_s- pi0   D_s- -> phi pi- pi0 pi0   phi -> K- K+   D0 -> pi- pi+ pi0 pi0
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -----------------------------------------------------------------\
+----------------------------------------
+ Win second B!
+out= 897
+------------------------------------------------------------------------------
+entry # : 16304
+runnumber : 14026911 lowerid : -2048742081 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 5+7: B- -> pi- pi+ pi- pi+ K- gamma pi0 gamma pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B+ -> pi+ pi- pi- pi+ K+ pi0
+
+  B- -> D_s1- D*0   D_s1- -> D_s*- pi0   D_s*- -> D_s- gamma   D_s- -> eta' rho-   eta' -> rho0 gamma   rho0 -> pi- pi+   rho- -> pi- pi0   D*0 -> D0 pi0  \
+ D0 -> a_1+ K-   a_1+ -> rho+ pi0   rho+ -> pi+ pi0
+  B+ -> anti-D*0 K+   anti-D*0 -> anti-D0 pi0   anti-D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -----------------------------------------------------------------\
+----------------------------------------
+ Win second B!
+out= 513
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+entry # : 12073
+runnumber : 14026911 lowerid : -2051216163 upperid : 712781
+  chargedDauFirstB[0]+neutralDauFirstB[0] = 7+5: B+ -> K+ pi+ pi- pi- pi+ pi- pi+ pi0 pi0 pi0 pi0 pi0
+
+  chargedDauSecondB[0]+neutralDauSecondB[0] = 5+1: B- -> pi+ pi- pi- pi+ K- pi0
+
+  B+ -> anti-D0 eta rho+ pi- pi+   anti-D0 -> K+ omega pi-   omega -> pi+ pi- pi0   eta -> pi0 pi0 pi0   rho+ -> pi+ pi0
+  B- -> D*0 K-   D*0 -> D0 pi0   D0 -> K_S0 pi- pi+   K_S0 -> pi+ pi- -------------------------------------------------------------------------------------\
+--------------------
+ Win second B!
+out= 897

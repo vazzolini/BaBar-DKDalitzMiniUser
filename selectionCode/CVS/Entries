@@ -1,0 +1,66 @@
+D/ASCII////
+D/HIST////
+/btdkstarc_final_production_batch.pl/1.12/Tue Jun 13 15:12:17 2006//
+/Cut_Optimize.C/1.1/Sun Jul  2 08:34:34 2006//
+/Fisher.cc/1.1/Sun Jul  2 08:34:34 2006//
+/RooAlias.C/1.1/Sun Jul  2 08:34:34 2006//
+/RooLogon.C/1.1/Sun Jul  2 08:34:34 2006//
+/btdkpi_comp_data_mc_fitvars.cc/1.10/Sun Jul  2 08:34:35 2006//
+/btdkpi_comp_data_mc_fitvars_neus.cc/1.2/Sun Jul  2 08:34:35 2006//
+/btdkpi_final_production_batch.pl/1.7/Sun Jul  2 08:34:35 2006//
+/btdkpi_production_batch.pl/1.3/Sun Jul  2 08:34:36 2006//
+/btdkstarc.C/1.28/Sun Jul  2 08:34:36 2006//
+/btdkstarc_comp_data_mc_fitvars.cc/1.3/Sun Jul  2 08:34:36 2006//
+/btdkstarc_final_production.cc/1.3/Sun Jul  2 08:34:36 2006//
+/btdkstarc_production.cc/1.5/Sun Jul  2 08:34:36 2006//
+/btdkstarc_production_batch.pl/1.6/Sun Jul  2 08:34:36 2006//
+/btdkstarc_reduced.C/1.1/Sun Jul  2 08:34:36 2006//
+/btdkstarc_reduced.h/1.1/Sun Jul  2 08:34:36 2006//
+/common_evt.pl/1.2/Sun Jun 25 00:17:14 2006//
+/comp_data_mc.cc/1.1/Sun Jul  2 08:34:37 2006//
+/d0mass_fit.cc/1.1/Sun Jul  2 08:34:37 2006//
+/debug.sh/1.1/Sun Jul  2 08:34:37 2006//
+/evt.pdl/1.1/Sun Jul  2 08:34:37 2006//
+/inclDstar_final_production.cc/1.1/Sun Jul  2 08:34:37 2006//
+/inclDstar_production.cc/1.2/Sun Jul  2 08:34:37 2006//
+/makePdfFits.cc/1.3/Sun Jul  2 08:34:38 2006//
+/makePdfFitsKst.cc/1.1/Sun Jul  2 08:34:38 2006//
+/make_CutTables.pl/1.1/Sun Jul  2 08:34:38 2006//
+/makeroot.pl/1.1/Sun Jul  2 08:34:38 2006//
+/move.csh/1.1/Sun Jul  2 08:34:38 2006//
+/rootlogon.C/1.4/Sun Jul  2 08:34:38 2006//
+/test-tree.C/1.1/Sun Jul  2 08:34:38 2006//
+/tree2r.C/1.1/Sun Jul  2 08:34:38 2006//
+/weightedFraction.C/1.1/Sun Jul  2 08:34:38 2006//
+/xtalk.pl/1.1/Sun Jul  2 08:32:51 2006//
+/make_YieldsTable.pl/1.1/Sun Jul  2 08:41:51 2006//
+/remove_d0pi0.pl/1.1/Sun Jul  2 10:16:21 2006//
+/make_CPTable.pl/1.1/Sun Jul  2 22:26:38 2006//
+D/EWT////
+D/prova////
+/btdkstarc.h/1.26/Wed Feb 14 19:14:45 2007//
+/general_final_production_batch.pl/1.1/Mon Mar 26 15:06:06 2007//
+/d0mixDalitz.h/1.2/Thu Apr 19 15:10:28 2007//
+/d0mixDalitz.C/1.3/Thu Apr 26 15:45:41 2007//
+/d0mixDalitz_final.C/1.3/Fri Apr 27 13:43:17 2007//
+/d0mixDalitz_final.h/1.2/Fri Apr 27 13:44:52 2007//
+/inclDstar.C/1.30/Fri Apr 13 14:15:06 2007//
+/inclDstar.h/1.19/Fri Apr 13 14:50:27 2007//
+/inclDstar_final.C/1.51/Fri Apr 13 10:50:17 2007//
+/inclDstar_final.h/1.36/Fri Apr 13 11:55:44 2007//
+/btdkpi.C/1.27/Result of merge//
+/btdkpi.h/1.22/Tue May 15 21:36:52 2007//
+D/Mixing////
+/bkg_tree.C/1.1/Thu Feb 22 16:40:10 2007//
+/bkg_tree.h/1.1/Thu Feb 22 16:40:10 2007//
+/btdkpi_final_neus.C/1.1/Tue Feb 13 17:31:03 2007//
+/btdkpi_final_production.cc/1.9/Tue Feb 13 17:31:03 2007//
+/btdkpi_final_production_batch.csh/1.5/Tue Feb 13 17:31:03 2007//
+/btdkpi_production.cc/1.9/Tue Feb 13 17:31:04 2007//
+/btdkpi_production_batch.csh/1.9/Tue Feb 13 17:31:04 2007//
+/fisher_off_sig.cc/1.1/Mon Jan 29 12:49:50 2007//
+/btdkpi_final.C/1.51/Mon May  5 10:52:27 2008//
+/btdkpi_final.h/1.35/Mon May  5 10:55:55 2008//
+/btdkstarc_final.C/1.31/Thu Jul 19 18:50:34 2007//
+/btdkstarc_final.h/1.28/Tue Jul 10 18:33:23 2007//
+D/gamma////

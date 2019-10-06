@@ -1,0 +1,3287 @@
+#define btdkstarc_cxx
+#include "btdkstarc.h"
+#include "TH2.h"
+#include "TStyle.h"
+#include "TCanvas.h"
+
+
+void btdkstarc::Loop(Int_t nentries)
+{
+  //   In a ROOT session, you can do:
+  //      Root > .L btdkstarc.C
+  //      Root > btdkstarc t
+  //      Root > t.GetEntry(12); // Fill t data members with entry number 12
+  //      Root > t.Show();       // Show values of entry 12
+  //      Root > t.Show(16);     // Read and show values of entry 16
+  //      Root > t.Loop();       // Loop on all entries
+  //
+
+  //     This is the loop skeleton where:
+  //    jentry is the global entry number in the chain
+  //    ientry is the entry number in the current Tree
+  //  Note that the argument to GetEntry must be:
+  //    jentry for TChain::GetEntry
+  //    ientry for TTree::GetEntry and TBranch::GetEntry
+  //
+  //       To read only selected branches, Insert statements like:
+  // METHOD1:
+  //    fChain->SetBranchStatus("*",0);  // disable all branches
+  //    fChain->SetBranchStatus("branchname",1);  // activate branchname
+  // METHOD2: replace line
+  //    fChain->GetEntry(jentry);       //read all branches
+  //by  b_branchname->GetEntry(ientry); //read only this branch
+  
+  //addition start timer
+  TStopwatch timer;
+  timer.Start();
+  Bool_t isCS = _isCS;
+  if (fChain == 0) return;
+
+  //
+  //define output root file
+  //
+  TString rootfile_name= (_isCS==kFALSE)? "./root/btdkstarc_"+_d0mode+"_"+_sig_type+".root" : "./root/btda1_"+_d0mode+"_"+_sig_type+".root" ;
+
+  TFile *hfile = new TFile(rootfile_name,"RECREATE","Reduced root file");
+  //
+  //define output tree with its branches
+  //
+  TTree *tree = new TTree("T","Reduced ROOT tree");
+
+  // if not Kspipi is Ksk_chk_ch
+  Int_t lundD0Trk;
+  if (_d0mode==TString("kspipi")){
+    lundD0Trk=211;
+  }
+  else if (_d0mode==TString("kskk")) {
+    lundD0Trk=321;
+  }
+  else{
+    lundD0Trk=-999;
+    assert(0);
+  }
+  //  cout << "lundD0Trk=" << lundD0Trk << endl;
+
+  //general info
+  tree->Branch("event",&event,"event/I");
+  tree->Branch("runNumber",&runNumber,"runNumber/I");
+  tree->Branch("upperID",&upperID,"upperID/I");
+  tree->Branch("lowerID",&upperID,"lowerID/I");
+  tree->Branch("FoxWol2Neu",&FoxWol2Neu,"FoxWol2Neu/F");
+  tree->Branch("pxUps",&pxUps,"pxUps/F");
+  tree->Branch("pyUps",&pyUps,"pyUps/F");
+  tree->Branch("pzUps",&pzUps,"pzUps/F");
+  tree->Branch("eUps", &eUps, "eUps/F");
+
+  //Mc info
+  Int_t McEvtType;
+  Int_t McNREvtType;
+  Int_t McCSEvtType;
+
+  tree->Branch("nMc",&nMc,"nMc/I");
+  tree->Branch("pMc",pMc,"pMc[nMc]/F");
+  tree->Branch("thetaMc",thetaMc,"thetaMc[nMc]/F");
+  tree->Branch("phiMc",phiMc,"phiMc[nMc]/F");
+  tree->Branch("idMc",idMc,"idMc[nMc]/I");
+  tree->Branch("mothMc",mothMc,"mothMc[nMc]/I");
+  tree->Branch("nDauMc",nDauMc,"nDauMc[nMc]/I");
+  tree->Branch("McEvtType",&McEvtType,"McEvtType/I");
+  tree->Branch("McNREvtType",&McNREvtType,"McNREvtType/I");
+  
+  //ChB
+  Float_t legendrep0,legendrep2,fisher,costhrust;
+  Float_t demk,demk2,mes,pxChB,pyChB,pzChB,cosChBCM,mym0ChB,mymassChB;
+  Float_t mychi2ChB,mydofChB,myxChB,myyChB,myzChB;
+  Int_t indexMcChB;
+  tree->Branch("demk",&demk,"demk/F");
+  tree->Branch("demk2",&demk2,"demk2/F");   //original deltaE in ntuples
+  tree->Branch("mes",&mes,"mes/F");
+  tree->Branch("pxChB",&pxChB,"pxChB/F");
+  tree->Branch("pyChB",&pyChB,"pyChB/F");
+  tree->Branch("pzChB",&pzChB,"pzChB/F");
+  tree->Branch("xChB",&myxChB,"xChB/F");
+  tree->Branch("yChB",&myyChB,"yChB/F");
+  tree->Branch("zChB",&myzChB,"zChB/F");
+  tree->Branch("cosChBCM",&cosChBCM,"cosChBCM/F");
+  tree->Branch("m0ChB",&mym0ChB,"m0ChB/F");
+  tree->Branch("massChB",&mymassChB,"massChB/F");
+  tree->Branch("chi2ChB",&mychi2ChB,"chi2ChB/F");
+  tree->Branch("dofChB",&mydofChB,"dofChB/F");
+  tree->Branch("indexMcChB",&indexMcChB,"indexMcChB/I");
+  tree->Branch("legendrep0",&legendrep0,"legendrep0/F");
+  tree->Branch("legendrep2",&legendrep2,"legendrep2/F");
+  tree->Branch("fisher",&fisher,"fisher/F");
+  tree->Branch("costhrust",&costhrust,"costhrust/F");
+    
+  //D0
+  Float_t mym0D0,mymassD0,pxD0,pyD0,pzD0,eD0,pcmsD0,mychi2D0,mydofD0,myxD0,myyD0,myzD0;
+  Float_t mym2pDalitzD0,mym2mDalitzD0,mym2zDalitzD0,mymTotDalitzD0, mychi2DalitzD0;
+  Int_t mystDalitzD0,mydofDalitzD0;
+  Int_t indexMcD0,isMcD0,isMcD0Matched;
+  tree->Branch("m0D0",  &mym0D0,"m0D0/F");
+  tree->Branch("massD0",  &mymassD0,"massD0/F");
+  tree->Branch("pxD0",  &pxD0,"pxD0/F");
+  tree->Branch("pyD0",  &pyD0,"pyD0/F");
+  tree->Branch("pzD0",  &pzD0,"pzD0/F");
+  tree->Branch("eD0",   &eD0,"eD0/F");
+  tree->Branch("pcmsD0",&pcmsD0,"pcmsD0/F");
+  tree->Branch("xD0",   &myxD0,"xD0/F");
+  tree->Branch("yD0",   &myyD0,"yD0/F");
+  tree->Branch("zD0",   &myzD0,"zD0/F");
+  tree->Branch("chi2D0",&mychi2D0,"chi2D0/F");
+  tree->Branch("dofD0", &mydofD0,"dofD0/F");
+  tree->Branch("indexMcD0",&indexMcD0,"indexMcD0/I");
+  tree->Branch("isMcD0",&isMcD0,"isMcD0/I");
+  tree->Branch("isMcD0Matched",&isMcD0Matched,"isMcD0Matched/I");
+  tree->Branch("m2pDalitzD0", &mym2pDalitzD0, "m2pDalitzD0/F");
+  tree->Branch("m2mDalitzD0", &mym2mDalitzD0, "m2mDalitzD0/F");
+  tree->Branch("m2zDalitzD0", &mym2zDalitzD0, "m2zDalitzD0/F");
+  tree->Branch("stDalitzD0", &mystDalitzD0, "stDalitzD0/I");
+  tree->Branch("mTotDalitzD0", &mymTotDalitzD0, "mTotDalitzD0/F");
+  tree->Branch("chi2DalitzD0", &mychi2DalitzD0, "chi2DalitzD0/F");
+  tree->Branch("dofDalitzD0", &mydofDalitzD0, "dofDalitzD0/I");
+
+  //Vectorc
+  Float_t mym0Vectorc,mymassVectorc,pxVectorc,pyVectorc,pzVectorc,eVectorc,myxVectorc,myyVectorc,myzVectorc,mychi2Vectorc,mydofVectorc;
+  Int_t indexMcVectorc,lundVectorc;
+  Int_t isMcVectorcResopic;
+  Int_t isMcKstarckcPi0;
+  Int_t flagKspi;
+  Float_t coseliVectorc;
+  
+  tree->Branch("lundVectorc",&lundVectorc,"lundVectorc/I");
+  tree->Branch("m0Vectorc",&mym0Vectorc,"m0Vectorc/F");
+  tree->Branch("massVectorc",&mym0Vectorc,"massVectorc/F");
+  tree->Branch("pxVectorc",&pxVectorc,"pxVectorc/F");
+  tree->Branch("pyVectorc",&pyVectorc,"pyVectorc/F");
+  tree->Branch("pzVectorc",&pzVectorc,"pzVectorc/F");
+  tree->Branch("eVectorc", &eVectorc, "eVectorc/F");
+  tree->Branch("xVectorc",&myxVectorc,"xVectorc/F");
+  tree->Branch("yVectorc",&myyVectorc,"yVectorc/F");
+  tree->Branch("zVectorc",&myzVectorc,"zVectorc/F");
+  tree->Branch("chi2Vectorc",&mychi2Vectorc,"chi2Vectorc/F");
+  tree->Branch("dofVectorc", &mydofVectorc,"dofVectorc/F");
+  tree->Branch("indexMcVectorc",  &indexMcVectorc,"indexMcVectorc/I");
+  tree->Branch("flagKspi",       &flagKspi,"flagKspi/I");
+  tree->Branch("isMcVectorcResopic",&isMcVectorcResopic,"isMcVectorcResopic/I");
+  tree->Branch("isMcKstarckcPi0",&isMcKstarckcPi0,"isMcKstarckcPi0/I");
+  tree->Branch("coseliVectorc",   &coseliVectorc, "coseliVectorc/F");
+
+
+
+  //KstarcPi0 (Pi0 from Kstar)
+  Float_t mym0KstarcPi0,pxKstarcPi0,pyKstarcPi0,pzKstarcPi0,eKstarcPi0,mychi2KstarcPi0,mydofKstarcPi0;
+  Int_t indexMcKstarcPi0;
+  Int_t isMcKstarcPi0;
+ 
+  tree->Branch("m0KstarcPi0",&mym0KstarcPi0,"m0KstarcPi0/F");
+  tree->Branch("pxKstarcPi0",&pxKstarcPi0,"pxKstarcPi0/F");
+  tree->Branch("pyKstarcPi0",&pyKstarcPi0,"pyKstarcPi0/F");
+  tree->Branch("pzKstarcPi0",&pzKstarcPi0,"pzKstarcPi0/F");
+  tree->Branch("eKstarcPi0", &eKstarcPi0,"eKstarcPi0/F");
+  tree->Branch("chi2KstarcPi0",&mychi2KstarcPi0,"chi2KstarcPi0/F");
+  tree->Branch("dofKstarcPi0", &mydofKstarcPi0,"dofKstarcPi0/F");
+  tree->Branch("indexMcKstarcPi0",&indexMcKstarcPi0,"indexMcKstarcPi0/I");
+  tree->Branch("isMcKstarcPi0",   &isMcKstarcPi0,"isMcKstarcPi0/I");
+  
+  //KstarcPi0g1 (1st Gamma from Pi0 from Kstar)
+  Float_t ecalKstarcPi0g1,ecalxKstarcPi0g1,ecalyKstarcPi0g1,ecalzKstarcPi0g1,pxKstarcPi0g1,pyKstarcPi0g1,pzKstarcPi0g1,lmomKstarcPi0g1,ncryKstarcPi0g1;
+  Int_t indexMcKstarcPi0g1;
+  
+  tree->Branch("ecalKstarcPi0g1", &ecalKstarcPi0g1, "ecalKstarcPi0g1/F");
+  tree->Branch("ecalxKstarcPi0g1",&ecalxKstarcPi0g1,"ecalxKstarcPi0g1/F");
+  tree->Branch("ecalyKstarcPi0g1",&ecalyKstarcPi0g1,"ecalyKstarcPi0g1/F");
+  tree->Branch("ecalzKstarcPi0g1",&ecalzKstarcPi0g1,"ecalzKstarcPi0g1/F");
+  tree->Branch("pxKstarcPi0g1",&pxKstarcPi0g1,"pxKstarcPi0g1/F");
+  tree->Branch("pyKstarcPi0g1",&pyKstarcPi0g1,"pyKstarcPi0g1/F");
+  tree->Branch("pzKstarcPi0g1",&pzKstarcPi0g1,"pzyKstarcPi0g1/F");
+  tree->Branch("lmomKstarcPi0g1",&lmomKstarcPi0g1,"lmomKstarcPi0g1/F");
+  tree->Branch("ncryKstarcPi0g1",&ncryKstarcPi0g1,"ncryKstarcPi0g1/I");
+  tree->Branch("indexMcKstarcPi0g1",&indexMcKstarcPi0g1,"indexMcKstarcPi0g1/I");
+
+  //KstarcPi0g2 (2nd Gamma from Pi0 from Kstar)
+  Float_t ecalKstarcPi0g2,ecalxKstarcPi0g2,ecalyKstarcPi0g2,ecalzKstarcPi0g2,pxKstarcPi0g2,pyKstarcPi0g2,pzKstarcPi0g2,lmomKstarcPi0g2,ncryKstarcPi0g2;
+  Int_t indexMcKstarcPi0g2;
+  tree->Branch("ecalKstarcPi0g2",&ecalKstarcPi0g2,"ecalKstarcPi0g2/F");
+  tree->Branch("ecalxKstarcPi0g2",&ecalxKstarcPi0g2,"ecalxKstarcPi0g2/F");
+  tree->Branch("ecalyKstarcPi0g2",&ecalyKstarcPi0g2,"ecalyKstarcPi0g2/F");
+  tree->Branch("ecalzKstarcPi0g2",&ecalzKstarcPi0g2,"ecalzKstarcPi0g2/F");
+  tree->Branch("pxKstarcPi0g2",&pxKstarcPi0g2,"pxKstarcPi0g2/F");
+  tree->Branch("pyKstarcPi0g2",&pyKstarcPi0g2,"pyKstarcPi0g2/F");
+  tree->Branch("pzKstarcPi0g2",&pzKstarcPi0g2,"pzyKstarcPi0g2/F");
+  tree->Branch("lmomKstarcPi0g2",&lmomKstarcPi0g2,"lmomKstarcPi0g2/F");
+  tree->Branch("ncryKstarcPi0g2",&ncryKstarcPi0g2,"ncryKstarcPi0g2/I");
+  tree->Branch("indexMcKstarcPi0g2",&indexMcKstarcPi0g2,"indexMcKstarcPi0g2/I");
+
+  //kch (prong from Kstar)
+  Float_t pxKstarckc,pyKstarckc,pzKstarckc,ctheKstarckc,deltadrcmomKstarckc;
+  Int_t lundMcKstarckc,kaonidKstarckc,ndchKstarckc,nphotKstarckc,indexMcKstarckc;
+  Float_t effCorMcKstarckc,sEffCorMcKstarckc;
+  
+  tree->Branch("pxKstarckc",&pxKstarckc,"pxKstarckc/F");
+  tree->Branch("pyKstarckc",&pyKstarckc,"pyKstarckc/F");
+  tree->Branch("pzKstarckc",&pzKstarckc,"pzKstarckc/F");
+  tree->Branch("ctheKstarckc",&ctheKstarckc,"ctheKstarckc/F");
+  tree->Branch("deltadrcmomKstarckc",&deltadrcmomKstarckc,"deltadrcmomKstarckc/F");
+  tree->Branch("lundMcKstarckc",&lundMcKstarckc,"lundMcKstarckc/I");
+  tree->Branch("kaonidKstarckc",&kaonidKstarckc,"kaonidKstarckc/I");
+  tree->Branch("ndchKstarckc",&ndchKstarckc,"ndchKstarckc/I");
+  tree->Branch("nphotKstarckc",&nphotKstarckc,"nphotKstarckc/I");
+  tree->Branch("indexMcKstarckc",&indexMcKstarckc,"indexMcKstarckc/I");
+  tree->Branch("effCorMcKstarckc",&effCorMcKstarckc,"effCorMcKstarckc/F");
+  tree->Branch("sEffCorMcKstarckc",&sEffCorMcKstarckc,"sEffCorMcKstarckc/F");
+  
+  //VectorcReso (Reso from Vectorc) 
+  Float_t mymassVectorcReso,pxVectorcReso,pyVectorcReso,pzVectorcReso,eVectorcReso,mychi2VectorcReso,cosVectorcReso;
+  Float_t myxVectorcReso,myyVectorcReso,myzVectorcReso;
+  Int_t mydofVectorcReso;
+  Int_t isMcVectorcReso;       
+  Int_t indexMcVectorcReso;
+  
+  tree->Branch("massVectorcReso",&mymassVectorcReso,"massVectorcReso/F");
+  tree->Branch("pxVectorcReso",&pxVectorcReso,"pxVectorcReso/F");
+  tree->Branch("pyVectorcReso",&pyVectorcReso,"pyVectorcReso/F");
+  tree->Branch("pzVectorcReso",&pzVectorcReso,"pzVectorcReso/F");
+  tree->Branch("eVectorcReso",&eVectorcReso,"eVectorcReso/F");
+  tree->Branch("xVectorcReso",&myxVectorcReso,"xVectorcReso/F");
+  tree->Branch("yVectorcReso",&myyVectorcReso,"yVectorcReso/F");
+  tree->Branch("zVectorcReso",&myzVectorcReso,"zVectorcReso/F");
+  tree->Branch("chi2VectorcReso",&mychi2VectorcReso,"chi2VectorcReso/F");
+  tree->Branch("dofVectorcReso",&mydofVectorcReso,"dofVectorcReso/I");
+  tree->Branch("cosVectorcReso",&cosVectorcReso,"cosVectorcReso/F");
+  tree->Branch("isMcVectorcReso",&isMcVectorcReso,"isMcVectorcReso/I");
+  tree->Branch("indexMcVectorcReso",&indexMcVectorcReso,"indexMcVectorcReso/I");
+ 
+  //VectorcResoPi1 (1st pi from VectorcReso)
+  Float_t pxVectorcResoPi1,pyVectorcResoPi1,pzVectorcResoPi1;
+  Int_t lundMcVectorcResoPi1,kaonidVectorcResoPi1,ndchVectorcResoPi1,indexMcVectorcResoPi1;
+  Float_t effCorMcVectorcResoPi1,sEffCorMcVectorcResoPi1;
+  tree->Branch("pxVectorcResoPi1",&pxVectorcResoPi1,"pxVectorcResoPi1/F");
+  tree->Branch("pyVectorcResoPi1",&pyVectorcResoPi1,"pyVectorcResoPi1/F");
+  tree->Branch("pzVectorcResoPi1",&pzVectorcResoPi1,"pzVectorcResoPi1/F");
+  tree->Branch("lundMcVectorcResoPi1",&lundMcVectorcResoPi1,"lundMcVectorcResoPi1/I");
+  tree->Branch("kaonidVectorcResoPi1",&kaonidVectorcResoPi1,"kaonidVectorcResoPi1/I");
+  tree->Branch("ndchVectorcResoPi1",&ndchVectorcResoPi1,"ndchVectorcResoPi1/I");
+  tree->Branch("indexMcVectorcResoPi1",&indexMcVectorcResoPi1,"indexMcVectorcResoPi1/I");
+  tree->Branch("effCorMcVectorcResoPi1",&effCorMcVectorcResoPi1,"effCorMcVectorcResoPi1/F");
+  tree->Branch("sEffCorMcVectorcResoPi1",&sEffCorMcVectorcResoPi1,"sEffCorMcVectorcResoPi1/F");
+
+  //VectorcResoPi2 (2nd pi from VectorcReso)
+  Float_t pxVectorcResoPi2,pyVectorcResoPi2,pzVectorcResoPi2;
+  Int_t lundMcVectorcResoPi2,kaonidVectorcResoPi2,ndchVectorcResoPi2,indexMcVectorcResoPi2;
+  Float_t effCorMcVectorcResoPi2,sEffCorMcVectorcResoPi2;
+  tree->Branch("pxVectorcResoPi2",&pxVectorcResoPi2,"pxVectorcResoPi2/F");
+  tree->Branch("pyVectorcResoPi2",&pyVectorcResoPi2,"pyVectorcResoPi2/F");
+  tree->Branch("pzVectorcResoPi2",&pzVectorcResoPi2,"pzVectorcResoPi2/F");
+  tree->Branch("lundMcVectorcResoPi2",&lundMcVectorcResoPi2,"lundMcVectorcResoPi2/I");
+  tree->Branch("kaonidVectorcResoPi2",&kaonidVectorcResoPi2,"kaonidVectorcResoPi2/I");
+  tree->Branch("ndchVectorcResoPi2",&ndchVectorcResoPi2,"ndchVectorcResoPi2/I"); 
+  tree->Branch("indexMcVectorcResoPi2",&indexMcVectorcResoPi2,"indexMcVectorcResoPi2/I");
+  tree->Branch("effCorMcVectorcResoPi2",&effCorMcVectorcResoPi2,"effCorMcVectorcResoPi2/F");
+  tree->Branch("sEffCorMcVectorcResoPi2",&sEffCorMcVectorcResoPi2,"sEffCorMcVectorcResoPi2/F");
+
+  //pic (pi charged from Vectorc) 
+  Float_t pxVectorcpic,pyVectorcpic,pzVectorcpic,ctheVectorcpic,deltadrcmomVectorcpic;
+  Int_t lundMcVectorcpic,kaonidVectorcpic,ndchVectorcpic,nphotVectorcpic,indexMcVectorcpic;
+  Float_t effCorMcVectorcpic,sEffCorMcVectorcpic;
+  tree->Branch("pxVectorcpic",&pxVectorcpic,"pxVectorcpic/F");
+  tree->Branch("pyVectorcpic",&pyVectorcpic,"pyVectorcpic/F");
+  tree->Branch("pzVectorcpic",&pzVectorcpic,"pzVectorcpic/F");
+  tree->Branch("ctheVectorcpic",&ctheVectorcpic,"ctheVectorcpic/F");
+  tree->Branch("deltadrcmomVectorcpic",&deltadrcmomVectorcpic,"deltadrcmomVectorcpic/F");
+  tree->Branch("lundMcVectorcpic",&lundMcVectorcpic,"lundMcVectorcpic/I");
+  tree->Branch("kaonidVectorcpic",&kaonidVectorcpic,"kaonidVectorcpic/I");
+  tree->Branch("ndchVectorcpic",&ndchVectorcpic,"ndchVectorcpic/I");
+  tree->Branch("nphotVectorcpic",&nphotVectorcpic,"nphotVectorcpic/I");
+  tree->Branch("indexMcVectorcpic",&indexMcVectorcpic,"indexMcVectorcpic/I");
+  tree->Branch("effCorMcVectorcpic",&effCorMcVectorcpic,"effCorMcVectorcpic/F");
+  tree->Branch("sEffCorMcVectorcpic",&sEffCorMcVectorcpic,"sEffCorMcVectorcpic/F");
+ 
+  //Ks (Ks from D0)
+  Float_t mydecayLengthD0, mydecayLengthCovD0;
+  Float_t mymassKs,pxKs,pyKs,pzKs,myxKs,myyKs,myzKs,mychi2Ks,cosKs;
+  Int_t mydofKs;
+  Int_t isMcKs;       
+  Int_t indexMcKs;
+  tree->Branch("mydecayLengthCovD0",&mydecayLengthCovD0,"mydecayLengthCovD0/F");
+  tree->Branch("decayLengthD0",&mydecayLengthD0,"decayLengthD0/F");
+  tree->Branch("massKs",&mymassKs,"massKs/F");
+  tree->Branch("pxKs",&pxKs,"pxKs/F");
+  tree->Branch("pyKs",&pyKs,"pyKs/F");
+  tree->Branch("pzKs",&pzKs,"pzKs/F");
+  tree->Branch("xKs",&myxKs,"xKs/F");
+  tree->Branch("yKs",&myyKs,"yKs/F");
+  tree->Branch("zKs",&myzKs,"zKs/F");
+  tree->Branch("cosKs",&cosKs,"cosKs/F");
+  tree->Branch("chi2Ks",&mychi2Ks,"chi2Ks/F");
+  tree->Branch("dofKs",&mydofKs,"dofKs/I");
+  tree->Branch("isMcKs",&isMcKs,"isMcKs/I");
+  tree->Branch("indexMcKs",&indexMcKs,"indexMcKs/I");
+
+  //KsPi1 (1st pi from Ks from D0)
+  Float_t pxKsPi1,pyKsPi1,pzKsPi1;
+  Int_t lundMcKsPi1,kaonidKsPi1,ndchKsPi1,indexMcD0KsPi1;
+  Float_t effCorMcD0KsPi1,sEffCorMcD0KsPi1;
+  tree->Branch("pxKsPi1",&pxKsPi1,"pxKsPi1/F");
+  tree->Branch("pyKsPi1",&pyKsPi1,"pyKsPi1/F");
+  tree->Branch("pzKsPi1",&pzKsPi1,"pzKsPi1/F");
+  tree->Branch("lundMcKsPi1",&lundMcKsPi1,"lundMcKsPi1/I");
+  tree->Branch("kaonidKsPi1",&kaonidKsPi1,"kaonidKsPi1/I");
+  tree->Branch("ndchKsPi1",&ndchKsPi1,"ndchKsPi1/I");
+  tree->Branch("indexMcD0KsPi1",&indexMcD0KsPi1,"indexMcD0KsPi1/I");
+  tree->Branch("effCorMcD0KsPi1",&effCorMcD0KsPi1,"effCorMcD0KsPi1/F");
+  tree->Branch("sEffCorMcD0KsPi1",&sEffCorMcD0KsPi1,"sEffCorMcD0KsPi1/F");
+
+  //KsPi2 (2nd pi from Ks from D0)
+  Float_t pxKsPi2,pyKsPi2,pzKsPi2;
+  Int_t lundMcKsPi2,kaonidKsPi2,ndchKsPi2,indexMcD0KsPi2;
+  Float_t effCorMcD0KsPi2,sEffCorMcD0KsPi2;
+  tree->Branch("pxKsPi2",&pxKsPi2,"pxKsPi2/F");
+  tree->Branch("pyKsPi2",&pyKsPi2,"pyKsPi2/F");
+  tree->Branch("pzKsPi2",&pzKsPi2,"pzKsPi2/F");
+  tree->Branch("lundMcKsPi2",&lundMcKsPi2,"lundMcKsPi2/I");
+  tree->Branch("kaonidKsPi2",&kaonidKsPi2,"kaonidKsPi2/I");
+  tree->Branch("ndchKsPi2",&ndchKsPi2,"ndchKsPi2/I"); 
+  tree->Branch("indexMcD0KsPi2",&indexMcD0KsPi2,"indexMcD0KsPi2/I");
+  tree->Branch("effCorMcD0KsPi2",&effCorMcD0KsPi2,"effCorMcD0KsPi2/F");
+  tree->Branch("sEffCorMcD0KsPi2",&sEffCorMcD0KsPi2,"sEffCorMcD0KsPi2/F");
+
+  //D0Pi1 (1st pi from D0)
+  Float_t pxD0Pi1,pyD0Pi1,pzD0Pi1;
+  Int_t lundMcD0Pi1,lundD0Pi1,kaonidD0Pi1,ndchD0Pi1,indexMcD0Pi1;
+  Float_t effCorMcD0Pi1,sEffCorMcD0Pi1;
+  tree->Branch("pxD0Pi1",&pxD0Pi1,"pxD0Pi1/F");
+  tree->Branch("pyD0Pi1",&pyD0Pi1,"pyD0Pi1/F");
+  tree->Branch("pzD0Pi1",&pzD0Pi1,"pzD0Pi1/F");
+  tree->Branch("lundMcD0Pi1",&lundMcD0Pi1,"lundMcD0Pi1/I");
+  tree->Branch("lundD0Pi1",&lundD0Pi1,"lundD0Pi1/I");
+  tree->Branch("kaonidD0Pi1",&kaonidD0Pi1,"kaonidD0Pi1/I");
+  tree->Branch("ndchD0Pi1",&ndchD0Pi1,"ndchD0Pi1/I");
+  tree->Branch("indexMcD0Pi1",&indexMcD0Pi1,"indexMcD0Pi1/I");
+  tree->Branch("effCorMcD0Pi1",&effCorMcD0Pi1,"effCorMcD0Pi1/F");
+  tree->Branch("sEffCorMcD0Pi1",&sEffCorMcD0Pi1,"sEffCorMcD0Pi1/F");
+
+  //D0Pi2 (2nd pi from D0)
+  Float_t pxD0Pi2,pyD0Pi2,pzD0Pi2;
+  Int_t lundMcD0Pi2,lundD0Pi2,kaonidD0Pi2,ndchD0Pi2,indexMcD0Pi2;
+  Float_t effCorMcD0Pi2,sEffCorMcD0Pi2;
+  tree->Branch("pxD0Pi2",&pxD0Pi2,"pxD0Pi2/F");
+  tree->Branch("pyD0Pi2",&pyD0Pi2,"pyD0Pi2/F");
+  tree->Branch("pzD0Pi2",&pzD0Pi2,"pzD0Pi2/F");
+  tree->Branch("lundMcD0Pi2",&lundMcD0Pi2,"lundMcD0Pi2/I");
+  tree->Branch("lundD0Pi2",&lundD0Pi2,"lundD0Pi2/I");
+  tree->Branch("kaonidD0Pi2",&kaonidD0Pi2,"kaonidD0Pi2/I");
+  tree->Branch("ndchD0Pi2",&ndchD0Pi2,"ndchD0Pi2/I");
+  tree->Branch("indexMcD0Pi2",&indexMcD0Pi2,"indexMcD0Pi2/I");
+  tree->Branch("effCorMcD0Pi2",&effCorMcD0Pi2,"effCorMcD0Pi2/F");
+  tree->Branch("sEffCorMcD0Pi2",&sEffCorMcD0Pi2,"sEffCorMcD0Pi2/F");
+   
+  //(Control) histo's definition
+  TH1F* Tmes=new TH1F("Tmes","mES",60,5.200,5.300);
+  TH1F* Tde=new TH1F("Tde","deltaE",60,-0.300,0.300);
+  TH1F* Tde_orig=new TH1F("Tde_orig","Original DeltaE",60,-0.300,0.300);
+  TH1F* Tm0d0=new TH1F("Tm0d0","m0D0",60,1.770,1.970);
+  TH1F* Tmassd0=new TH1F("Tmassd0","massD0",60,1.770,1.970);
+  TH1F* Treso=new TH1F("Treso","reso",60,-0.1,0.1);
+  TH2F* Tdalitz = new TH2F("Tdalitz","Dalitz plot q+:q-",100,0,4.,100,0,4.);
+  TH1F* Tdalitz_qp = new TH1F("Tdalitz_qp","Dalitz plot q+",100,0,4.);
+  TH1F* Tdalitz_qm = new TH1F("Tdalitz_qm","Dalitz plot q-",100,0,4.);
+  TH1F* Tdalitz_qz = new TH1F("Tdalitz_qz","Dalitz plot q0",100,0,4.);
+  TH1F* Tpd0 = new TH1F("Tpd0","pD0",60,0.,5.);
+  TH1F* Tpcmsd0 = new TH1F("Tpcmsd0","pcmsD0",60,0.,5.);
+  
+  TCanvas* cControl = new TCanvas("cControl","Canvas Control",1);
+  
+  if (nentries<=0 || nentries>fChain->GetEntries()) nentries = Int_t(fChain->GetEntries());
+
+  //  cout << "Outside Loop, nentries=" << nentries << endl;
+
+  Int_t nbytes = 0;
+  Int_t nb = 0;  
+
+  for (Int_t jentry=0; jentry<nentries;jentry++) {
+    
+    Int_t ientry = LoadTree(jentry);
+    
+    if (ientry < 0) break;
+    
+    nb = fChain->GetEntry(jentry);  
+    //cout<<jentry<<endl;
+    nbytes += nb;
+        
+    Int_t Bcand=0;   // # of completely matched B candidates of the current event
+        
+    for (Int_t i=0;i<nChB;i++){
+     
+      if (!isBtoDVectorc(lundD0Trk,i,isCS)) continue;      
+
+      McEvtType=0;
+      McNREvtType=0;
+
+      if (_super_sig_type=="chb" || _super_sig_type=="btdkstarc" || _super_sig_type=="btda1" || _super_sig_type=="chbNR" || _super_sig_type=="chbR"){
+	McEvtType=(_isCS==kFALSE)? isSignalEvt(lundD0Trk,323,i) : isSignalEvtControlSample(lundD0Trk,20213,i);
+	McNREvtType=(_isCS==kFALSE)? isNRSignalEvt(lundD0Trk,i) : isNRSignalEvtControlSample(lundD0Trk,i);
+
+	if (_super_sig_type=="chb"){
+	  if ( (McEvtType&1)==1 || (McEvtType&2)==2 ) continue; // skip R signal events
+	  if ( (McNREvtType&1)==1 || (McNREvtType&2)==2 ) continue; // skip NR signal events
+	} 
+
+	if (_super_sig_type=="chbR" || _super_sig_type=="btda1"){  // also for the btda1 since this MC sample is a cocktail
+	  if ( (McEvtType&1)!=1 && (McEvtType&2)!=2 ) continue; // skip events which are not R signal
+
+	} 
+	
+	if (_super_sig_type=="chbNR"){
+	  if ( (McNREvtType&1)!=1 && (McNREvtType&2)!=2 ) continue; // skip events which are not NR signal
+	} 
+	
+      }//else if(_super_sig_type=="btda1") McEvtType=isSignalEvtControlSample(lundD0Trk,20213,i);
+      
+      //define particle indexes
+      Int_t i_Vectorc,i_Kstarckc,i_KstarcPi0,i_KstarcPi0g1,i_KstarcPi0g2,i_Vectorcpic,i_VectorcReso,i_VectorcResoPi1,i_VectorcResoPi2,
+	i_D0,i_D0Ks,i_D0Pi1,i_D0Pi2,i_D0KsPi1,i_D0KsPi2;
+      
+      //define particle momenta
+      Float_t pKstarckc,mypKstarcPi0,ecalKstarcPi0g1,ecalKstarcPi0g2,pVectorcpic,mypVectorcReso,pVectorcResoPi1,pVectorcResoPi2;
+      
+      //define B dau
+      if ((abs(d1ChBLund[i])==421) && (abs(d2ChBLund[i])==323) && _isCS==kFALSE) {
+	i_D0    =d1ChBIndex[i]-1;
+	i_Vectorc=d2ChBIndex[i]-1;
+	lundVectorc=d2ChBLund[i];
+      }
+      else if ((abs(d1ChBLund[i])==421) && (abs(d2ChBLund[i])==20213) && _isCS==kTRUE) {
+	i_D0    =d1ChBIndex[i]-1;
+	i_Vectorc=d2ChBIndex[i]-1;
+	lundVectorc=d2ChBLund[i];
+      }
+      else if ((abs(d1ChBLund[i])==323) && (abs(d2ChBLund[i])==421) && _isCS==kFALSE) {
+	i_D0    =d2ChBIndex[i]-1;
+	i_Vectorc=d1ChBIndex[i]-1;
+	lundVectorc=d1ChBLund[i];
+      }
+      else if ((abs(d1ChBLund[i])==20213) && (abs(d2ChBLund[i])==421) && _isCS==kTRUE) {
+	i_D0    =d2ChBIndex[i]-1;
+	i_Vectorc=d1ChBIndex[i]-1;
+	lundVectorc=d1ChBLund[i];
+      }
+      else{
+	i_D0    =d1ChBIndex[i]-1;
+	i_Vectorc=d2ChBIndex[i]-1;
+	lundVectorc=d2ChBLund[i];
+      }
+
+      //define D0 dau
+      if (d1D0Lund[i_D0]==310) {
+	assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+	i_D0Ks=d1D0Index[i_D0]-1;
+	i_D0Pi1=d2D0Index[i_D0]-1;
+	i_D0Pi2=d3D0Index[i_D0]-1;
+      } else {
+	//	assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+	i_D0Ks=d3D0Index[i_D0]-1;
+	i_D0Pi1=d1D0Index[i_D0]-1;
+	i_D0Pi2=d2D0Index[i_D0]-1;
+      }
+      
+      //define Ks's dau (from D0)
+      i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+      i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+      
+      //define Bch info
+      Float_t mypChB=pChB[i];
+      pxChB=mypChB*sin(thChB[i])*cos(phiChB[i]);
+      pyChB=mypChB*sin(thChB[i])*sin(phiChB[i]);
+      pzChB=mypChB*cos(thChB[i]);
+
+      //see after for CM quantities
+
+      mym0ChB=m0ChB[i];
+      mymassChB=massChB[i];
+      mychi2ChB=chi2ChB[i];
+      mydofChB=dofChB[i];
+      myxChB=xChB[i];
+      myyChB=yChB[i];
+      myzChB=zChB[i];
+      TVector3 VBch(myxChB,myyChB,myzChB);
+ 
+      indexMcChB=MCChB[i]-1;
+      legendrep0=LegendreP0ChB[i];
+      legendrep2=LegendreP2ChB[i];
+      fisher=FisherChB[i];
+      costhrust=cosTBChB[i];
+      
+      //define D0 info
+      Float_t mypD0=pD0[i_D0];
+      pxD0=mypD0*sin(thD0[i_D0])*cos(phiD0[i_D0]);
+      pyD0=mypD0*sin(thD0[i_D0])*sin(phiD0[i_D0]);
+      pzD0=mypD0*cos(thD0[i_D0]);
+      myxD0=xD0[i_D0];
+      myyD0=yD0[i_D0];
+      myzD0=zD0[i_D0];
+      TVector3 VD0(myxD0,myyD0,myzD0);
+      eD0=sqrt(mypD0*mypD0+massD0[i_D0]*massD0[i_D0]);
+      mychi2D0=chi2D0[i_D0];
+      mydofD0=dofD0[i_D0];
+      mym0D0=m0D0[i_D0];
+      mymassD0=massD0[i_D0];
+      mym2pDalitzD0=m2pDalitzD0[i_D0];
+      mym2mDalitzD0=m2mDalitzD0[i_D0];
+      mym2zDalitzD0=m2zDalitzD0[i_D0];
+      mystDalitzD0=stDalitzD0[i_D0];
+      mymTotDalitzD0=mTotDalitzD0[i_D0];
+      mychi2DalitzD0=chi2DalitzD0[i_D0];
+      mydofDalitzD0=dofDalitzD0[i_D0];
+      indexMcD0=MCD0[i_D0]-1;
+      //
+      // D0 momentum in CMS frame
+      TLorentzVector p4cmsD0(pxD0,pyD0,pzD0,eD0);
+      TVector3 boostVector(pxUps/eUps,pyUps/eUps,pzUps/eUps);
+      p4cmsD0.Boost(-boostVector);
+      pcmsD0=sqrt(p4cmsD0.Px()*p4cmsD0.Px()+p4cmsD0.Py()*p4cmsD0.Py()+p4cmsD0.Pz()*p4cmsD0.Pz());
+      
+      //define Vectorc info
+      Float_t mypVectorc=(_isCS==kFALSE)? pKstarc[i_Vectorc] : pA1c[i_Vectorc];
+      if(_isCS==kFALSE){
+	pxVectorc=mypVectorc*sin(thKstarc[i_Vectorc])*cos(phiKstarc[i_Vectorc]);
+	pyVectorc=mypVectorc*sin(thKstarc[i_Vectorc])*sin(phiKstarc[i_Vectorc]);
+	pzVectorc=mypVectorc*cos(thKstarc[i_Vectorc]);
+	eVectorc =sqrt(mypVectorc*mypVectorc+m0Kstarc[i_Vectorc]*m0Kstarc[i_Vectorc]);
+      }else{
+	pxVectorc=mypVectorc*sin(thA1c[i_Vectorc])*cos(phiA1c[i_Vectorc]);
+	pyVectorc=mypVectorc*sin(thA1c[i_Vectorc])*sin(phiA1c[i_Vectorc]);
+	pzVectorc=mypVectorc*cos(thA1c[i_Vectorc]);
+	eVectorc =sqrt(mypVectorc*mypVectorc+m0A1c[i_Vectorc]*m0A1c[i_Vectorc]);
+      }
+
+      // Calculate Bch CM quantities
+      Float_t eChB = eD0 + eVectorc;       // sum of D0 and Vectorc energies
+      TLorentzVector p4ChB(pxChB,pyChB,pzChB,eChB);
+      TLorentzVector p4LabChB(p4ChB);
+      TVector3 betaChB=p4ChB.BoostVector();
+      TLorentzVector p4Labups(pxUps,pyUps,pzUps,eUps);
+      TVector3 betaups=p4Labups.BoostVector();
+      p4ChB.Boost(-betaups);
+      cosChBCM=p4ChB.CosTheta();
+
+      TLorentzVector p4Vectorc(pxVectorc,pyVectorc,pzVectorc,eVectorc);    
+      TLorentzVector p4LabVectorc(p4Vectorc);   // in Lab Frame
+      TVector3 betaVectorc=p4Vectorc.BoostVector(); // beta to go to Vectorc rest frame
+      p4Vectorc.Boost(-betaChB);            // in the B rest frame
+      TVector3 p3Vectorc=p4Vectorc.Vect();  // idem 
+      TLorentzVector p4VectorcchTrk;
+      coseliVectorc = -999;
+
+      if(_isCS==kFALSE){
+	myxVectorc=xKstarc[i_Vectorc];
+	myyVectorc=yKstarc[i_Vectorc];
+	myzVectorc=zKstarc[i_Vectorc];
+	mychi2Vectorc=chi2Kstarc[i_Vectorc];
+	mydofVectorc =dofKstarc[i_Vectorc];
+	mym0Vectorc  =m0Kstarc[i_Vectorc];
+	mymassVectorc  =massKstarc[i_Vectorc];
+	indexMcVectorc=MCKstarc[i_Vectorc]-1;
+	flagKspi= ((abs(d1KstarcLund[i_Vectorc])==310)&&(abs(d2KstarcLund[i_Vectorc])==211)) ? 1 : 0;  
+      }else if(_isCS==kTRUE){
+	myxVectorc=xA1c[i_Vectorc];
+	myyVectorc=yA1c[i_Vectorc];
+	myzVectorc=zA1c[i_Vectorc];
+	mychi2Vectorc=chi2A1c[i_Vectorc];
+	mydofVectorc =dofA1c[i_Vectorc];
+	mym0Vectorc  =m0A1c[i_Vectorc];
+	mymassVectorc  =massA1c[i_Vectorc];
+	indexMcVectorc=MCA1c[i_Vectorc]-1;
+	flagKspi=-999;
+      }
+
+	TVector3 VVectorc(myxVectorc,myyVectorc,myzVectorc);
+
+      //define Reso (from Vectorc and pi's from Reso) info 
+      if (flagKspi==1 && _isCS==kFALSE){
+
+	//define Reso from Vectorc
+	i_VectorcReso=d1KstarcIndex[i_Vectorc]-1;
+	mypVectorcReso=pKs[i_VectorcReso];
+	pxVectorcReso=mypVectorcReso*sin(thKs[i_VectorcReso])*cos(phiKs[i_VectorcReso]);
+	pyVectorcReso=mypVectorcReso*sin(thKs[i_VectorcReso])*sin(phiKs[i_VectorcReso]);
+	pzVectorcReso=mypVectorcReso*cos(thKs[i_VectorcReso]);
+	TVector3 PVectorcReso(pxVectorcReso,pyVectorcReso,pzVectorcReso);
+	eVectorcReso=sqrt(mypVectorcReso*mypVectorcReso+massKs[i_VectorcReso]*massKs[i_VectorcReso]);
+	myxVectorcReso = xKs[i_VectorcReso];
+	myyVectorcReso = yKs[i_VectorcReso];
+	myzVectorcReso = zKs[i_VectorcReso];
+	TVector3 VVectorcReso(myxVectorcReso,myyVectorcReso,myzVectorcReso);
+	Float_t A_VectorcReso = Alpha(VBch,VVectorcReso,PVectorcReso);
+	cosVectorcReso = cos(A_VectorcReso);
+
+	mychi2VectorcReso=chi2Ks[i_VectorcReso];
+	mydofVectorcReso =dofKs[i_VectorcReso];
+	mymassVectorcReso=massKs[i_VectorcReso];
+	indexMcVectorcReso=MCKs[i_VectorcReso]-1;
+	i_VectorcResoPi1=d1KsIndex[i_VectorcReso]-1; 
+	i_VectorcResoPi2=d2KsIndex[i_VectorcReso]-1;
+
+	//define  KsPi1 track info from Ks from Kstarc
+	pVectorcResoPi1=momentumTrk[i_VectorcResoPi1];
+	pxVectorcResoPi1=pVectorcResoPi1*sin(thetaTrk[i_VectorcResoPi1])*cos(phiTrk[i_VectorcResoPi1]);
+	pyVectorcResoPi1=pVectorcResoPi1*sin(thetaTrk[i_VectorcResoPi1])*sin(phiTrk[i_VectorcResoPi1]);
+	pzVectorcResoPi1=pVectorcResoPi1*cos(thetaTrk[i_VectorcResoPi1]);
+	kaonidVectorcResoPi1=kaonIdTrk[i_VectorcResoPi1];
+	ndchVectorcResoPi1=ndchTrk[i_VectorcResoPi1];
+	lundMcVectorcResoPi1=idTrk[i_VectorcResoPi1];
+	indexMcVectorcResoPi1=IndexTrk[i_VectorcResoPi1]-1;
+ 	effCorMcVectorcResoPi1 = (!_isData)? effCorTrk[i_VectorcResoPi1]-1 : -999;
+	sEffCorMcVectorcResoPi1 = (!_isData)? sEffCorTrk[i_VectorcResoPi1]-1 : -999;
+
+	//define  KsPi2 track info from Ks from Kstarc
+	pVectorcResoPi2=momentumTrk[i_VectorcResoPi2];
+	pxVectorcResoPi2=pVectorcResoPi2*sin(thetaTrk[i_VectorcResoPi2])*cos(phiTrk[i_VectorcResoPi2]);
+	pyVectorcResoPi2=pVectorcResoPi2*sin(thetaTrk[i_VectorcResoPi2])*sin(phiTrk[i_VectorcResoPi2]);
+	pzVectorcResoPi2=pVectorcResoPi2*cos(thetaTrk[i_VectorcResoPi2]);
+	kaonidVectorcResoPi2=kaonIdTrk[i_VectorcResoPi2];
+	ndchVectorcResoPi2=ndchTrk[i_VectorcResoPi2];
+	lundMcVectorcResoPi2=idTrk[i_VectorcResoPi2];
+	indexMcVectorcResoPi2=IndexTrk[i_VectorcResoPi2]-1;
+ 	effCorMcVectorcResoPi2 = (!_isData)? effCorTrk[i_VectorcResoPi2]-1 : -999;
+	sEffCorMcVectorcResoPi2 = (!_isData)? sEffCorTrk[i_VectorcResoPi2]-1 : -999;
+
+	//define  pi_ch track info from Vectorc 
+	i_Vectorcpic=d2KstarcIndex[i_Vectorc]-1;
+	pVectorcpic =momentumTrk[i_Vectorcpic];
+	pxVectorcpic=pVectorcpic*sin(thetaTrk[i_Vectorcpic])*cos(phiTrk[i_Vectorcpic]);
+	pyVectorcpic=pVectorcpic*sin(thetaTrk[i_Vectorcpic])*sin(phiTrk[i_Vectorcpic]);
+	pzVectorcpic=pVectorcpic*cos(thetaTrk[i_Vectorcpic]);
+
+	Float_t m_pich=0.13957;
+	Float_t eVectorcpic=sqrt(pVectorcpic*pVectorcpic+m_pich*m_pich);
+	p4VectorcchTrk.SetPxPyPzE(pxVectorcpic,pyVectorcpic,pzVectorcpic,eVectorcpic);
+	TLorentzVector p4LabVectorcchTrk(p4VectorcchTrk);
+	coseliVectorc = CosHely( p4LabChB , p4LabVectorc , p4LabVectorcchTrk);
+	kaonidVectorcpic=kaonIdTrk[i_Vectorcpic];
+	ndchVectorcpic=ndchTrk[i_Vectorcpic];
+	lundMcVectorcpic=idTrk[i_Vectorcpic];
+	indexMcVectorcpic=IndexTrk[i_Vectorcpic]-1;
+ 	effCorMcVectorcpic = (!_isData)? effCorTrk[i_Vectorcpic]-1 : -999;
+	sEffCorMcVectorcpic = (!_isData)? sEffCorTrk[i_Vectorcpic]-1 : -999;
+       	 	 
+	//initialize KPi0 from Vectorc info to default (dummy) value
+
+	isMcKstarckcPi0=-999;
+	i_Kstarckc=-999;
+	pKstarckc =-999;
+	pxKstarckc=-999;
+	pyKstarckc=-999;
+	pzKstarckc=-999;
+	kaonidKstarckc =-999;
+	ndchKstarckc   =-999;
+	lundMcKstarckc =-999;
+	indexMcKstarckc=-999;
+
+	// define Pi0 info (from Vectorc)  
+	isMcKstarcPi0=-999;
+	i_KstarcPi0 =-999;
+	mypKstarcPi0=-999;
+	pxKstarcPi0 =-999;
+	pyKstarcPi0 =-999;
+	pzKstarcPi0 =-999;
+	eKstarcPi0  =-999;
+	mychi2KstarcPi0=-999;
+	mydofKstarcPi0 =-999;
+	mym0KstarcPi0  =-999;
+	indexMcKstarcPi0=-999;
+	i_KstarcPi0g1   =-999;
+	i_KstarcPi0g2   =-999;
+	indexMcKstarcPi0g1=-999;
+	indexMcKstarcPi0g2=-999;
+
+	//define Gamma g1 info from Pi0 from Vectorc
+	ecalKstarcPi0g1=-999;
+	pxKstarcPi0g1  =-999;
+	pyKstarcPi0g1  =-999;
+	pzKstarcPi0g1  =-999;
+	ecalxKstarcPi0g1=-999;
+	ecalyKstarcPi0g1=-999;
+	ecalzKstarcPi0g1=-999;
+	lmomKstarcPi0g1 =-999;
+	ncryKstarcPi0g1 =-999;
+
+	//define Gamma g2 info from Pi0 from Vectorc
+	ecalKstarcPi0g2=-999;
+	pxKstarcPi0g2  =-999;
+	pyKstarcPi0g2  =-999;
+	pzKstarcPi0g2  =-999;
+	ecalxKstarcPi0g2=-999;
+	ecalyKstarcPi0g2=-999;
+	ecalzKstarcPi0g2=-999;
+	lmomKstarcPi0g2 =-999;
+	ncryKstarcPi0g2 =-999;
+      }
+
+      else if(flagKspi==0 && _isCS==kFALSE){
+
+	//cout << "kPi0 event: " << mychi2ChB << " " << mydofChB << " " << myxChB << " " << myyChB << " " << myzChB << endl;
+
+	// define K charged info (from Kstarc)  
+	i_Kstarckc=d1KstarcIndex[i_Vectorc]-1;
+	pKstarckc =momentumTrk[i_Kstarckc];
+	pxKstarckc=pKstarckc*sin(thetaTrk[i_Kstarckc])*cos(phiTrk[i_Kstarckc]);
+	pyKstarckc=pKstarckc*sin(thetaTrk[i_Kstarckc])*sin(phiTrk[i_Kstarckc]);
+	pzKstarckc=pKstarckc*cos(thetaTrk[i_Kstarckc]);
+
+	Float_t m_kch=0.4937;
+	Float_t eKstarckc=sqrt(pKstarckc*pKstarckc+m_kch*m_kch);
+	p4VectorcchTrk.SetPxPyPzE(pxKstarckc,pyKstarckc,pzKstarckc,eKstarckc);
+	TLorentzVector p4LabVectorcchTrk(p4VectorcchTrk);
+	coseliVectorc = CosHely( p4LabChB , p4LabVectorc , p4LabVectorcchTrk);
+
+
+	kaonidKstarckc =kaonIdTrk[i_Kstarckc];
+	ndchKstarckc   =ndchTrk[i_Kstarckc];
+	lundMcKstarckc =idTrk[i_Kstarckc];
+	indexMcKstarckc=IndexTrk[i_Kstarckc]-1;
+ 	effCorMcKstarckc = (!_isData)? effCorTrk[i_Kstarckc]-1 : -999;
+	sEffCorMcKstarckc = (!_isData)? sEffCorTrk[i_Kstarckc]-1 : -999;
+
+	// define Pi0 info (from Kstarc)  
+	i_KstarcPi0 =d2KstarcIndex[i_Vectorc]-1;
+	mypKstarcPi0=pPi0[i_KstarcPi0];
+	pxKstarcPi0 =mypKstarcPi0*sin(thPi0[i_KstarcPi0])*cos(phiPi0[i_KstarcPi0]);
+	pyKstarcPi0 =mypKstarcPi0*sin(thPi0[i_KstarcPi0])*sin(phiPi0[i_KstarcPi0]);
+	pzKstarcPi0 =mypKstarcPi0*cos(thPi0[i_KstarcPi0]);
+	eKstarcPi0  =sqrt(mypKstarcPi0*mypKstarcPi0+massPi0[i_KstarcPi0]*massPi0[i_KstarcPi0]);
+	mychi2KstarcPi0=chi2Pi0[i_KstarcPi0];
+	mydofKstarcPi0=dofPi0[i_KstarcPi0];
+	mym0KstarcPi0=m0Pi0[i_KstarcPi0];
+	indexMcKstarcPi0=MCPi0[i_KstarcPi0]-1;
+	i_KstarcPi0g1=d1Pi0Index[i_KstarcPi0]-1; 
+	i_KstarcPi0g2=d2Pi0Index[i_KstarcPi0]-1;
+	indexMcKstarcPi0g1=IndexGam[i_KstarcPi0g1]-1;
+	indexMcKstarcPi0g2=IndexGam[i_KstarcPi0g2]-1;
+
+	//define Gamma g1 info from Pi0 from Kstarc
+	ecalKstarcPi0g1=ecalGam[i_KstarcPi0g1];
+	pxKstarcPi0g1=ecalKstarcPi0g1*sin(thetaGam[i_KstarcPi0g1])*cos(phiGam[i_KstarcPi0g1]);
+	pyKstarcPi0g1=ecalKstarcPi0g1*sin(thetaGam[i_KstarcPi0g1])*sin(phiGam[i_KstarcPi0g1]);
+	pzKstarcPi0g1=ecalKstarcPi0g1*cos(thetaGam[i_KstarcPi0g1]);
+	ecalxKstarcPi0g1=ecalXGam[i_KstarcPi0g1];
+	ecalyKstarcPi0g1=ecalYGam[i_KstarcPi0g1];
+	ecalzKstarcPi0g1=ecalZGam[i_KstarcPi0g1];
+	lmomKstarcPi0g1=lMomGam[i_KstarcPi0g1];
+	ncryKstarcPi0g1=nCryGam[i_KstarcPi0g1];
+
+	//define Gamma g2 info from Pi0 from Kstarc
+	ecalKstarcPi0g2=ecalGam[i_KstarcPi0g2];
+	pxKstarcPi0g2=ecalKstarcPi0g2*sin(thetaGam[i_KstarcPi0g2])*cos(phiGam[i_KstarcPi0g2]);
+	pyKstarcPi0g2=ecalKstarcPi0g2*sin(thetaGam[i_KstarcPi0g2])*sin(phiGam[i_KstarcPi0g2]);
+	pzKstarcPi0g2=ecalKstarcPi0g2*cos(thetaGam[i_KstarcPi0g2]);
+	ecalxKstarcPi0g2=ecalXGam[i_KstarcPi0g2];
+	ecalyKstarcPi0g2=ecalYGam[i_KstarcPi0g2];
+	ecalzKstarcPi0g2=ecalZGam[i_KstarcPi0g2];
+	lmomKstarcPi0g2=lMomGam[i_KstarcPi0g2];
+	ncryKstarcPi0g2=nCryGam[i_KstarcPi0g2];
+
+	//initialize Kspi from Kstarc info to default (dummy) value
+	isMcVectorcResopic=-999;
+	isMcVectorcReso=-999;
+	i_VectorcReso =-999;
+	mypVectorcReso=-999;
+	pxVectorcReso =-999;
+	pyVectorcReso =-999;
+	pzVectorcReso =-999;
+	eVectorcReso  =-999;
+	myxVectorcReso =-999;
+	myyVectorcReso =-999;
+	myzVectorcReso =-999;
+	mychi2VectorcReso =-999;
+	mydofVectorcReso  =-999;
+	cosVectorcReso = -999;
+	mymassVectorcReso =-999;
+	indexMcVectorcReso=-999;
+	i_VectorcResoPi1=-999;
+	i_VectorcResoPi2=-999;
+
+	//define  KsPi1 track info from Ks from Kstarc
+	pVectorcResoPi1 =-999;
+	pxVectorcResoPi1=-999;
+	pyVectorcResoPi1=-999;
+	pzVectorcResoPi1=-999;
+	kaonidVectorcResoPi1 =-999;
+	ndchVectorcResoPi1   =-999;
+	lundMcVectorcResoPi1 =-999;
+	indexMcVectorcResoPi1=-999;
+  	effCorMcVectorcResoPi1 = -999;
+	sEffCorMcVectorcResoPi1 = -999;
+      
+	//define  KsPi2 track info from Ks from Kstarc
+	pVectorcResoPi2 =-999;
+	pxVectorcResoPi2=-999;
+	pyVectorcResoPi2=-999;
+	pzVectorcResoPi2=-999;
+	kaonidVectorcResoPi2 =-999;
+	ndchVectorcResoPi2   =-999;
+	lundMcVectorcResoPi2 =-999;
+	indexMcVectorcResoPi2=-999;
+  	effCorMcVectorcResoPi2 = -999;
+	sEffCorMcVectorcResoPi2 = -999;
+
+	//define  pi track info from Kstarc 
+	i_Vectorcpic=-999;
+	pVectorcpic =-999;
+	pxVectorcpic=-999;
+	pyVectorcpic=-999;
+	pzVectorcpic=-999;
+	kaonidVectorcpic=-999;
+	ndchVectorcpic=-999;
+	lundMcVectorcpic=-999;
+	indexMcVectorcpic=-999;
+  	effCorMcVectorcpic = -999;
+	sEffCorMcVectorcpic = -999;
+      }
+      else if(_isCS==kTRUE){
+	
+	//define Reso from Vectorc
+	i_VectorcReso=d1A1cIndex[i_Vectorc]-1;
+	mypVectorcReso=pRho0[i_VectorcReso];
+	pxVectorcReso=mypVectorcReso*sin(thRho0[i_VectorcReso])*cos(phiRho0[i_VectorcReso]);
+	pyVectorcReso=mypVectorcReso*sin(thRho0[i_VectorcReso])*sin(phiRho0[i_VectorcReso]);
+	pzVectorcReso=mypVectorcReso*cos(thRho0[i_VectorcReso]);
+	TVector3 PVectorcReso(pxVectorcReso,pyVectorcReso,pzVectorcReso);
+	eVectorcReso=sqrt(mypVectorcReso*mypVectorcReso+massRho0[i_VectorcReso]*massRho0[i_VectorcReso]);
+	myxVectorcReso = xRho0[i_VectorcReso];
+	myyVectorcReso = yRho0[i_VectorcReso];
+	myzVectorcReso = zRho0[i_VectorcReso];
+	TVector3 VVectorcReso(myxVectorcReso,myyVectorcReso,myzVectorcReso);
+	Float_t A_VectorcReso = Alpha(VBch,VVectorcReso,PVectorcReso);
+	cosVectorcReso = cos(A_VectorcReso);
+
+	mychi2VectorcReso=chi2Rho0[i_VectorcReso];
+	mydofVectorcReso =dofRho0[i_VectorcReso];
+	mymassVectorcReso=massRho0[i_VectorcReso];
+	indexMcVectorcReso=MCRho0[i_VectorcReso]-1;
+	i_VectorcResoPi1=d1Rho0Index[i_VectorcReso]-1; 
+	i_VectorcResoPi2=d2Rho0Index[i_VectorcReso]-1;
+
+	//define  Rho0Pi1 track info from Rho0 from A1c
+	pVectorcResoPi1=momentumTrk[i_VectorcResoPi1];
+	pxVectorcResoPi1=pVectorcResoPi1*sin(thetaTrk[i_VectorcResoPi1])*cos(phiTrk[i_VectorcResoPi1]);
+	pyVectorcResoPi1=pVectorcResoPi1*sin(thetaTrk[i_VectorcResoPi1])*sin(phiTrk[i_VectorcResoPi1]);
+	pzVectorcResoPi1=pVectorcResoPi1*cos(thetaTrk[i_VectorcResoPi1]);
+	kaonidVectorcResoPi1=kaonIdTrk[i_VectorcResoPi1];
+	ndchVectorcResoPi1=ndchTrk[i_VectorcResoPi1];
+	lundMcVectorcResoPi1=idTrk[i_VectorcResoPi1];
+	indexMcVectorcResoPi1=IndexTrk[i_VectorcResoPi1]-1;
+ 	effCorMcVectorcResoPi1 = (!_isData)? effCorTrk[i_VectorcResoPi1]-1 : -999;
+	sEffCorMcVectorcResoPi1 = (!_isData)? sEffCorTrk[i_VectorcResoPi1]-1 : -999;
+
+	//define  Rho0Pi2 track info fromRho0 from A1c
+	pVectorcResoPi2=momentumTrk[i_VectorcResoPi2];
+	pxVectorcResoPi2=pVectorcResoPi2*sin(thetaTrk[i_VectorcResoPi2])*cos(phiTrk[i_VectorcResoPi2]);
+	pyVectorcResoPi2=pVectorcResoPi2*sin(thetaTrk[i_VectorcResoPi2])*sin(phiTrk[i_VectorcResoPi2]);
+	pzVectorcResoPi2=pVectorcResoPi2*cos(thetaTrk[i_VectorcResoPi2]);
+	kaonidVectorcResoPi2=kaonIdTrk[i_VectorcResoPi2];
+	ndchVectorcResoPi2=ndchTrk[i_VectorcResoPi2];
+	lundMcVectorcResoPi2=idTrk[i_VectorcResoPi2];
+	indexMcVectorcResoPi2=IndexTrk[i_VectorcResoPi2]-1;
+ 	effCorMcVectorcResoPi2 = (!_isData)? effCorTrk[i_VectorcResoPi2]-1 : -999;
+	sEffCorMcVectorcResoPi2 = (!_isData)? sEffCorTrk[i_VectorcResoPi2]-1 : -999;
+
+	//define  pi_ch track info from Vectorc 
+	i_Vectorcpic=d2A1cIndex[i_Vectorc]-1;
+	pVectorcpic =momentumTrk[i_Vectorcpic];
+	pxVectorcpic=pVectorcpic*sin(thetaTrk[i_Vectorcpic])*cos(phiTrk[i_Vectorcpic]);
+	pyVectorcpic=pVectorcpic*sin(thetaTrk[i_Vectorcpic])*sin(phiTrk[i_Vectorcpic]);
+	pzVectorcpic=pVectorcpic*cos(thetaTrk[i_Vectorcpic]);
+
+	Float_t m_pich = 0.13957;
+	Float_t eVectorcpic=sqrt(pVectorcpic*pVectorcpic+m_pich*m_pich);
+	p4VectorcchTrk.SetPxPyPzE(pxVectorcpic,pyVectorcpic,pzVectorcpic,eVectorcpic);
+	TLorentzVector p4LabVectorcchTrk(p4VectorcchTrk);  
+	coseliVectorc = CosHely( p4LabChB , p4LabVectorc , p4LabVectorcchTrk);
+	
+	kaonidVectorcpic=kaonIdTrk[i_Vectorcpic];
+	ndchVectorcpic=ndchTrk[i_Vectorcpic];
+	lundMcVectorcpic=idTrk[i_Vectorcpic];
+	indexMcVectorcpic=IndexTrk[i_Vectorcpic]-1;
+ 	effCorMcVectorcpic = (!_isData)? effCorTrk[i_Vectorcpic]-1 : -999;
+	sEffCorMcVectorcpic = (!_isData)? sEffCorTrk[i_Vectorcpic]-1 : -999;
+       	 	 
+	//initialize KPi0 from Vectorc info to default (dummy) value
+
+	isMcKstarckcPi0=-999;
+	i_Kstarckc=-999;
+	pKstarckc =-999;
+	pxKstarckc=-999;
+	pyKstarckc=-999;
+	pzKstarckc=-999;
+	kaonidKstarckc =-999;
+	ndchKstarckc   =-999;
+	lundMcKstarckc =-999;
+	indexMcKstarckc=-999;
+
+	// define Pi0 info (from Vectorc)  
+	isMcKstarcPi0=-999;
+	i_KstarcPi0 =-999;
+	mypKstarcPi0=-999;
+	pxKstarcPi0 =-999;
+	pyKstarcPi0 =-999;
+	pzKstarcPi0 =-999;
+	eKstarcPi0  =-999;
+	mychi2KstarcPi0=-999;
+	mydofKstarcPi0 =-999;
+	mym0KstarcPi0  =-999;
+	indexMcKstarcPi0=-999;
+	i_KstarcPi0g1   =-999;
+	i_KstarcPi0g2   =-999;
+	indexMcKstarcPi0g1=-999;
+	indexMcKstarcPi0g2=-999;
+
+	//define Gamma g1 info from Pi0 from Vectorc
+	ecalKstarcPi0g1=-999;
+	pxKstarcPi0g1  =-999;
+	pyKstarcPi0g1  =-999;
+	pzKstarcPi0g1  =-999;
+	ecalxKstarcPi0g1=-999;
+	ecalyKstarcPi0g1=-999;
+	ecalzKstarcPi0g1=-999;
+	lmomKstarcPi0g1 =-999;
+	ncryKstarcPi0g1 =-999;
+
+	//define Gamma g2 info from Pi0 from Vectorc
+	ecalKstarcPi0g2=-999;
+	pxKstarcPi0g2  =-999;
+	pyKstarcPi0g2  =-999;
+	pzKstarcPi0g2  =-999;
+	ecalxKstarcPi0g2=-999;
+	ecalyKstarcPi0g2=-999;
+	ecalzKstarcPi0g2=-999;
+	lmomKstarcPi0g2 =-999;
+	ncryKstarcPi0g2 =-999;
+      
+      }
+  
+      //define Ks info
+      mydecayLengthCovD0=decayLengthCovD0[i_D0Ks];
+      mydecayLengthD0=decayLengthD0[i_D0Ks];
+      mymassKs=massKs[i_D0Ks];
+      Float_t mypKs=pKs[i_D0Ks];
+      pxKs=mypKs*sin(thKs[i_D0Ks])*cos(phiKs[i_D0Ks]);
+      pyKs=mypKs*sin(thKs[i_D0Ks])*sin(phiKs[i_D0Ks]);
+      pzKs=mypKs*cos(thKs[i_D0Ks]);
+      TVector3 PKs(pxKs,pyKs,pzKs);
+      myxKs=xKs[i_D0Ks];
+      myyKs=yKs[i_D0Ks];
+      myzKs=zKs[i_D0Ks];
+      TVector3 VKs(myxKs,myyKs,myzKs);
+      Float_t A_Ks    = Alpha(VD0,VKs,PKs);
+      cosKs = cos(A_Ks);
+      mychi2Ks =chi2Ks[i_D0Ks];
+      mydofKs  =dofKs[i_D0Ks];
+      indexMcKs=MCKs[i_D0Ks]-1;
+       
+      //define KsPi1 track info
+      Float_t pKsPi1=momentumTrk[i_D0KsPi1];
+      pxKsPi1=pKsPi1*sin(thetaTrk[i_D0KsPi1])*cos(phiTrk[i_D0KsPi1]);
+      pyKsPi1=pKsPi1*sin(thetaTrk[i_D0KsPi1])*sin(phiTrk[i_D0KsPi1]);
+      pzKsPi1=pKsPi1*cos(thetaTrk[i_D0KsPi1]);
+      kaonidKsPi1=kaonIdTrk[i_D0KsPi1];
+      ndchKsPi1=ndchTrk[i_D0KsPi1];
+      lundMcKsPi1=idTrk[i_D0KsPi1];
+      indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+      effCorMcD0KsPi1 = (!_isData)? effCorTrk[i_D0KsPi1]-1 : -999;
+      sEffCorMcD0KsPi1 = (!_isData)? sEffCorTrk[i_D0KsPi1]-1 : -999;
+       
+      //define KsPi2 track info
+      Float_t pKsPi2=momentumTrk[i_D0KsPi2];
+      pxKsPi2=pKsPi2*sin(thetaTrk[i_D0KsPi2])*cos(phiTrk[i_D0KsPi2]);
+      pyKsPi2=pKsPi2*sin(thetaTrk[i_D0KsPi2])*sin(phiTrk[i_D0KsPi2]);
+      pzKsPi2=pKsPi2*cos(thetaTrk[i_D0KsPi2]);
+      kaonidKsPi2=kaonIdTrk[i_D0KsPi2];
+      ndchKsPi2=ndchTrk[i_D0KsPi2];
+      lundMcKsPi2=idTrk[i_D0KsPi2];
+      indexMcD0KsPi2=IndexTrk[i_D0KsPi2]-1;
+      effCorMcD0KsPi2 = (!_isData)? effCorTrk[i_D0KsPi2]-1 : -999;
+      sEffCorMcD0KsPi2 = (!_isData)? sEffCorTrk[i_D0KsPi2]-1 : -999;
+	
+      //define D0Pi1 track info
+      Float_t pD0Pi1=momentumTrk[i_D0Pi1];
+      pxD0Pi1=pD0Pi1*sin(thetaTrk[i_D0Pi1])*cos(phiTrk[i_D0Pi1]);
+      pyD0Pi1=pD0Pi1*sin(thetaTrk[i_D0Pi1])*sin(phiTrk[i_D0Pi1]);
+      pzD0Pi1=pD0Pi1*cos(thetaTrk[i_D0Pi1]);
+      kaonidD0Pi1=kaonIdTrk[i_D0Pi1];
+      ndchD0Pi1=ndchTrk[i_D0Pi1];
+      lundMcD0Pi1=idTrk[i_D0Pi1];
+      lundD0Pi1=d2D0Lund[i_D0];  // attention this is not working for the KsKK
+      indexMcD0Pi1=IndexTrk[i_D0Pi1]-1;
+      //cout << "chargeD0Pi1 = " << chargeTrk[i_D0Pi1] << endl;
+      effCorMcD0Pi1 = (!_isData)? effCorTrk[i_D0Pi1]-1 : -999;
+      sEffCorMcD0Pi1 = (!_isData)? sEffCorTrk[i_D0Pi1]-1 : -999;
+
+      //define D0Pi2 track info  
+      Float_t pD0Pi2=momentumTrk[i_D0Pi2];
+      pxD0Pi2=pD0Pi2*sin(thetaTrk[i_D0Pi2])*cos(phiTrk[i_D0Pi2]);
+      pyD0Pi2=pD0Pi2*sin(thetaTrk[i_D0Pi2])*sin(phiTrk[i_D0Pi2]);
+      pzD0Pi2=pD0Pi2*cos(thetaTrk[i_D0Pi2]);
+      kaonidD0Pi2=kaonIdTrk[i_D0Pi2];
+      ndchD0Pi2=ndchTrk[i_D0Pi2];
+      lundMcD0Pi2=idTrk[i_D0Pi2]; 
+      lundD0Pi2=d3D0Lund[i_D0];  // attention this is not working for the KsKK
+      indexMcD0Pi2=IndexTrk[i_D0Pi2]-1;
+      //cout << "chargeD0Pi2 = " << chargeTrk[i_D0Pi2] << endl;
+      effCorMcD0Pi2 = (!_isData)? effCorTrk[i_D0Pi2]-1 : -999;
+      sEffCorMcD0Pi2 = (!_isData)? sEffCorTrk[i_D0Pi2]-1 : -999;
+
+      //define isMcD0:  0: D0 mis-reco
+      //                1: D0 truth-matched no brem. Gamma
+      //                2: D0 truth-matched with brem. Gamma from D0
+      //                5: D0 truth-matched with brem.Gamma from Ks
+      //                6: D0 truth-matched with 2 brem.Gammas (from Ks and from D0)
+       
+      // calculate isMc for composites
+
+      //calculates generated and matched d0 (same bitmap)
+      isMcD0Matched =isSignalEvt2(lundD0Trk,421,i);
+
+      isMcD0 = isD0true(lundD0Trk,indexMcD0Pi1,indexMcD0Pi2,indexMcD0KsPi1,indexMcD0KsPi2);
+      isMcKs = isKstrue(indexMcD0KsPi1,indexMcD0KsPi2);
+      if (flagKspi==1 && _isCS==kFALSE) {
+	isMcVectorcResopic = isKstarcKspictrue(indexMcVectorcpic,indexMcVectorcResoPi1,indexMcVectorcResoPi2);
+	isMcVectorcReso = isKstrue(indexMcVectorcResoPi1,indexMcVectorcResoPi2);
+      }
+      else if (flagKspi==0 && _isCS==kFALSE){
+	isMcKstarckcPi0 = isKstarcKcPi0true(indexMcKstarckc,indexMcKstarcPi0g1,indexMcKstarcPi0g2);
+	isMcKstarcPi0 = isPi0true(indexMcKstarcPi0g1,indexMcKstarcPi0g2);       
+      }
+      else if (_isCS==kTRUE) {
+	isMcVectorcResopic = isVectorcResopictrue(indexMcVectorcpic,indexMcVectorcResoPi1,indexMcVectorcResoPi2);
+	isMcVectorcReso = isResotrue(indexMcVectorcResoPi1,indexMcVectorcResoPi2);
+      }
+
+  
+      //
+      // hand-made
+      // define demk,mes
+      //      Float_t mKstar= mym0Kstarc;
+      //      Float_t ebeam = sqrt(eups*eups-pxups*pxups-pyups*pyups-pzups*pzups)/2;
+      //
+      //      demk=(2*( eups*(eD0+sqrt(mypKstarc*mypKstarc+mKstar*mKstar))
+      //		-pxups*(pxD0+pxKstarc)-pyups*(pyD0+pyKstarc)-pzups*(pzD0+pzKstarc))-4*ebeam*ebeam)
+      //	/(4*ebeam);
+      //
+      //      mes=sqrt( pow((2*ebeam*ebeam+pxups*pxChB+pyups*pyChB+pzups*pzChB),2)/(eups*eups)-mypChB*mypChB );
+
+      demk2=deltaeChB[i];  // Original DeltaE 
+      
+      // Using TLorentzVectors
+
+      Float_t myDeltaE = DeltaE(p4Labups, p4LabChB);
+      Float_t myMes    = Mes(p4Labups, p4LabChB);
+
+      //
+      //      cout << "mes       =" << mes      << endl;
+      // cout << "myMes     =" << myMes    << endl;
+      //      cout << "demk      =" << demk     << endl;
+      // cout << "demk2     =" << demk2    << endl;
+      // cout << "myDeltaE  =" << myDeltaE << endl;
+
+      mes = myMes;
+      demk= myDeltaE;
+
+      //      cout << "event    =" << event     << endl;
+      //      cout << "iChB     =" << i         << endl;
+      //      cout << "McEvtType=" << McEvtType << endl;
+
+      if ((McEvtType==3869)||(McEvtType==3870)||(McEvtType==4065)||(McEvtType==4066)) Bcand += 1;
+      
+      if (Bcand==1) {
+	//cout << "Attention: Event# " << event << " with 1 B matched    =" << Bcand << " McEvtType = " << McEvtType << endl; 
+	//   put here the reso histos (avoiding double counting)
+      }
+      else if (Bcand > 1) {
+	//cout << "Attention: Event# " << event << " with # of B matched =" << Bcand << " McEvtType = " << McEvtType << endl;
+	//for (Int_t j=0;j<nMc;j++) if (abs(idMc[mothMc[j]-1])==521) cout << mothMc[j] << ":" << idMc[j] << " "; cout << endl;
+	//getchar();
+      }
+      
+      
+      //apply preliminary selection cut
+      if (demk2>-0.200 && demk2<0.200 &&
+	  mes>5.200)
+	//fabs(mym0Kstarc-0.89166)<0.125&&
+	//fabs(mymassD0-1.8645)<0.035&&  	  
+	{
+	  
+	  Tmes->Fill(mes);
+	  Tde->Fill(demk2);
+	  Tde_orig->Fill(demk);
+	  Tm0d0->Fill(mym0D0);
+	  Tmassd0->Fill(mymassD0);
+	  Tdalitz->Fill(mym2pDalitzD0,mym2mDalitzD0);
+	  Tdalitz_qp->Fill(mym2pDalitzD0);
+	  Tdalitz_qm->Fill(mym2mDalitzD0);
+	  Tdalitz_qz->Fill(mym2zDalitzD0);
+	  Tpd0->Fill(mypD0);
+	  Tpcmsd0->Fill(pcmsD0);
+	  
+	  //Int_t indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+	  if (indexMcD0KsPi1>=0){
+	    Treso->Fill(pKsPi1-pMc[indexMcD0KsPi1]);
+	  }
+	  //fill tree with selected event
+	  tree->Fill();  // fill rootpla for each Bch cand
+	}
+    }//end nChB for loop
+    //delete[] bdau;
+  }//end jentry for loop
+  
+  cControl->Divide(3,3);
+  cControl->cd(1);
+  Tmes->Draw();
+  cControl->cd(2);
+  Tde->Draw();
+  cControl->cd(3); 
+  Tde_orig->Draw();
+  cControl->cd(4);
+  //Tm0d0->Draw();
+  //Tpd0->Draw();
+  Tpcmsd0->Draw();
+  cControl->cd(5);
+  Tmassd0->Draw();
+  cControl->cd(6); 
+  //Treso->Draw();
+  Tdalitz->Draw("BOX");
+  cControl->cd(7); 
+  Tdalitz_qp->Draw();
+  cControl->cd(8); 
+  Tdalitz_qm->Draw();
+  cControl->cd(9); 
+  Tdalitz_qz->Draw();
+  TString namehist;
+  if (_release=="analysis-26")  
+    namehist = "HIST/btdkstarc_"+_d0mode+"_"+_sig_type+".ps"; // rel-26
+  else if (_release=="analysis-30")
+    namehist = "HIST-30/btdkstarc_"+_d0mode+"_"+_sig_type+".ps"; // rel-30
+  else if (_release=="analysis-51")
+    namehist = "HIST-51/btdkstarc_"+_d0mode+"_"+_sig_type+".ps"; // rel-51
+  else assert(0);
+  cControl->Print(namehist);
+  
+  hfile->Write();
+
+  //stop timer
+  timer.Stop();
+  Double_t realtime=timer.RealTime();
+  Double_t cputime =timer.CpuTime();
+
+  cout<<"Real time = "<<realtime<<endl<<"CPU time = "<<cputime<<endl;
+}
+
+Bool_t btdkstarc::isBtoDVectorc(Int_t lundD0Trk,Int_t i,Bool_t isCS)
+{
+// Return true if B -> D0 Kstarc, with D0-> Ks lundD0Trk lundD0Trk  and Kstarc ->pi_0 K_ch , Ks pich and the same with the CS
+  Bool_t r;
+  if (ndauChB[i]!=2) return 0;
+
+  //decay type cut
+  Int_t i_D0;
+  Int_t i_Vectorc;
+
+  if ((abs(d1ChBLund[i])     ==421) && (abs(d2ChBLund[i])==323) && isCS==kFALSE) {
+    i_D0    =d1ChBIndex[i]-1;
+    i_Vectorc=d2ChBIndex[i]-1;
+  }
+  else if ((abs(d1ChBLund[i])==323) && (abs(d2ChBLund[i])==421) && isCS==kFALSE) {
+    i_D0    =d2ChBIndex[i]-1;
+    i_Vectorc=d1ChBIndex[i]-1;
+  }
+  else if((abs(d1ChBLund[i])     ==421) && (abs(d2ChBLund[i])==20213) && isCS==kTRUE) {
+    i_D0    =d1ChBIndex[i]-1;
+    i_Vectorc=d2ChBIndex[i]-1;
+  }
+  else if ((abs(d1ChBLund[i])==20213) && (abs(d2ChBLund[i])==421) && isCS==kTRUE) {
+    i_D0    =d2ChBIndex[i]-1;
+    i_Vectorc=d1ChBIndex[i]-1;
+  }
+  else{
+    i_D0    =d1ChBIndex[i]-1;
+    i_Vectorc=d2ChBIndex[i]-1;
+  }
+
+  if (i_D0>=nD0){ 
+    //cout<<"ATTENTION !! nD0 = "<<nD0<<" i_D0 = "<<i_D0<<endl; 
+    return 0;
+  }
+  if (i_Vectorc>=nKstarc && isCS==kFALSE){ 
+    //cout<<"ATTENTION !! nKstarc = "<<nKstarc<<" i_Kstarc = "<<i_Kstarc<<endl; 
+    return 0;
+  }
+ if (i_Vectorc>=nA1c && isCS==kTRUE){ 
+    //cout<<"ATTENTION !! nA1c = "<<nA1c<<" i_Vectorc = "<<i_Vectorc<<endl; 
+   return 0;
+  }
+
+  if (ndauKstarc[i_Vectorc]!=2 && isCS==kFALSE) return 0;
+  if (ndauA1c[i_Vectorc]!=2 && isCS==kTRUE) return 0;
+
+  //  cout << "i_D0="     << i_D0     << endl;
+  //  cout << "i_Kstarc=" << i_Kstarc << endl;
+
+  // take into account K*ch->K+Pi0,Kspi and the CS
+  r=( (abs(d1KstarcLund[i_Vectorc])==321 && abs(d2KstarcLund[i_Vectorc])==111 && isCS==kFALSE)  ||
+      (abs(d2KstarcLund[i_Vectorc])==321 && abs(d1KstarcLund[i_Vectorc])==111 && isCS==kFALSE)  ||
+      (abs(d1KstarcLund[i_Vectorc])==310 && abs(d2KstarcLund[i_Vectorc])==211 && isCS==kFALSE)  ||
+      (abs(d2KstarcLund[i_Vectorc])==310 && abs(d1KstarcLund[i_Vectorc])==211 && isCS==kFALSE) ||
+      (abs(d1A1cLund[i_Vectorc])==113 && abs(d2A1cLund[i_Vectorc])==211 && isCS==kTRUE)  ||
+      (abs(d2A1cLund[i_Vectorc])==113 && abs(d1A1cLund[i_Vectorc])==211 && isCS==kTRUE) );
+
+  //   cout << "found Kstarc, r=" << r << endl;
+  if (!r) return r;
+
+  // take into account D0->Ks lundD0Trk lundD0Trk
+  if (ndauD0[i_D0]!=3 ) return 0;
+
+  r=( ( (abs(d1D0Lund[i_D0])==310) && (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ) || 
+      //  ( (abs(d2D0Lund[i_D0])==310) && (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ) || 
+      ( (abs(d3D0Lund[i_D0])==310) && (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ) ) ;
+
+  //  cout << "found D0, r=" << r << endl;
+  return r;
+
+}//end isBtoDKstarc
+
+
+Int_t btdkstarc::isSignalEvt(Int_t lundD0Trk,Int_t idKstar,Int_t i_ChB)
+{
+
+  Int_t  out=0;
+  Int_t* bdau        =new Int_t[30]; //B dau's
+  Int_t* Kstarcdau   =new Int_t[30]; //Kstarc dau's
+  Int_t* Kstarck0dau =new Int_t[30]; //KstarK0 dau's
+  Int_t* KstarcKsdau =new Int_t[30]; //KstarcKs dau's
+  Int_t* KstarcPi0dau=new Int_t[30]; //KstarPi0 dau's 
+  Int_t* D0dau       =new Int_t[30]; //D0   dau's
+  Int_t* D0k0dau     =new Int_t[30]; //D0K0 dau's
+  Int_t* D0Ksdau     =new Int_t[30]; //D0Ks dau's
+  Int_t* D0resdau  =new Int_t[30]; //D0res dau's
+
+  if (_super_sig_type=="btdkstarc" || _super_sig_type=="chb" || _super_sig_type=="chbR" || _super_sig_type=="chbNR"){ 
+    
+
+   // Reco particles
+    Int_t i_D0;
+    Int_t i_Kstarc;    
+    if ((abs(d1ChBLund[i_ChB])     ==421) && (abs(d2ChBLund[i_ChB])==323)) {
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Kstarc=d2ChBIndex[i_ChB]-1;
+    }
+    else if ((abs(d1ChBLund[i_ChB])==323) && (abs(d2ChBLund[i_ChB])==421)) {
+      i_D0    =d2ChBIndex[i_ChB]-1;
+      i_Kstarc=d1ChBIndex[i_ChB]-1;
+    }    
+    else assert(0);  // one never knows
+
+    //define Kstar -> K_ch pi_0
+    Int_t i_Kstarckc   =(abs(d1KstarcLund[i_Kstarc])==321) ? d1KstarcIndex[i_Kstarc]-1 : -999;
+    Int_t i_KstarcPi0  =(d2KstarcLund[i_Kstarc]==111)      ? d2KstarcIndex[i_Kstarc]-1 : -999;
+    //define pi_0's dau ( g1 and g2 from Kstarc)
+    Int_t i_KstarcPi0g1=(i_KstarcPi0 >= 0) ? d1Pi0Index[i_KstarcPi0]-1 : -999;
+    Int_t i_KstarcPi0g2=(i_KstarcPi0 >= 0) ? d2Pi0Index[i_KstarcPi0]-1 : -999;
+
+    //define Kstar -> Ks pi_ch
+    Int_t i_KstarcKs =(d1KstarcLund[i_Kstarc]     ==310) ? d1KstarcIndex[i_Kstarc]-1 : -999;
+    Int_t i_Kstarcpic=(abs(d2KstarcLund[i_Kstarc])==211) ? d2KstarcIndex[i_Kstarc]-1 : -999;
+    //define Ks's dau  (pipi from Kstarc)
+    Int_t i_KstarcKsPi1=(i_KstarcKs >=0) ? d1KsIndex[i_KstarcKs]-1  : -999;
+    Int_t i_KstarcKsPi2=(i_KstarcKs >=0) ? d2KsIndex[i_KstarcKs]-1  : -999;
+
+    Int_t i_D0Ks(0);   
+    Int_t i_D0Pi1(0);
+    Int_t i_D0Pi2(0);
+    if (d1D0Lund[i_D0]==310) {
+      assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d1D0Index[i_D0]-1;
+      i_D0Pi1=d2D0Index[i_D0]-1;
+      i_D0Pi2=d3D0Index[i_D0]-1;
+    } else {
+      assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d3D0Index[i_D0]-1;
+      i_D0Pi1=d1D0Index[i_D0]-1;
+      i_D0Pi2=d2D0Index[i_D0]-1;
+    }
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+
+    //define Mc index of reconstructed tracKs or Gammas
+    Int_t indexMcKstarkc    =(i_Kstarckc  >= 0) ? IndexTrk[i_Kstarckc]-1    : -999;
+    Int_t indexMcKstarcPi0g1=(i_KstarcPi0g1>=0) ? IndexGam[i_KstarcPi0g1]-1 : -999;
+    Int_t indexMcKstarcPi0g2=(i_KstarcPi0g2>=0) ? IndexGam[i_KstarcPi0g2]-1 : -999;
+      
+    Int_t indexMcKstarcKsPi1=(i_KstarcKs >= 0) ? IndexTrk[i_KstarcKsPi1]-1 : -999;
+    Int_t indexMcKstarcKsPi2=(i_KstarcKs >= 0) ? IndexTrk[i_KstarcKsPi2]-1 : -999;
+    Int_t indexMcKstarcpic  =(i_Kstarcpic>= 0) ? IndexTrk[i_Kstarcpic]-1   : -999;
+      
+    Int_t indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+    Int_t indexMcD0KsPi2=IndexTrk[i_D0KsPi2]-1;
+    Int_t indexMcD0Pi1  =IndexTrk[i_D0Pi1]-1;
+    Int_t indexMcD0Pi2  =IndexTrk[i_D0Pi2]-1;
+
+
+
+    for (Int_t i=0;i<nMc;i++){    // Loop on Mc-truth particles
+      
+      // reset
+      for (Int_t k=0;k<30;k++) 
+     bdau[k]=Kstarcdau[k]=Kstarck0dau[k]=KstarcKsdau[k]=KstarcPi0dau[k]=D0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=-9;
+
+      if (abs(idMc[i])==521){
+	
+
+	giveMeDau(i,bdau);
+	if (bdau[0]==0) continue;
+	
+	//D0's daughters
+	giveMeDau(bdau,421,D0dau);
+	if (D0dau[0]==0) continue;
+	Int_t id1 = D0dau[1];
+	Int_t id2 = D0dau[2];
+	Int_t id3 = D0dau[3];
+	//cout << id1 << " " << id2 << " " << id3 << endl;
+	if (id1>=0 && id2>=0 && id3>=0) {
+	  if ( (abs(idMc[id3])==311 || abs(idMc[id3])==310) && abs(idMc[id2])==lundD0Trk && abs(idMc[id1])==lundD0Trk ) {
+	    D0dau[1]=id3;
+	    D0dau[2]=id1;
+	    D0dau[3]=id2;
+	  }
+	}
+
+	giveMeDau(bdau,idKstar,Kstarcdau);
+	if (Kstarcdau[0]==0) continue;
+
+	//Fill Kstarc -> K0 pi_ch
+	giveMeDau(Kstarcdau,311,Kstarck0dau);
+        if (Kstarck0dau[0]!=0) {
+	  //K0's daughters (from Kstarc)
+          giveMeDau(Kstarck0dau,310,KstarcKsdau);
+          if (KstarcKsdau[0]==0) continue;
+        } else {
+	  //Fill Kstarc -> pi_0 K_ch
+	  giveMeDau(Kstarcdau,111,KstarcPi0dau);
+	  if (KstarcPi0dau[0]==0) continue;	  
+	}
+
+
+	//Ks's daughters (from K0)               //no more necessary with new Forced Signal decay.dec
+
+	giveMeDau(D0dau,311,D0k0dau);
+	if(D0k0dau[0]==0) giveMeDau(D0dau,310,D0Ksdau);
+	else giveMeDau(D0k0dau,310,D0Ksdau);
+	if(D0Ksdau[0]==0) continue;
+
+
+	//cout<<"D0Ksdau..."<<endl; printInfo(D0Ksdau);
+
+	// get res (from D0) daughters (if any)
+	giveMeDau(D0dau,223,D0resdau);
+	if (D0resdau[0]==0) giveMeDau(D0dau,333,D0resdau); // phi
+
+	if (
+	    //no other B's dau, apart from eventual Gamma
+	    ((bdau[0]==2 || (bdau[0]==3 && idMc[bdau[3]]==22) || (bdau[0]==4 && idMc[bdau[3]]==22 && idMc[bdau[4]]==22)) && 
+	     abs(idMc[bdau[1]])==421 && abs(idMc[bdau[2]])==idKstar )      //D0 Kstarc
+	    && 
+
+	    (  (Kstarcdau[0]==2 || (Kstarcdau[0]==3 && idMc[Kstarcdau[3]]==22) || (Kstarcdau[0]==4 && idMc[Kstarcdau[3]]==22 && idMc[Kstarcdau[4]]==22))  &&
+	       ((abs(idMc[Kstarcdau[1]])==311     && //Kstarc -> K0 pi_ch
+		 abs(idMc[Kstarcdau[2]])==211     && //
+		 (Kstarck0dau[0]>=1 && abs(idMc[Kstarck0dau[1]])==310 && abs(idMc[KstarcKsdau[1]])==211 && abs(idMc[KstarcKsdau[2]])==211 ))  //K0 -> Ks ->pi+pi-
+		||  
+		(abs(idMc[Kstarcdau[1]])==321     && //Kstarc -> Kch pi_0  
+		 abs(idMc[Kstarcdau[2]])==111     && //
+		 (KstarcPi0dau[0]>=2                  &&    
+		  idMc[KstarcPi0dau[1]]==22      && //Pi0 -> Gamma,Gamma
+		  idMc[KstarcPi0dau[2]]==22 ))) ) 
+	    &&
+	    //D0 -> Ks lundTrk lundTrk 
+	    ( ( (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+		abs(idMc[D0dau[2]])==lundD0Trk &&
+		abs(idMc[D0dau[3]])==lundD0Trk )
+	      ||
+	      //D0 -> Ks res(lundTrk lundTrk) 
+	      ( (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&
+		(D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22)) &&
+		abs(idMc[D0resdau[1]])==lundD0Trk &&
+		abs(idMc[D0resdau[2]])==lundD0Trk ) )
+	    ){
+	  
+	  out |= ( 1 << 0 );
+	  
+	  if ( idMc[bdau[3]]       ==22 || 
+	       idMc[Kstarcdau[3]]  ==22 || 
+	       idMc[Kstarck0dau[2]]==22 || 
+	       idMc[KstarcKsdau[3]]==22 || 
+	       idMc[D0dau[4]]      ==22 || 
+	       idMc[D0resdau[3]] ==22 ||
+	       idMc[D0k0dau[2]]    ==22 ||
+	       idMc[D0Ksdau[3]]    ==22 )
+	    out |= ( 1 << 1 );   // A Radiative decay somewhere
+	    
+	  
+	  //match Kstarc -> Ks pi_ch 
+	  if ( indexMcKstarcKsPi1==KstarcKsdau[1] || indexMcKstarcKsPi1==KstarcKsdau[2] ) 
+	    out |= ( 1 << 2 );  // Ks dau1 (from Kstarc)
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcKsPi1, KstarcKsdau[1] ) ||
+		 matchAMuon( indexMcKstarcKsPi1, KstarcKsdau[2] ) )
+	      out |= ( 1 << 25 );
+
+	  if ( indexMcKstarcKsPi2==KstarcKsdau[2] || indexMcKstarcKsPi2==KstarcKsdau[1] )
+	    out |= ( 1 << 3 );  // Ks dau2
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcKsPi2, KstarcKsdau[1] ) ||
+		 matchAMuon( indexMcKstarcKsPi2, KstarcKsdau[2] ) )
+	      out |= ( 1 << 26 );
+
+	  if ( indexMcKstarcpic==Kstarcdau[2] )                                          
+	    out |= ( 1 << 4 ); // pi_ch  
+    	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcpic, Kstarcdau[2] ) )
+	      out |= ( 1 << 27 );
+
+
+	//   //match Kstarc -> K_ch Pi0  (K_ch Pi0 on Mc-truth)
+// 	  if ( indexMcKstarkc==Kstarcdau[1] )                                          
+// 	    out |= ( 1 << 5 );  // K_ch  (from Kstarc)
+	      
+// 	  if ( indexMcKstarcPi0g1==KstarcPi0dau[1] || indexMcKstarcPi0g1==KstarcPi0dau[2]) 
+// 	    out |= ( 1 << 6 );  //Pi0g1 
+
+// 	  if ( indexMcKstarcPi0g2==KstarcPi0dau[2] || indexMcKstarcPi0g2==KstarcPi0dau[1]) 
+// 	    out |= ( 1 << 7 ); //Pi0g2 
+    
+	  //match D0
+	  if ( indexMcD0Pi1==D0dau[2] || indexMcD0Pi1==D0dau[3] || 
+	       indexMcD0Pi1==D0resdau[1] || indexMcD0Pi1==D0resdau[2])
+	    out |= ( 1 << 8);  //pi from D0
+	  else
+	    if( matchAMuon( indexMcD0Pi1, D0dau   [ 2 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0dau   [ 3 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 1 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 20 );
+
+	  if ( indexMcD0Pi2==D0dau[3] || indexMcD0Pi2==D0dau[2] || 
+	       indexMcD0Pi2==D0resdau[2] || indexMcD0Pi2==D0resdau[1] )
+	    out |= ( 1 << 9 );  //pi from D0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0Pi2, D0dau   [ 2 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0dau   [ 3 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 21 );
+
+	  if ( (indexMcD0KsPi1==D0Ksdau[1]) || (indexMcD0KsPi1==D0Ksdau[2]) )
+	    out |= ( 1 << 10 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi1, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi1, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 22 );
+	  
+	  if ( (indexMcD0KsPi2==D0Ksdau[2]) || (indexMcD0KsPi2==D0Ksdau[1]) )
+	    out |= ( 1 << 11 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi2, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi2, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 23 );
+	  	  
+
+	}
+      } //end if (abs(idMc[i])==521) condition
+      
+    }// end loop on Mc list
+    
+    
+ 
+
+    //**********************************************************************************************
+    //****************************BIT MAP***********************************************************
+    //**********************************************************************************************
+    //brem KsPi1(K*) KsPi2(K*) pi(K*) K(K*) Pi0g1(K*) Pi0g2(K*)  Pi1(D0) Pi2(D0) KsPi1(D0) KsPi2(D0)
+    // **********************************************************************************************
+    
+    //full match B->D0 K*->Ks pi         : 1+4+8+16+256+512+1024+2048   =3869
+    //full match B->D0 K*->Ks pi (brem)  : 2+4+8+16+256+512+1024+2048   =3870
+    //full match B->D0 K*->K Pi0         : 1+32+64+128+256+512+1024+2048=4065
+    //full match B->D0 K*->K Pi0 (brem)  : 2+32+64+128+256+512+1024+2048=4066
+    //D0 match                           : 1+256+512+1024+2048          =3841
+    //D0 match         (brem)            : 2+256+512+1024+2048          =3842
+    //match K*->K  Pi0                   : 1+32+64+128                  =225
+    //match K*->K  Pi0 (brem)            : 2+32+64+128                  =226
+    //match Pi0                          : 1+64+128                     =193
+    //match Pi0        (brem)            : 2+64+128                     =194
+    //match K*->Ks pi                    : 1+4+8+16                     =29
+    //match K*->Ks pi  (brem)            : 2+4+8+16                     =30
+    //match Ks from K*                   : 1+4+8                        =13 
+    //match Ks from K* (brem)            : 2+4+8                        =14
+
+  } //end (_super_sig_type=="btdkstarc")
+
+  
+  delete[] bdau;
+  delete[] Kstarcdau;
+  delete[] Kstarck0dau;
+  delete[] KstarcKsdau;
+  delete[] KstarcPi0dau;
+  delete[] D0dau;
+  delete[] D0k0dau;
+  delete[] D0Ksdau;
+  delete[] D0resdau;
+  
+  //  
+  return out; 
+  
+}//end isSignalEvt
+
+
+
+
+
+Int_t btdkstarc::isSignalEvtControlSample(Int_t lundD0Trk,Int_t idVector,Int_t i_ChB)
+{
+  // idKstar=323 (usually)
+  Int_t  out=0;
+  Int_t* bdau        =new Int_t[30]; //B dau's
+  Int_t* Vectorcdau   =new Int_t[30]; //Vectorc dau's
+  Int_t* VectorcResodau =new Int_t[30]; //VectorcReso dau's
+  Int_t* D0dau       =new Int_t[30]; //D0   dau's
+  Int_t* D0k0dau     =new Int_t[30]; //D0K0 dau's
+  Int_t* D0Ksdau     =new Int_t[30]; //D0Ks dau's
+  Int_t* D0resdau  =new Int_t[30]; //D0res dau's
+
+  if (_super_sig_type=="btda1" || _super_sig_type=="chb" || _super_sig_type=="chbR" || _super_sig_type=="chbNR"){ 
+    
+    for (Int_t i=0;i<nMc;i++){    // Loop on Mc-truth particles
+      
+      // reset
+      for (Int_t k=0;k<30;k++) 
+     bdau[k]=Vectorcdau[k]=VectorcResodau[k]=D0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=-9;
+
+      if (abs(idMc[i])==521){
+	
+	//B's daughters
+	giveMeDau(i,bdau);
+	//cout<<bdau[0]<<" "<<idMc[bdau[1]]<<" "<<idMc[bdau[2]]<<" "<<idMc[bdau[3]]<<endl;
+	if (bdau[0]==0) continue;
+	
+	//D0's daughters
+	giveMeDau(bdau,421,D0dau);
+	if (D0dau[0]==0) continue;
+	//   change ordering to have first K0/Ks, and 2nd and 3rd charged tracKs
+	Int_t id1 = D0dau[1];
+	Int_t id2 = D0dau[2];
+	Int_t id3 = D0dau[3];
+	//cout << id1 << " " << id2 << " " << id3 << endl;
+	if (id1>=0 && id2>=0 && id3>=0) {
+	  if ( (abs(idMc[id3])==311 || abs(idMc[id3])==310) && abs(idMc[id2])==lundD0Trk && abs(idMc[id1])==lundD0Trk ) {
+	    D0dau[1]=id3;
+	    D0dau[2]=id1;
+	    D0dau[3]=id2;
+	  }
+	}
+
+	//Vectorc's daughters (rho0 pic)
+	giveMeDau(bdau,idVector,Vectorcdau);
+	if (Vectorcdau[0]==0) continue;
+      
+	//Fill Vectorc -> Reso pi_ch
+	giveMeDau(Vectorcdau,113,VectorcResodau);
+        if (VectorcResodau[0]==0) continue; 
+
+
+	//k0 from D0 daughters 
+	giveMeDau(D0dau,311,D0k0dau);
+	if(D0k0dau[0]==0) giveMeDau(D0dau,310,D0Ksdau);
+	else giveMeDau(D0k0dau,310,D0Ksdau);
+	if(D0Ksdau[0]==0) continue;
+
+	giveMeDau(D0dau,223,D0resdau); //omega
+	if (D0resdau[0]==0) giveMeDau(D0dau,333,D0resdau); // phi
+
+	if (
+	    //no other B's dau, apart from eventual Gamma or two-gamma
+	    ((bdau[0]==2 || (bdau[0]==3 && idMc[bdau[3]]==22) || (bdau[0]==4 && idMc[bdau[3]]==22 && idMc[bdau[4]]==22)) && 
+	     abs(idMc[bdau[1]])==idVector && abs(idMc[bdau[2]])==421)      //D0 Kstarc
+	    && 
+	    
+	    //no other Kstarc's dau, apart from eventual Gamma
+	    (  (Vectorcdau[0]==2 || (Vectorcdau[0]==3 && idMc[Vectorcdau[3]]==22) || (Vectorcdau[0]==4 && idMc[Vectorcdau[3]]==22 && idMc[Vectorcdau[4]]==22))  &&
+	       (abs(idMc[Vectorcdau[1]])==211    && // pi_ch first dau
+		abs(idMc[Vectorcdau[2]])==113     && //rho0 second dau
+		(VectorcResodau[0]>=2 &&  abs(idMc[VectorcResodau[1]])==211 && abs(idMc[VectorcResodau[2]])==211 )) )
+	    &&
+	    //D0 -> Ks lundTrk lundTrk 
+	    ( ( (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+		abs(idMc[D0dau[2]])==lundD0Trk &&//pions from D0
+		abs(idMc[D0dau[3]])==lundD0Trk )
+	      ||
+	      //D0 -> Ks res(lundTrk lundTrk) 
+	      ( (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&
+		(D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22)) &&
+		abs(idMc[D0resdau[1]])==lundD0Trk &&
+		abs(idMc[D0resdau[2]])==lundD0Trk ) )
+	       ){
+	  
+	  out=1;
+	  
+	  
+	  if (D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22) ) { 
+	    //cout << "ATTENTION: res from D0 decay found..." << endl; 
+	    printInfo(D0resdau); }
+	  //cout << "Here1: out=" << out << endl;
+	  
+	  if ( idMc[bdau[3]]       ==22 || 
+	       idMc[Vectorcdau[3]]  ==22 || 
+	       idMc[VectorcResodau[3]]==22 || 
+	       idMc[D0dau[4]]      ==22 || 
+	       idMc[D0resdau[3]] ==22 ||
+	       idMc[D0k0dau[2]]    ==22 ||
+	       idMc[D0Ksdau[3]]    ==22 ){
+	    
+	    out=2;   // A Radiative decay somewhere
+	    
+	  }
+	  
+	  if (  idMc[bdau[4]]       ==22 || 
+	       idMc[Vectorcdau[4]]  ==22 || 
+	       idMc[VectorcResodau[4]]==22 || 
+	       idMc[D0dau[5]]      ==22 || 
+	       idMc[D0resdau[4]] ==22 ||
+	       idMc[D0k0dau[3]]    ==22 ||
+	       idMc[D0Ksdau[4]]    ==22 ){
+  
+	    //cout << "ATTENTION: Radiative decay with two photons in isSignalEvt. Event = " << event << endl; 
+	  }
+	  break;//the search is completed
+	}
+      } //end if (abs(idMc[i])==521) condition
+      
+    }// end loop on Mc list
+    
+    // Reco particles
+    Int_t i_D0 = -999;
+    Int_t i_Vectorc = -999;    
+    if ((abs(d1ChBLund[i_ChB])     ==421) && (abs(d2ChBLund[i_ChB])==20213)) {
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Vectorc=d2ChBIndex[i_ChB]-1;
+    }
+    else if ((abs(d1ChBLund[i_ChB])==20213) && (abs(d2ChBLund[i_ChB])==421)) {
+      i_D0    =d2ChBIndex[i_ChB]-1;
+      i_Vectorc=d1ChBIndex[i_ChB]-1;
+    }    
+    else{
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Vectorc=d2ChBIndex[i_ChB]-1;
+    }
+    
+    //define Vectorc -> Reso pi_ch
+    Int_t i_VectorcReso =(d1A1cLund[i_Vectorc]==113) ? d1A1cIndex[i_Vectorc]-1 : -999;
+    //cout<<d1A1cLund[i_Vectorc]<<" "<<d2A1cLund[i_Vectorc]<<endl;
+    Int_t i_Vectorcpic=(abs(d2A1cLund[i_Vectorc])==211) ? d2A1cIndex[i_Vectorc]-1 : -999;
+    //define Ks's dau  (pipi from Kstarc)
+    Int_t i_VectorcResoPi1=(i_VectorcReso >=0) ? d1Rho0Index[i_VectorcReso]-1  : -999;
+    Int_t i_VectorcResoPi2=(i_VectorcReso >=0) ? d2Rho0Index[i_VectorcReso]-1  : -999;
+
+    //define D0-> Kspipi decay
+    /*
+    Int_t i_D0Ks   =d1D0Index[i_D0]-1;
+    Int_t i_D0Pi1  =d2D0Index[i_D0]-1;
+    Int_t i_D0Pi2  =d3D0Index[i_D0]-1;
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+    */
+    Int_t i_D0Ks(0);   
+    Int_t i_D0Pi1(0);
+    Int_t i_D0Pi2(0);
+    if (d1D0Lund[i_D0]==310) {
+      assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d1D0Index[i_D0]-1;
+      i_D0Pi1=d2D0Index[i_D0]-1;
+      i_D0Pi2=d3D0Index[i_D0]-1;
+    } else {
+      assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d3D0Index[i_D0]-1;
+      i_D0Pi1=d1D0Index[i_D0]-1;
+      i_D0Pi2=d2D0Index[i_D0]-1;
+    }
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+
+    //define Mc index of reconstructed tracKs or Gammas
+      
+    Int_t indexMcVectorcResoPi1=(i_VectorcReso >= 0) ? IndexTrk[i_VectorcResoPi1]-1 : -999;
+    Int_t indexMcVectorcResoPi2=(i_VectorcReso >= 0) ? IndexTrk[i_VectorcResoPi2]-1 : -999;
+    Int_t indexMcVectorcpic  =(i_Vectorcpic>= 0) ? IndexTrk[i_Vectorcpic]-1   : -999;
+      
+    Int_t indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+    Int_t indexMcD0KsPi2=IndexTrk[i_D0KsPi2]-1;
+    Int_t indexMcD0Pi1  =IndexTrk[i_D0Pi1]-1;
+    Int_t indexMcD0Pi2  =IndexTrk[i_D0Pi2]-1;
+
+    //match Kstarc -> Ks pi_ch 
+    if ( indexMcVectorcResoPi1==VectorcResodau[1] || indexMcVectorcResoPi1==VectorcResodau[2] ) {
+      out+=4;  // Ks dau1 (from Kstarc)
+      //cout << "out+ = 4 "<<endl;
+    }
+    if ( indexMcVectorcResoPi2==VectorcResodau[2] || indexMcVectorcResoPi2==VectorcResodau[1] ) {
+      out+=8;  // Ks dau2
+      //cout << "out+ = 8 "<<endl;
+    }
+    if ( indexMcVectorcpic==Vectorcdau[1] )                                          {
+      out+=16; // pi_ch  
+      //cout << "out+ = 8 "<<endl;
+    }
+    //match D0
+    if ( indexMcD0Pi1==D0dau[2] || indexMcD0Pi1==D0dau[3] || indexMcD0Pi1==D0resdau[1] || indexMcD0Pi1==D0resdau[2])  {
+      //cout << "indexMcD0Pi1 = " << indexMcD0Pi1 << endl;
+      //cout << "D0dau[1] = " << D0dau[1] << endl;
+      //cout << "D0dau[2] = " << D0dau[2] << endl;
+      out+=256;  //pi from D0
+      //cout << "out+ = 256 "<<endl;
+    }
+    if ( indexMcD0Pi2==D0dau[3] || indexMcD0Pi2==D0dau[2] || indexMcD0Pi2==D0resdau[2] || indexMcD0Pi2==D0resdau[1] )  {
+      //cout << "indexMcD0Pi2 = " << indexMcD0Pi2 << endl;
+      //cout << "D0dau[1] = " << D0dau[1] << endl;
+      //cout << "D0dau[2] = " << D0dau[2] << endl;
+      out+=512;  //pi from D0
+      //cout << "out+ = 512 "<<endl;
+    }
+    if ((indexMcD0KsPi1==D0Ksdau[1])||(indexMcD0KsPi1==D0Ksdau[2]))  {
+      out+=1024; //pi from K0s from D0
+      //cout << "out+ = 1024 "<<endl;
+    }
+    if ((indexMcD0KsPi2==D0Ksdau[2])||(indexMcD0KsPi2==D0Ksdau[1]))  {
+      out+=2048; //pi from K0s from D0
+      //cout << "out+ = 2048 "<<endl;
+    }
+
+    //**********************************************************************************************
+    //****************************BIT MAP***********************************************************
+    //**********************************************************************************************
+    //brem KsPi1(K*) KsPi2(K*) pi(K*) K(K*) Pi0g1(K*) Pi0g2(K*)  Pi1(D0) Pi2(D0) KsPi1(D0) KsPi2(D0)
+    // **********************************************************************************************
+    
+    //full match B->D0 K*->Ks pi or CS              : 1+4+8+16+256+512+1024+2048   =3869
+    //full match B->D0 K*->Ks pi (brem) or CS+brem  : 2+4+8+16+256+512+1024+2048   =3870
+    //full match B->D0 K*->K Pi0                    : 1+32+64+128+256+512+1024+2048=4065
+    //full match B->D0 K*->K Pi0 (brem)             : 2+32+64+128+256+512+1024+2048=4066
+    //D0 match                                      : 1+256+512+1024+2048          =3841
+    //D0 match         (brem)                       : 2+256+512+1024+2048          =3842
+    //match K*->K  Pi0                              : 1+32+64+128                  =225
+    //match K*->K  Pi0 (brem)                       : 2+32+64+128                  =226
+    //match Pi0                                     : 1+64+128                     =193
+    //match Pi0        (brem)                       : 2+64+128                     =194
+    //match K*->Ks pi                               : 1+4+8+16                     =29
+    //match K*->Ks pi  (brem)                       : 2+4+8+16                     =30
+    //match Ks from K*                              : 1+4+8                        =13 
+    //match Ks from K* (brem)                       : 2+4+8                        =14
+
+  } //end (_super_sig_type=="btdkstarc")
+
+  
+  delete[] bdau;
+  delete[] Vectorcdau;
+  delete[] VectorcResodau;
+  delete[] D0dau;
+  delete[] D0k0dau;
+  delete[] D0Ksdau;
+  delete[] D0resdau;
+  
+  //  
+  return out; 
+  
+}//end isSignalEvt
+
+void btdkstarc::giveMeDau(Int_t index,Int_t* dauarray){
+  Int_t ndau=0;
+  if (index>=0) {
+    for (Int_t j=0;j<nMc;j++){
+      if ((mothMc[j]-1)==index){ 
+	dauarray[++ndau]=j; 
+      }
+    }
+  }
+  dauarray[0]=ndau;
+  // ordering from higher to lower abs(lundId)
+  for (Int_t j=1;j<=ndau;j++) {
+    Int_t tmp=dauarray[j];
+    Int_t j_max(j);
+    for (Int_t k=j+1;k<=ndau;k++) if (abs(idMc[dauarray[j_max]])<abs(idMc[dauarray[k]])) j_max=k;
+    dauarray[j]=dauarray[j_max];
+    dauarray[j_max]=tmp;
+  }
+  return;
+}//end giveMeDau
+
+
+void btdkstarc::giveMeDau(Int_t* motharray, Int_t id, Int_t* dauarray){
+  Int_t j(1);
+  while  ( j<=motharray[0] && abs(idMc[motharray[j]])!=abs(id) ) j++;
+  if (j>motharray[0]) j=-1;
+  Int_t index = (j<=motharray[0])? motharray[j] : -1;
+  giveMeDau(index,dauarray);
+}//end giveMeDau
+
+
+
+void btdkstarc::printInfo(Int_t* array){
+  
+  Int_t imax = array[0];
+  Int_t maxindex=30;
+  
+  cout << "array[0] = " << imax << endl;
+
+  if ( imax>= maxindex) {
+    cout << "Something nasty is happennig ..."<< "array[0] >= 30" << endl;
+   
+  }
+  else{
+    for (int i=1; i<=imax; i++) {
+      cout <<"array[" << i << "] = " << array[i] << " idMc[array[" << i << "]] = " << idMc[array[i]] << endl;
+      cout <<"        "<< xMc[i] << " " << yMc[i] << " " << zMc[i] << " " << nDauMc[i] << endl;
+    }
+  }
+}//end printInfo
+
+Int_t btdkstarc::isD0true(Int_t lundD0Trk,Int_t iMc_D0Pi1,Int_t iMc_D0Pi2,Int_t iMc_KsPi1,Int_t iMc_KsPi2)
+{
+  //  cout<<"inside isD0true"<<endl;
+  Int_t isD0=0;
+  
+  if (iMc_D0Pi1<0 || iMc_D0Pi2<0 || iMc_KsPi1<0 || iMc_KsPi2<0){
+    // cout<<"WARNING: iMc_D0Pi1 = "<<iMc_D0Pi1<<" iMc_D0Pi2 = "<<iMc_D0Pi2<<" iMc_KsPi1 = "<<iMc_KsPi1<<" iMc_KsPi2 = "<<iMc_KsPi2<<endl;
+    return 0;
+  }
+  
+  if ( (abs(idMc[iMc_D0Pi1]) != lundD0Trk) || (abs(idMc[iMc_D0Pi2]) != lundD0Trk) ||  
+       (abs(idMc[iMc_KsPi1]) != 211) || (abs(idMc[iMc_KsPi2]) != 211) ) return 0;
+  
+  if (mothMc[iMc_D0Pi1] != mothMc[iMc_D0Pi2]) return 0;
+  if (mothMc[iMc_KsPi1] != mothMc[iMc_KsPi2]) return 0;
+  
+  if (abs(idMc[mothMc[iMc_D0Pi1]-1])!=421) return 0;
+  if (abs(idMc[mothMc[iMc_KsPi1]-1])!=310) return 0;
+  
+  Int_t iMc_Ks=mothMc[iMc_KsPi1]-1;
+  Int_t iMc_D0=mothMc[iMc_D0Pi1]-1;
+  
+  //if (_super_sig_type=="btdsk" && mothMc[iMc_Ks] != mothMc[iMc_D0Pi1] ) return 0;
+  //if (_super_sig_type!="btdsk" && mothMc[mothMc[iMc_Ks]-1] != mothMc[iMc_D0Pi1]) return 0;
+  
+  Int_t* D0dau_true=new Int_t[30];//D0 dau's
+  Int_t* D0Ksdau_true=new Int_t[30];//Ks dau's
+  Int_t* D0resdau_true  =new Int_t[30]; //D0 res dau's 
+
+ for (Int_t k=0;k<10;k++) D0dau_true[k]=D0Ksdau_true[k]=D0resdau_true[k]=-9;
+  
+  giveMeDau(iMc_D0,D0dau_true);
+  giveMeDau(iMc_Ks,D0Ksdau_true);
+  giveMeDau(D0dau_true,223,D0resdau_true);  // omega
+  if (D0resdau_true[0]==0) giveMeDau(D0dau_true,333,D0resdau_true); // phi
+
+
+  
+  if (  ((((abs(idMc[D0dau_true[1]])==310 || abs(idMc[D0dau_true[1]])==311) &&
+	  abs(idMc[D0dau_true[2]])==lundD0Trk && abs(idMc[D0dau_true[3]])==lundD0Trk) ||
+
+	 ((abs(idMc[D0dau_true[3]])==310 || abs(idMc[D0dau_true[3]])==311) &&
+	  abs(idMc[D0dau_true[1]])==lundD0Trk && abs(idMc[D0dau_true[2]])==lundD0Trk))  &&
+	abs(idMc[D0Ksdau_true[1]])==211 && abs(idMc[D0Ksdau_true[2]])==211)  
+
+	||//omega i phi
+
+	((((abs(idMc[D0dau_true[1]])==310 || abs(idMc[D0dau_true[1]])==311) &&
+	   (abs(idMc[D0dau_true[2]])==223 || abs(idMc[D0dau_true[2]])==333))  ||
+
+	  ((abs(idMc[D0dau_true[2]])==310 || abs (idMc[D0dau_true[2]])==311)  &&
+	   (abs(idMc[D0dau_true[1]])==223 ||abs(idMc[D0dau_true[1]])==333) ))  &&
+	 abs(idMc[D0Ksdau_true[1]])==211 && abs(idMc[D0Ksdau_true[2]])==211 &&
+	 abs(idMc[D0resdau_true[1]])==lundD0Trk && abs(idMc[D0resdau_true[2]])==lundD0Trk) 
+	
+	)
+	
+    { 
+    if ((D0dau_true[0]==3) || (D0dau_true[0]==2)) isD0 = 1;
+    else if ( (D0dau_true[0]==3 && idMc[D0dau_true[3]==22])||(D0dau_true[0]==4 && idMc[D0dau_true[4]]==22) || (D0dau_true[0]==5 && idMc[D0dau_true[4]]==22 && idMc[D0dau_true[5]]==22) ) isD0 = 2;
+    if ( (D0Ksdau_true[0]==3 && idMc[D0Ksdau_true[3]]==22) || (D0Ksdau_true[0]==4 && idMc[D0Ksdau_true[3]]==22 && idMc[D0Ksdau_true[4]]==22) ) isD0 += 4;   
+  }
+  
+  delete[] D0dau_true;
+  delete[] D0Ksdau_true;
+  delete[] D0resdau_true;
+
+  return isD0;
+}//end isD0true
+
+
+Int_t btdkstarc::isKstarcKspictrue(Int_t iMc_Kstarcpic,Int_t iMc_KstarcKsPi1,Int_t iMc_KstarcKsPi2,Int_t idKstar)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Int_t isKstarcKspictrue=0;
+  
+  Int_t impic=-1;
+  Int_t im1  =-1;
+  Int_t im2  =-1;
+  Int_t igm  =-1;
+  Int_t iggm =-1;
+  
+  if (iMc_Kstarcpic<0 || iMc_KstarcKsPi1<0 || iMc_KstarcKsPi2<0){
+    
+    //cout<<"WARNING: iMc_Kstarcpic = "<<iMc_Kstarcpic <<" iMc_KstarcKsPi1 = "<<iMc_KstarcKsPi1 <<" iMc_KstarcKsPi2 = "<<iMc_KstarcKsPi2 << endl;
+    //cout<<" event = "<<event<<" runNumber = "<<runNumber<<endl;
+    return 0; 
+  }
+  
+  if ((abs(idMc[iMc_Kstarcpic])!=211) || (abs(idMc[iMc_KstarcKsPi1])!=211) || (abs(idMc[iMc_KstarcKsPi2])!=211)) return 0;
+
+  impic=mothMc[iMc_Kstarcpic]-1;
+  
+  if (impic<0) return 0;
+  if (abs(idMc[impic])!=idKstar)     return 0; 
+
+  im1 = mothMc[iMc_KstarcKsPi1]-1;
+  im2 = mothMc[iMc_KstarcKsPi2]-1;
+  
+  if (im1 < 0 || im2 < 0) return 0;
+  if (im1 != im2)         return 0;
+
+  if (abs(idMc[im1])==310) {
+    igm = mothMc[im1]-1;
+    if (igm<0)                return 0;
+    if (abs(idMc[igm])!=311) return 0; 
+    iggm = mothMc[igm]-1;
+  }
+  else if (abs(idMc[im1])==311) {
+    igm = mothMc[im1]-1;
+    iggm = igm;
+  }
+  else return 0;
+
+  if (iggm != impic)  return 0;
+
+  isKstarcKspictrue=1;
+
+  //if (isKstarcKspictrue>0) cout << "isKstarcKspictrue = " << isKstarcKspictrue << endl;
+
+  //  
+  return isKstarcKspictrue;
+
+}//end isKstarcKspictrue
+
+
+Int_t btdkstarc::isKstarcKcPi0true(Int_t iMc_Kstarckc,Int_t iMc_KstarcPi0g1,Int_t iMc_KstarcPi0g2,Int_t idKstar)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Int_t isKstarcKcPi0true=0;
+  
+  Int_t imkc =-1;
+  Int_t im1  =-1;
+  Int_t im2  =-1;
+  Int_t igm  =-1;
+  
+  if (iMc_Kstarckc<0 || iMc_KstarcPi0g1<0 || iMc_KstarcPi0g2<0){
+    
+    //cout<<"WARNING: iMc_Kstarckc = "<<iMc_Kstarckc <<" iMc_KstarcPi0g1 = "<<iMc_KstarcPi0g1 <<" iMc_KstarcPi0g2 = "<<iMc_KstarcPi0g2 << endl;
+    //cout<<" event = "<<event<<" runNumber = "<<runNumber<<endl;
+    return 0; 
+  }
+  
+  if ((abs(idMc[iMc_Kstarckc])!=321) || (abs(idMc[iMc_KstarcPi0g1])!=22) || (abs(idMc[iMc_KstarcPi0g2])!=22)) return 0;
+
+  imkc=mothMc[iMc_Kstarckc]-1;
+  
+  if (imkc<0) return 0;
+  if (abs(idMc[imkc])!=idKstar)     return 0; 
+  
+  im1 = mothMc[iMc_KstarcPi0g1]-1;
+  im2 = mothMc[iMc_KstarcPi0g2]-1;
+  
+  if (im1 < 0 || im2 < 0) return 0;
+  if (im1 != im2)         return 0;
+
+  if (abs(idMc[im1])==111) igm = mothMc[im1]-1;
+  else return 0;
+
+  if (igm != imkc)  return 0;
+
+  isKstarcKcPi0true=1;
+
+  //if (isKstarcKcPi0true>0) cout << "isKstarcKcPi0true = " << isKstarcKcPi0true << endl;
+
+  //  
+  return isKstarcKcPi0true;
+
+}//end isKstarcKcPi0true
+
+Int_t btdkstarc::isVectorcResopictrue(Int_t iMc_Vectorcpic,Int_t iMc_VectorcResoPi1,Int_t iMc_VectorcResoPi2,Int_t idVectorc)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Int_t isVectorcResopictrue=0;
+  
+  Int_t impic=-1;
+  Int_t im1  =-1;
+  Int_t im2  =-1;
+  Int_t igm  =-1;
+  Int_t iggm =-1;
+  
+  if (iMc_Vectorcpic<0 || iMc_VectorcResoPi1<0 || iMc_VectorcResoPi2<0) return 0; 
+  
+  if ((abs(idMc[iMc_Vectorcpic])!=211) || (abs(idMc[iMc_VectorcResoPi1])!=211) || (abs(idMc[iMc_VectorcResoPi2])!=211)) return 0;
+
+  impic=mothMc[iMc_Vectorcpic]-1;
+  
+  if (impic<0) return 0;
+  if (abs(idMc[impic])!=idVectorc)     return 0; 
+
+  im1 = mothMc[iMc_VectorcResoPi1]-1;
+  im2 = mothMc[iMc_VectorcResoPi2]-1;
+  
+  if (im1 < 0 || im2 < 0) return 0;
+  if (im1 != im2)         return 0;
+
+  if (abs(idMc[im1])==113) {
+    igm = mothMc[im1]-1;
+    iggm = igm;
+  }
+  else return 0;
+
+  if (iggm != impic)  return 0;
+
+  isVectorcResopictrue=1;
+
+  //if (isKstarcKspictrue>0) cout << "isKstarcKspictrue = " << isKstarcKspictrue << endl;
+
+  //  
+  return isVectorcResopictrue;
+
+}//end isVectoResopictrue
+
+
+Int_t btdkstarc::isKstrue(Int_t iMc_KsPi1,Int_t iMc_KsPi2)
+{
+  // the Mc truth particle indexes are the argument
+
+  Int_t isKs=0;
+  
+  if (iMc_KsPi1<0 || iMc_KsPi2<0){
+
+    //cout<<"WARNING: iMc_KsPi1 = "<<iMc_KsPi1<<" iMc_KsPi2 = "<<iMc_KsPi2<<endl;
+    //cout<<"jentry = "<<myjentry<<" event = "<<event<<" runNumber = "<<runNumber<<endl;
+    return 0; 
+  }
+
+  if (mothMc[iMc_KsPi1] != mothMc[iMc_KsPi2]) return 0;
+
+  if (abs(idMc[mothMc[iMc_KsPi1]-1])!=310)   return 0; 
+
+  Int_t iMc_Ks  =mothMc[iMc_KsPi1]-1;
+
+  Int_t* Ksdau_true=new Int_t[30];//Ks dau's
+
+  for (Int_t k=0;k<30;k++) Ksdau_true[k]=0;
+
+  giveMeDau(iMc_Ks,Ksdau_true);
+  
+  if (abs(idMc[Ksdau_true[1]])==211       &&
+      abs(idMc[Ksdau_true[2]])==211){
+    
+    if (Ksdau_true[0]==2)                           isKs =1;
+    if ( (Ksdau_true[0]==3 && idMc[Ksdau_true[3]]==22) || (Ksdau_true[0]==4 && idMc[Ksdau_true[3]]==22 && idMc[Ksdau_true[4]]==22)) isKs =2;
+  }
+  //if (isKs>0) {cout << "isKs = " << isKs << endl; printInfo(Ksdau_true);}
+
+  delete[] Ksdau_true;
+  //  
+  return isKs;
+}//end isKstrue
+
+Int_t btdkstarc::isResotrue(Int_t iMc_ResoPi1,Int_t iMc_ResoPi2)
+{
+  // the Mc truth particle indexes are the argument
+
+  Int_t isReso=0;
+  
+  if (iMc_ResoPi1<0 || iMc_ResoPi2<0){
+
+    return 0; 
+  }
+
+  if (mothMc[iMc_ResoPi1] != mothMc[iMc_ResoPi2]) return 0;
+
+  if (abs(idMc[mothMc[iMc_ResoPi1]-1])!=113)   return 0; 
+
+  Int_t iMc_Reso  =mothMc[iMc_ResoPi1]-1;
+
+  Int_t* Resodau_true=new Int_t[30];
+
+  for (Int_t k=0;k<30;k++) Resodau_true[k]=0;
+
+  giveMeDau(iMc_Reso,Resodau_true);
+  
+  if (abs(idMc[Resodau_true[1]])==211       &&
+      abs(idMc[Resodau_true[2]])==211){
+    
+    if (Resodau_true[0]==2) isReso =1;
+    if ( (Resodau_true[0]==3 && idMc[Resodau_true[3]]==22) || (Resodau_true[0]==4 && idMc[Resodau_true[3]]==22 && idMc[Resodau_true[4]]==22)) isReso =2;
+  }
+
+  delete[] Resodau_true;
+  return isReso;
+}//end isResotrue
+
+
+Int_t btdkstarc::isPi0true(Int_t iMc_KstarcPi0g1,Int_t iMc_KstarcPi0g2)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Int_t isPi0true=0;
+  
+  Int_t im1  =-1;
+  Int_t im2  =-1;
+  
+  if (iMc_KstarcPi0g1<0 || iMc_KstarcPi0g2<0){
+    
+    //cout<<"WARNING: iMc_KstarcPi0g1 = "<<iMc_KstarcPi0g1 <<" iMc_KstarcPi0g2 = "<<iMc_KstarcPi0g2 << endl;
+    //cout<<" event = "<<event<<" runNumber = "<<runNumber<<endl;
+    return 0; 
+  }
+  
+  if ((abs(idMc[iMc_KstarcPi0g1])!=22) || (abs(idMc[iMc_KstarcPi0g2])!=22)) return 0;
+
+  im1 = mothMc[iMc_KstarcPi0g1]-1;
+  im2 = mothMc[iMc_KstarcPi0g2]-1;
+  
+  if (im1 < 0 || im2 < 0) return 0;
+  if (im1 != im2)         return 0;
+
+  if (abs(idMc[im1])==111) isPi0true=1;
+
+  //if (isPi0true>0) cout << "isPi0true = " << isPi0true << endl;
+
+  //  
+  return isPi0true;
+
+}//end isPi0true
+
+
+Float_t btdkstarc::CosHely(const TLorentzVector & P,const TLorentzVector & Q, const TLorentzVector & D)
+{
+  // the Mc truth particle indexes are the argument
+  
+  Float_t out=-999;
+  //
+  Double_t M2P= P.Mag2();
+  //  cout << "MP=" << sqrt(M2P) << endl; 
+
+  Double_t M2Q= Q.Mag2();
+  //  cout << "MQ=" << sqrt(M2Q) << endl; 
+
+  Double_t M2D= D.Mag2();
+  //  cout << "MD=" << sqrt(M2D) << endl; 
+  //
+  Double_t Num  = (P*D)*M2Q -(P*Q)*(Q*D);
+  Double_t Den2 = ( (P*Q)*(P*Q) - M2P * M2Q ) * ( (D*Q)*(D*Q)- M2D * M2Q );
+
+  if (Den2 > 0) out = Num/sqrt(Den2);
+
+  //  
+  return out;
+
+}//end CosHely;
+
+
+Float_t btdkstarc::DeltaE(const TLorentzVector & P4Ups,const TLorentzVector & P4B) 
+{
+  Float_t out=-999;
+  Float_t S = P4Ups.Mag2();   
+
+  if (S > 0)   out = (2*(P4Ups*P4B)-S)/(2*sqrt(S));
+
+  return out;
+
+} // DeltaE
+
+
+Float_t btdkstarc::Mes(const TLorentzVector & P4Ups,const TLorentzVector & P4B) 
+{
+  Float_t out=-999;
+
+  Float_t S = P4Ups.Mag2();
+
+  TVector3 P3Ups = P4Ups.Vect();
+  TVector3 P3B   = P4B.Vect();
+
+  if (S <= 0) return out;
+  
+  Float_t out2 = (S/2 + P3Ups*P3B)*(S/2 + P3Ups*P3B)/(P4Ups.E()*P4Ups.E()) - P3B.Mag2();
+
+  if (out2 < 0) return out;    
+
+  out = sqrt(out2);
+
+  return out;    
+
+} // Mes
+
+
+Float_t btdkstarc::Alpha(const TVector3 & P1,const TVector3 & P2,const TVector3 & Q)
+{
+  // returns the angle (in rad.) between the vector P1->P2 and Q
+  Float_t out=-999;
+
+  TVector3 P1P2;
+
+  P1P2=P2-P1;
+
+  if(P1P2.Mag2()==0) return out;
+  if(Q.Mag2()==0)    return out;
+
+  out = P1P2.Angle(Q);
+  
+  return out;
+
+} // Alpha
+
+
+
+Int_t btdkstarc::isNRSignalEvt(Int_t lundD0Trk,Int_t i_ChB)
+{
+  Int_t  out=0;
+  Int_t* bdau        =new Int_t[30]; //B dau's
+  Int_t* bk0dau      =new Int_t[30]; //BK0 dau's
+  Int_t* bKsdau      =new Int_t[30]; //BKs dau's
+  Int_t* bPi0dau     =new Int_t[30]; //BPi0 dau's
+  Int_t* D0dau       =new Int_t[30]; //D0   dau's
+  Int_t* D0k0dau     =new Int_t[30]; //D0K0 dau's
+  Int_t* D0Ksdau     =new Int_t[30]; //D0Ks dau's
+  Int_t* D0resdau  =new Int_t[30]; //D0res dau's
+
+  if (_super_sig_type=="btdkstarc" || _super_sig_type=="chb" || _super_sig_type=="chbR" || _super_sig_type=="chbNR"){ 
+    
+
+    
+    // Reco particles
+    Int_t i_D0;
+    Int_t i_Kstarc;    
+    if ((abs(d1ChBLund[i_ChB])     ==421) && (abs(d2ChBLund[i_ChB])==323)) {
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Kstarc=d2ChBIndex[i_ChB]-1;
+    }
+    else if ((abs(d1ChBLund[i_ChB])==323) && (abs(d2ChBLund[i_ChB])==421)) {
+      i_D0    =d2ChBIndex[i_ChB]-1;
+      i_Kstarc=d1ChBIndex[i_ChB]-1;
+    }    
+    else assert(0);  // one never knows
+
+    //define Kstar -> K_ch pi_0
+    Int_t i_Kstarckc   =(abs(d1KstarcLund[i_Kstarc])==321) ? d1KstarcIndex[i_Kstarc]-1 : -999;
+    Int_t i_KstarcPi0  =(d2KstarcLund[i_Kstarc]==111)      ? d2KstarcIndex[i_Kstarc]-1 : -999;
+    //define pi_0's dau ( g1 and g2 from Kstarc)
+    Int_t i_KstarcPi0g1=(i_KstarcPi0 >= 0) ? d1Pi0Index[i_KstarcPi0]-1 : -999;
+    Int_t i_KstarcPi0g2=(i_KstarcPi0 >= 0) ? d2Pi0Index[i_KstarcPi0]-1 : -999;
+
+    //define Kstar -> Ks pi_ch
+    Int_t i_KstarcKs =(d1KstarcLund[i_Kstarc]     ==310) ? d1KstarcIndex[i_Kstarc]-1 : -999;
+    Int_t i_Kstarcpic=(abs(d2KstarcLund[i_Kstarc])==211) ? d2KstarcIndex[i_Kstarc]-1 : -999;
+    //define Ks's dau  (pipi from Kstarc)
+    Int_t i_KstarcKsPi1=(i_KstarcKs >=0) ? d1KsIndex[i_KstarcKs]-1  : -999;
+    Int_t i_KstarcKsPi2=(i_KstarcKs >=0) ? d2KsIndex[i_KstarcKs]-1  : -999;
+
+    //define D0-> Kspipi decay
+    /*
+    Int_t i_D0Ks   =d1D0Index[i_D0]-1;
+    Int_t i_D0Pi1  =d2D0Index[i_D0]-1;
+    Int_t i_D0Pi2  =d3D0Index[i_D0]-1;
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+    */
+
+    Int_t i_D0Ks(0);   
+    Int_t i_D0Pi1(0);
+    Int_t i_D0Pi2(0);
+    if (d1D0Lund[i_D0]==310) {
+      assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d1D0Index[i_D0]-1;
+      i_D0Pi1=d2D0Index[i_D0]-1;
+      i_D0Pi2=d3D0Index[i_D0]-1;
+    } else {
+      assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d3D0Index[i_D0]-1;
+      i_D0Pi1=d1D0Index[i_D0]-1;
+      i_D0Pi2=d2D0Index[i_D0]-1;
+    }
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+      
+    //define Mc index of reconstructed tracKs or Gammas
+    Int_t indexMcKstarkc    =(i_Kstarckc  >= 0) ? IndexTrk[i_Kstarckc]-1    : -999;
+    Int_t indexMcKstarcPi0g1=(i_KstarcPi0g1>=0) ? IndexGam[i_KstarcPi0g1]-1 : -999;
+    Int_t indexMcKstarcPi0g2=(i_KstarcPi0g2>=0) ? IndexGam[i_KstarcPi0g2]-1 : -999;
+      
+    Int_t indexMcKstarcKsPi1=(i_KstarcKs >= 0) ? IndexTrk[i_KstarcKsPi1]-1 : -999;
+    Int_t indexMcKstarcKsPi2=(i_KstarcKs >= 0) ? IndexTrk[i_KstarcKsPi2]-1 : -999;
+    Int_t indexMcKstarcpic  =(i_Kstarcpic>= 0) ? IndexTrk[i_Kstarcpic]-1   : -999;
+      
+    Int_t indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+    Int_t indexMcD0KsPi2=IndexTrk[i_D0KsPi2]-1;
+    Int_t indexMcD0Pi1  =IndexTrk[i_D0Pi1]-1;
+    Int_t indexMcD0Pi2  =IndexTrk[i_D0Pi2]-1;
+
+
+    for (Int_t i=0;i<nMc;i++){    // Loop on Mc-truth particles
+      
+      // reset
+      for (Int_t k=0;k<30;k++) 
+	bdau[k]=bk0dau[k]=bKsdau[k]=bPi0dau[k]=D0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=-9;
+      
+      if (abs(idMc[i])==521){
+	
+	//B's daughters
+	giveMeDau(i,bdau);
+	if (bdau[0]==0) continue;
+	
+	//Ks's daughters (from K0 from B)  
+	giveMeDau(bdau,311,bk0dau);
+	if (bk0dau[0]==0) {
+	  giveMeDau(bdau,310,bKsdau);
+	  if (bKsdau[0]==0) {
+	    // Pi0's daughters (from Pi0 from B)
+	    giveMeDau(bdau,111,bPi0dau);
+            if (bPi0dau[0]==0) continue;
+	  }
+	} else {
+	  giveMeDau(bk0dau,310,bKsdau);
+	  if (bKsdau[0]==0) continue;
+	}
+
+	//D0's daughters
+	giveMeDau(bdau,421,D0dau);
+	if (D0dau[0]==0) continue;
+	
+	//   change ordering to have first K0/Ks, and 2nd and 3rd charged tracKs
+	Int_t id1 = D0dau[1];
+	Int_t id2 = D0dau[2];
+	Int_t id3 = D0dau[3];
+	//cout << id1 << " " << id2 << " " << id3 << endl;
+	if (id1>=0 && id2>=0 && id3>=0) {
+	  if ( (abs(idMc[id3])==311 || abs(idMc[id3])==310) && abs(idMc[id2])==lundD0Trk && abs(idMc[id1])==lundD0Trk ) {
+	    D0dau[1]=id3;
+	    D0dau[2]=id1;
+	    D0dau[3]=id2;
+	  }
+	}
+
+	//Ks's daughters (from K0 from D0)
+	if (_super_sig_type=="btdkstarc") {
+	  // in signal Mc, D0->K0s pi+ pi-
+	  giveMeDau(D0dau,310,D0Ksdau);
+	  if (D0Ksdau[0]==0) continue;
+	}else {
+	  // in generic Mc, D0->K0 pi+ pi-
+	  giveMeDau(D0dau,311,D0k0dau);
+	  if (D0k0dau[0]==0) continue;
+	  giveMeDau(D0k0dau,310,D0Ksdau);
+	  if (D0Ksdau[0]==0) continue;
+	}	
+
+	// get res (from D0) daughters (if any)
+	giveMeDau(D0dau,223,D0resdau);//omega
+	if (D0resdau[0]==0) giveMeDau(D0dau,333,D0resdau); // phi
+
+	//if (D0resdau[0]!=0) cout << "res from D0 decay found..." << endl;
+
+	if (
+	    //no other B's dau, apart from eventual Gamma
+	    ((bdau[0]==3 || (bdau[0]==4 && idMc[bdau[4]]==22) || (bdau[0]==5 && idMc[bdau[4]]==22 && idMc[bdau[5]]==22)) && 
+	     abs(idMc[bdau[1]])==421 && // D0
+	     ((abs(idMc[bdau[2]])==311||abs(idMc[bdau[2]])==310) && bKsdau[0]>=2 && abs(idMc[bKsdau[1]])==211 && abs(idMc[bKsdau[2]])==211 && abs(idMc[bdau[3]])==211) ||  // K0s(pi+pi-) pi+
+	     (abs(idMc[bdau[3]])==111 && bPi0dau[0]>=2 && abs(idMc[bPi0dau[1]])==22 && abs(idMc[bPi0dau[2]])==22 && abs(idMc[bdau[2]])==321))  // K+Pi0(gg) 
+	    &&
+	    //D0 -> Ks lundTrk lundTrk 
+	    ( ( (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+		abs(idMc[D0dau[2]])==lundD0Trk &&
+		abs(idMc[D0dau[3]])==lundD0Trk )
+	      ||
+	      //D0 -> Ks lundTrk lundTrk 
+	      ( (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22)) &&
+		D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+		(D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22)) &&
+		abs(idMc[D0resdau[1]])==lundD0Trk &&
+		abs(idMc[D0resdau[2]])==lundD0Trk ) )
+	      ){
+	  
+	  out |= ( 1 << 0 );
+
+	  
+	  if ( idMc[bdau[4]]       ==22 || 
+	       idMc[bk0dau[2]]     ==22 || 
+	       idMc[bKsdau[3]]     ==22 || 
+	       idMc[D0dau[4]]      ==22 || 
+	       idMc[D0resdau[3]]   ==22 ||
+	       idMc[D0k0dau[2]]    ==22 ||
+	       idMc[D0Ksdau[3]]    ==22 )
+	    out |= ( 1 << 1 );
+
+	  //match Ks pi_ch from B 
+	  if ( indexMcKstarcKsPi1==bKsdau[1] || indexMcKstarcKsPi1==bKsdau[2] ) 
+	    out |= ( 1 << 2 );
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcKsPi1, bKsdau[1] ) ||
+		 matchAMuon( indexMcKstarcKsPi1, bKsdau[2] ) )
+	      out |= ( 1 << 25 );
+
+	  if ( indexMcKstarcKsPi2==bKsdau[2] || indexMcKstarcKsPi2==bKsdau[1] ) 
+	    out |= ( 1 << 3 );
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcKsPi2, bKsdau[1] ) ||
+		 matchAMuon( indexMcKstarcKsPi2, bKsdau[2] ) )
+	      out |= ( 1 << 26 );
+
+	  if ( indexMcKstarcpic  ==bdau[3] )                                    
+	    out |= ( 1 << 4 );
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcKstarcpic, bdau[2] ) )
+	      out |= ( 1 << 27 );
+	  
+	  //match K_ch Pi0 from B (K_ch Pi0 on Mc-truth)
+	  if ( indexMcKstarkc    ==bdau[2] )                                          
+	    out |= ( 1 << 5 );
+	  
+	  if ( indexMcKstarcPi0g1==bPi0dau[1] || indexMcKstarcPi0g1==bPi0dau[2]) 
+	    out |= ( 1 << 6 );
+	  
+	  if ( indexMcKstarcPi0g2==bPi0dau[2] || indexMcKstarcPi0g2==bPi0dau[1]) 
+	    out |= ( 1 << 7 );
+
+	  //match D0
+	  if ( indexMcD0Pi1==D0dau[2] || indexMcD0Pi1==D0dau[3] || 
+	       indexMcD0Pi1==D0resdau[1] || indexMcD0Pi1==D0resdau[2])
+	    out |= ( 1 << 8);  //pi from D0
+	  else
+	    if( matchAMuon( indexMcD0Pi1, D0dau   [ 2 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0dau   [ 3 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 1 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 20 );
+
+	  if ( indexMcD0Pi2==D0dau[3] || indexMcD0Pi2==D0dau[2] || 
+	       indexMcD0Pi2==D0resdau[2] || indexMcD0Pi2==D0resdau[1] )
+	    out |= ( 1 << 9 );  //pi from D0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0Pi2, D0dau   [ 2 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0dau   [ 3 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 21 );
+
+	  if ( (indexMcD0KsPi1==D0Ksdau[1]) || (indexMcD0KsPi1==D0Ksdau[2]) )
+	    out |= ( 1 << 10 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi1, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi1, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 22 );
+	  
+	  if ( (indexMcD0KsPi2==D0Ksdau[2]) || (indexMcD0KsPi2==D0Ksdau[1]) )
+	    out |= ( 1 << 11 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi2, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi2, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 23 );
+
+	}
+      } 
+      //end if (abs(idMc[i])==521) condition
+      
+    }// end loop on Mc list
+    
+    //**********************************************************************************************
+    //****************************BIT MAP***********************************************************
+    //**********************************************************************************************
+    //brem KsPi1(K*) KsPi2(K*) pi(K*) K(K*) Pi0g1(K*) Pi0g2(K*)  Pi1(D0) Pi2(D0) KsPi1(D0) KsPi2(D0)
+    // **********************************************************************************************
+    
+    //full match B->D0 Ks pi         : 1+4+8+16+256+512+1024+2048   =3869
+    //full match B->D0 Ks pi (brem)  : 2+4+8+16+256+512+1024+2048   =3870
+    //full match B->D0 K Pi0         : 1+32+64+128+256+512+1024+2048=4065
+    //full match B->D0 K Pi0 (brem)  : 2+32+64+128+256+512+1024+2048=4066
+    //D0 match                       : 1+256+512+1024+2048          =3841
+    //D0 match         (brem)        : 2+256+512+1024+2048          =3842
+    //match K Pi0 from B             : 1+32+64+128                  =225
+    //match K Pi0 from B (brem)      : 2+32+64+128                  =226
+    //match Pi0                      : 1+64+128                     =193
+    //match Pi0        (brem)        : 2+64+128                     =194
+    //match Ks pi from B             : 1+4+8+16                     =29
+    //match Ks pi from B (brem)      : 2+4+8+16                     =30
+    //match Ks from B                : 1+4+8                        =13 
+    //match Ks from B (brem)         : 2+4+8                        =14
+
+  } //end (_super_sig_type=="btdkstarc")
+
+  
+  delete[] bdau;
+  delete[] bk0dau;
+  delete[] bKsdau;
+  delete[] bPi0dau;
+  delete[] D0dau;
+  delete[] D0k0dau;
+  delete[] D0Ksdau;
+  delete[] D0resdau;
+  
+  //  
+  return out; 
+  
+}//end isNRSignalEvt
+
+
+
+Int_t btdkstarc::isNRSignalEvtControlSample(Int_t lundD0Trk,Int_t i_ChB)
+{
+  Int_t  out=0;
+  Int_t* bdau        =new Int_t[30]; //B dau's
+  Int_t* bk0dau      =new Int_t[30]; //BK0 dau's
+  Int_t* bKsdau      =new Int_t[30]; //BKs dau's
+  Int_t* D0dau       =new Int_t[30]; //D0   dau's
+  Int_t* D0k0dau     =new Int_t[30]; //D0K0 dau's
+  Int_t* D0Ksdau     =new Int_t[30]; //D0Ks dau's
+  Int_t* D0resdau  =new Int_t[30]; //D0res dau's
+  Int_t* brho0dau    =new Int_t[30]; //Brho0 dau's
+  Int_t* Kstarcdau   =new Int_t[30]; 
+  Int_t* KstarcKsdau =new Int_t[30]; 
+  Int_t* KstarcK0dau =new Int_t[30]; 
+  Int_t* bomegadau   =new Int_t[30]; 
+
+  if (_super_sig_type=="btda1" || _super_sig_type=="chb" || _super_sig_type=="chbR" || _super_sig_type=="chbNR"){ 
+    
+    for (Int_t i=0;i<nMc;i++){    // Loop on Mc-truth particles
+      
+      // reset
+      for (Int_t k=0;k<30;k++) 
+	bdau[k]=bk0dau[k]=bKsdau[k]=D0dau[k]=D0k0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=brho0dau[k]=Kstarcdau[k]=KstarcKsdau[k]=KstarcK0dau[k]=bomegadau[k]=-999;
+       
+      if (abs(idMc[i])==521){
+	//cout<<"if you have no daughters get out!!!"<<endl;	
+	//B's daughters
+	giveMeDau(i,bdau);
+	if (bdau[0]==0) continue;
+	else{
+	//Ks's daughters (from K0 from B)  
+	  giveMeDau(bdau,311,bk0dau); //k0dau
+	  giveMeDau(bk0dau,310,bKsdau); //ksdau
+	  giveMeDau(bdau,223,bomegadau); //omegadau
+	  giveMeDau(bdau,323,Kstarcdau); //K*dau
+	  giveMeDau(bdau,421,D0dau); //D0dau
+	  giveMeDau(bdau,113,brho0dau); //rho0dau
+	  if(
+	     (Kstarcdau[0]==0 
+	      && bomegadau[0]==0 
+	      && bk0dau[0]==0 
+	      && bKsdau[0]==0 
+	      && brho0dau[0]==0) 
+	     || D0dau[0]==0 ) continue;
+	  else if(Kstarcdau[0]>=2){
+	    giveMeDau(Kstarcdau,311,KstarcK0dau);
+	    giveMeDau(KstarcK0dau,310,KstarcKsdau);
+	    if(KstarcKsdau[0]==0 
+	       && KstarcK0dau[0]==0 
+	       && KstarcKsdau[0]==0)continue;
+	  }
+	  else if(D0dau[0]>=2){
+	    giveMeDau(D0dau,311,D0k0dau);
+	    giveMeDau(D0k0dau,310,D0Ksdau);
+	    giveMeDau(D0dau,223,D0resdau);
+	    if (D0resdau[0]==0) giveMeDau(D0dau,333,D0resdau); // phi
+
+	    if(D0resdau[0]==0 
+	       && D0k0dau[0]==0 
+	       && D0Ksdau[0]==0)continue;
+	  }  
+	}
+	
+	//   change ordering to have first K0/Ks, and 2nd and 3rd charged tracKs
+	Int_t id1 = D0dau[1];
+	Int_t id2 = D0dau[2];
+	Int_t id3 = D0dau[3];
+	//cout << id1 << " " << id2 << " " << id3 << endl;
+	if (id1>=0 && id2>=0 && id3>=0) {
+	  if ( (abs(idMc[id3])==311 || abs(idMc[id3])==310) && abs(idMc[id2])==lundD0Trk && abs(idMc[id1])==lundD0Trk ) {
+	    D0dau[1]=id3;
+	    D0dau[2]=id1;
+	    D0dau[3]=id2;
+	  }
+	}
+	//cout<<"let's choose NR events..."<<endl;
+	if(
+	   //B- plus possible brems
+	   (bdau[0]==2 || (bdau[0]==3 && idMc[bdau[3]]==22) || (bdau[0]==4 && idMc[bdau[3]]==22 && idMc[bdau[4]]==22))||
+	   (bdau[0]==3 || (bdau[0]==4 && idMc[bdau[4]]==22) || (bdau[0]==5 && idMc[bdau[4]]==22 && idMc[bdau[5]]==22))||
+	   (bdau[0]==4 || (bdau[0]==5 && idMc[bdau[5]]==22) || (bdau[0]==6 && idMc[bdau[5]]==22 && idMc[bdau[6]]==22))
+	   ){
+	  //cout<<".posible B candidate"<<endl;
+	  if(
+	     abs(idMc[bdau[1]])==421 && // D0 (B dau)
+	     (
+	      //D0 plus possible brems
+	      (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22))||
+	      (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22))
+	      )
+	     ){
+	    //cout<<"..searching possible D0 candidate"<<endl;
+	    if(
+	       (
+		//D0->kspipi
+		D0k0dau[0]>=1 &&
+		abs(idMc[D0k0dau[1]])==310 && 
+		(
+		 D0Ksdau[0]==2 || 
+		 (D0Ksdau[0]==3 && D0Ksdau[3]==22) ||
+		 (D0Ksdau[0]==4 && D0Ksdau[3]==22 && D0Ksdau[4]==22)
+		 )&& 
+		abs(idMc[D0Ksdau[1]])==211 && 
+		abs(idMc[D0Ksdau[2]])==211 &&  
+		abs(idMc[D0dau[2]])==lundD0Trk &&
+		abs(idMc[D0dau[3]])==lundD0Trk
+		)||	   
+	       ( 
+		//D0->ks omega   
+		D0k0dau[0]>=1 &&
+		abs(idMc[D0k0dau[1]])==310 && 
+		(D0Ksdau[0]==2 || 
+		 (D0Ksdau[0]==3 && D0Ksdau[3]==22) ||
+		 (D0Ksdau[0]==4 && D0Ksdau[3]==22 && D0Ksdau[4]==22)
+		 )&& 
+		abs(idMc[D0Ksdau[1]])==211 && 
+		abs(idMc[D0Ksdau[2]])==211 &&  
+		(
+		 D0resdau[0]==2 || 
+		 (D0resdau[0]==3 && idMc[D0resdau[3]]==22) || 
+		 (D0resdau[0]==4 && idMc[D0resdau[3]]==22 && idMc[D0resdau[4]]==22) 
+		 ) &&
+		abs(idMc[D0resdau[1]])==lundD0Trk &&
+		abs(idMc[D0resdau[2]])==lundD0Trk 
+		)
+	       )
+	      {
+		//cout<<"...D0->kspipi or D0->ks omega found (NR)"<<endl;
+		//cout<<"...searching for NR decays in the other B daughters..."<<endl;
+		
+		if(
+		   //B->D03pi
+		   abs(idMc[bdau[2]])==211 && 
+		   abs(idMc[bdau[3]])==211 && 
+		   abs(idMc[bdau[4]])==211
+		   ){
+		  //cout<<"....B->D0 3pi found"<<endl;
+		  out=1;
+		  break;
+		}
+		else if(
+			//B->D0 rho(pipi) pi
+			(
+			 (abs(idMc[bdau[2]])==113 && abs(idMc[bdau[3]])==211) || 
+			 (abs(idMc[bdau[3]])==113 && abs(idMc[bdau[2]])==211)
+			 )&&
+			(//rho plus eventual brems
+			 brho0dau[0]==2 || 
+			 (brho0dau[0]==3 && brho0dau[3]==22) || 
+			 (brho0dau[0]==4 && brho0dau[3]==22 && brho0dau[4]==22)
+			 )&& 
+			abs(idMc[brho0dau[1]])==211 && 
+			abs(idMc[brho0dau[2]])==211
+			){
+		  //cout<<"....B->D0 rho0 pi found"<<endl;
+		  out=1;
+		  break;
+		}
+		else if(
+			//B->D0 omega(pipi) pi
+			(
+			 (abs(idMc[bdau[2]])==223 && abs(idMc[bdau[3]])==211) || 
+			 (abs(idMc[bdau[3]])==223 && abs(idMc[bdau[2]])==211)
+			 )&&
+			(//omega plus eventual brems
+			 bomegadau[0]==2 || 
+			 (bomegadau[0]==3 && bomegadau[3]==22) || 
+			 (bomegadau[0]==4 && bomegadau[3]==22 && bomegadau[4]==22)
+			 ) && 
+			abs(idMc[bomegadau[1]])==211 && 
+			abs(idMc[bomegadau[2]])==211
+			){
+		  //cout<<"....B->D0 omega pi found"<<endl;
+		  out=1;
+		  break;
+		}
+		else if(
+			//B->D0 K0(Ks->pipi) pi
+			(
+			 (abs(idMc[bdau[2]])==311 && abs(idMc[bdau[3]])==211) || 
+			 (abs(idMc[bdau[3]])==311 && abs(idMc[bdau[2]])==211)
+			 )&&
+			bk0dau[0]>=1 &&
+			abs(idMc[bk0dau[1]])==310 && 
+			(//ks plus eventual brems
+			 bKsdau[0]==2 || 
+			 (bKsdau[0]==3 && bKsdau[3]==22) || 
+			 (bKsdau[0]==4 && bKsdau[3]==22 && bKsdau[4]==22)
+			 ) && 
+			abs(idMc[bKsdau[1]])==211 && 
+			abs(idMc[bKsdau[2]])==211
+			){
+		  //cout<<"....B->D0 K0 pi found"<<endl;
+		  out=1;
+		  break;
+		}
+		else if(
+			//B->D0 K*(Kspi), ks->pipi
+			abs(idMc[bdau[2]])==323 &&
+			(Kstarcdau[0]==2 || 
+			 (Kstarcdau[0]==3 && idMc[Kstarcdau[3]]==22) || 
+			 (Kstarcdau[0]==4 && idMc[Kstarcdau[3]]==22 && idMc[Kstarcdau[4]]==22)
+			 ) &&
+			(abs(idMc[Kstarcdau[1]])==311 || abs(idMc[Kstarcdau[1]])==211) &&
+			(abs(idMc[Kstarcdau[2]])==211 || abs(idMc[Kstarcdau[2]])==311) &&
+			KstarcK0dau[0]>=1 &&
+			abs(idMc[KstarcK0dau[1]])==310 && 
+			(//ks plus eventual brems
+			 KstarcKsdau[0]==2 || 
+			 (KstarcKsdau[0]==3 && KstarcKsdau[3]==22) || 
+			 (KstarcKsdau[0]==4 && KstarcKsdau[3]==22 && KstarcKsdau[4]==22)
+			 )&&
+			abs(idMc[KstarcKsdau[1]])==211 && 
+			abs(idMc[KstarcKsdau[2]])==211
+			){
+		  //cout<<"....B->D0 K* found"<<endl;
+		  out=1;
+		  break;
+		}
+		else out=0;
+		
+	      }
+	  }
+	}
+	
+	
+	
+	
+	
+	
+	
+	//(
+	//  (
+	//   ((bdau[0]==4 || (bdau[0]==5 && idMc[bdau[5]]==22) || (bdau[0]==6 && idMc[bdau[5]]==22 && idMc[bdau[6]]==22)) && 
+	//    abs(idMc[bdau[1]])==421 && 
+	//    ((abs(idMc[bdau[2]])==211 && abs(idMc[bdau[3]])==211 && abs(idMc[bdau[4]])==211)  //D0 3pi
+	//    ))||
+	//   ((bdau[0]==3 || (bdau[0]==4 && idMc[bdau[4]]==22) || (bdau[0]==5 && idMc[bdau[5]]==22 && idMc[bdau[4]]==22)) && 
+	//    abs(idMc[bdau[1]])==421 && 
+	//    ((abs(idMc[bdau[2]])==113 && abs(idMc[bdau[3]])==211) || (abs(idMc[bdau[3]])==113 && abs(idMc[bdau[2]])==211))&& //d0 rho pi
+	//    (brho0dau[0]>=2 && abs(idMc[brho0dau[1]])==211 && abs(idMc[brho0dau[2]])==211)
+	//    )||
+	//   ((bdau[0]==3 || (bdau[0]==4 && idMc[bdau[4]]==22) || (bdau[0]==5 && idMc[bdau[5]]==22 && idMc[bdau[4]]==22)) && 
+	//    abs(idMc[bdau[1]])==421 && 
+	//    ((abs(idMc[bdau[2]])==223 && abs(idMc[bdau[3]])==211) || (abs(idMc[bdau[3]])==223 && abs(idMc[bdau[2]])==211))&& //d0 omegapi
+	//    (bomegadau[0]>=2 && abs(idMc[bomegadau[1]])==211 && abs(idMc[bomegadau[2]])==211)
+	//    )||
+	//   ((bdau[0]==3 || (bdau[0]==4 && idMc[bdau[4]]==22) || (bdau[0]==5 && idMc[bdau[5]]==22 && idMc[bdau[4]]==22)) && 
+	//    abs(idMc[bdau[1]])==421 && 
+	//    (((abs(idMc[bdau[2]])==311 || abs(idMc[bdau[2]])==310) && abs(idMc[bdau[3]])==211) || 
+	//     ((abs(idMc[bdau[3]])==311 || abs(idMc[bdau[3]])==310) && abs(idMc[bdau[2]])==211))&& //d0 K0 pi
+	//    (bKsdau[0]>=2 && abs(idMc[bKsdau[1]])==211 && abs(idMc[bKsdau[2]])==211)
+	//    )||
+	//   ((bdau[0]==2 || (bdau[0]==3 && idMc[bdau[3]]==22) || (bdau[0]==4 && idMc[bdau[4]]==22 && idMc[bdau[3]]==22)) &&
+	//    (abs(idMc[bdau[1]])==421 && abs(idMc[bdau[2]])==323) &&  //d0 K*
+	//    (Kstarcdau[0]>=2 && ((abs(idMc[Kstarcdau[1]])==310 || abs(idMc[Kstarcdau[1]])==311) &&  abs(idMc[Kstarcdau[2]])==211) || 
+	//     ((abs(idMc[Kstarcdau[2]])==310 || abs(idMc[Kstarcdau[2]])==311) &&  abs(idMc[Kstarcdau[1]])==211)) && 
+	//    (KstarcKsdau[0]>=2 && abs(idMc[KstarcKsdau[1]])==211 && abs(idMc[KstarcKsdau[2]])==211)
+	//    ))
+	//  &&
+	//  //D0 -> Ks lundTrk lundTrk 
+	//   ( ( (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22)) &&
+	// D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+	// abs(idMc[D0dau[2]])==lundD0Trk &&
+	// abs(idMc[D0dau[3]])==lundD0Trk )
+	//     ||
+	//     //D0 -> Ks lundTrk lundTrk 
+	//     ( (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22)) &&
+	// D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+	// (D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22)) &&
+	// abs(idMc[D0resdau[1]])==lundD0Trk &&
+	// abs(idMc[D0resdau[2]])==lundD0Trk ) )
+	//    )
+	//      {
+	// 
+	//out=1;
+	//
+	//cout << "NR event is founded!!!!!" << out << endl;
+	  
+	//if ( idMc[bdau[6]]       ==22 ||
+	//     idMc[brho0dau[3]]   ==22 ||
+	//     idMc[bk0dau[2]]     ==22 || 
+	//     idMc[bKsdau[3]]     ==22 || 
+	//     idMc[D0dau[4]]      ==22 || 
+	//     idMc[D0resdau[3]] ==22 ||
+	//     idMc[D0k0dau[2]]    ==22 ||
+	//     idMc[D0Ksdau[3]]    ==22 ||
+	//     idMc[Kstarcdau[3]]  ==22 ||
+	//     idMc[KstarcKsdau[3]]==22 || 
+	//     idMc[KstarcK0dau[2]]==22 || 
+	//     idMc[bomegadau[3]]  ==22 
+	//     ){
+	//  
+	//  out=2;   // A Radiative decay somewhere
+	//  
+	//  //cout << "ATTENTION: Radiative decay in isSignalEvt. Event = " << event << endl; 
+	//  
+	//}
+	 
+	
+      } 
+      //end if (abs(idMc[i])==521) condition
+      
+    }// end loop on Mc list
+    
+    Int_t i_D0 = -999;
+    Int_t i_Vectorc = -999;    
+    if ((abs(d1ChBLund[i_ChB])     ==421) && (abs(d2ChBLund[i_ChB])==20213)) {
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Vectorc=d2ChBIndex[i_ChB]-1;
+    }
+    else if ((abs(d1ChBLund[i_ChB])==20213) && (abs(d2ChBLund[i_ChB])==421)) {
+      i_D0    =d2ChBIndex[i_ChB]-1;
+      i_Vectorc=d1ChBIndex[i_ChB]-1;
+    }    
+    else{
+      i_D0    =d1ChBIndex[i_ChB]-1;
+      i_Vectorc=d2ChBIndex[i_ChB]-1;
+    }
+    
+    //define Vectorc -> Reso pi_ch
+    Int_t i_VectorcReso =(d1A1cLund[i_Vectorc]==113) ? d1A1cIndex[i_Vectorc]-1 : -999;
+    //cout<<d1A1cLund[i_Vectorc]<<" "<<d2A1cLund[i_Vectorc]<<endl;
+    Int_t i_Vectorcpic=(abs(d2A1cLund[i_Vectorc])==211) ? d2A1cIndex[i_Vectorc]-1 : -999;
+    //define Ks's dau  (pipi from Kstarc)
+    Int_t i_VectorcResoPi1=(i_VectorcReso >=0) ? d1Rho0Index[i_VectorcReso]-1  : -999;
+    Int_t i_VectorcResoPi2=(i_VectorcReso >=0) ? d2Rho0Index[i_VectorcReso]-1  : -999;
+
+    //define D0-> Kspipi decay
+    /*
+    Int_t i_D0Ks   =d1D0Index[i_D0]-1;
+    Int_t i_D0Pi1  =d2D0Index[i_D0]-1;
+    Int_t i_D0Pi2  =d3D0Index[i_D0]-1;
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+    */
+
+    Int_t i_D0Ks(0);   
+    Int_t i_D0Pi1(0);
+    Int_t i_D0Pi2(0);
+    if (d1D0Lund[i_D0]==310) {
+      assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d1D0Index[i_D0]-1;
+      i_D0Pi1=d2D0Index[i_D0]-1;
+      i_D0Pi2=d3D0Index[i_D0]-1;
+    } else {
+      assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d3D0Index[i_D0]-1;
+      i_D0Pi1=d1D0Index[i_D0]-1;
+      i_D0Pi2=d2D0Index[i_D0]-1;
+    }
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+
+
+    //define Mc index of reconstructed tracKs or Gammas
+      
+    Int_t indexMcVectorcResoPi1=(i_VectorcReso >= 0) ? IndexTrk[i_VectorcResoPi1]-1 : -999;
+    Int_t indexMcVectorcResoPi2=(i_VectorcReso >= 0) ? IndexTrk[i_VectorcResoPi2]-1 : -999;
+    Int_t indexMcVectorcpic  =(i_Vectorcpic>= 0) ? IndexTrk[i_Vectorcpic]-1   : -999;
+      
+    Int_t indexMcD0KsPi1=IndexTrk[i_D0KsPi1]-1;
+    Int_t indexMcD0KsPi2=IndexTrk[i_D0KsPi2]-1;
+    Int_t indexMcD0Pi1  =IndexTrk[i_D0Pi1]-1;
+    Int_t indexMcD0Pi2  =IndexTrk[i_D0Pi2]-1;
+
+
+    //
+    if ( indexMcVectorcResoPi1==bKsdau[1] || indexMcVectorcResoPi1==bKsdau[2] || indexMcVectorcResoPi1==brho0dau[1] || indexMcVectorcResoPi1==brho0dau[2] ) {
+      out+=4;  // Ks dau1 (from B)
+    }
+    if ( indexMcVectorcResoPi2==bKsdau[2] || indexMcVectorcResoPi2==bKsdau[1] || indexMcVectorcResoPi2==brho0dau[1] || indexMcVectorcResoPi2==brho0dau[2] ) {
+      out+=8;  // Ks dau2
+    }
+    if ( indexMcVectorcpic  ==bdau[3] || indexMcVectorcpic  == bdau[4] || indexMcVectorcpic  ==bdau[5])  {
+      out+=16; // pi_ch  
+    }
+
+    //match K_ch Pi0 from B (K_ch Pi0 on Mc-truth)
+    //if ( indexMcVectorckc    ==bdau[2] )                                          {
+    //out+=32;  // K_ch  (from B)
+    //}
+    // if ( indexMcKstarcPi0g1==bPi0dau[1] || indexMcKstarcPi0g1==bPi0dau[2]) {
+    //out+=64;  //Pi0g1 
+    //}
+    //if ( indexMcKstarcPi0g2==bPi0dau[2] || indexMcKstarcPi0g2==bPi0dau[1]) {
+    //out+=128; //Pi0g2 
+    //}
+
+    //match D0
+    if ( indexMcD0Pi1==D0dau[2] || indexMcD0Pi1==D0dau[3] || indexMcD0Pi1==D0resdau[1] || indexMcD0Pi1==D0resdau[2] )  {
+      out+=256;  //pi from D0
+    }
+    if ( indexMcD0Pi2==D0dau[3] || indexMcD0Pi2==D0dau[2] || indexMcD0Pi2==D0resdau[2] || indexMcD0Pi2==D0resdau[1] )  {
+      out+=512;  //pi from D0
+    }
+    if ((indexMcD0KsPi1==D0Ksdau[1])||(indexMcD0KsPi1==D0Ksdau[2]))  {
+      out+=1024; //pi from K0s from D0
+    }
+    if ((indexMcD0KsPi2==D0Ksdau[2])||(indexMcD0KsPi2==D0Ksdau[1]))  {
+      out+=2048; //pi from K0s from D0
+    }
+
+    //**********************************************************************************************
+    //****************************BIT MAP***********************************************************
+    //**********************************************************************************************
+    //brem KsPi1(K*) KsPi2(K*) pi(K*) K(K*) Pi0g1(K*) Pi0g2(K*)  Pi1(D0) Pi2(D0) KsPi1(D0) KsPi2(D0)
+    // **********************************************************************************************
+    
+    //full match B->D0 Ks pi         : 1+4+8+16+256+512+1024+2048   =3869
+    //full match B->D0 Ks pi (brem)  : 2+4+8+16+256+512+1024+2048   =3870
+    //full match B->D0 K Pi0         : 1+32+64+128+256+512+1024+2048=4065
+    //full match B->D0 K Pi0 (brem)  : 2+32+64+128+256+512+1024+2048=4066
+    //D0 match                       : 1+256+512+1024+2048          =3841
+    //D0 match         (brem)        : 2+256+512+1024+2048          =3842
+    //match K Pi0 from B             : 1+32+64+128                  =225
+    //match K Pi0 from B (brem)      : 2+32+64+128                  =226
+    //match Pi0                      : 1+64+128                     =193
+    //match Pi0        (brem)        : 2+64+128                     =194
+    //match Ks pi from B             : 1+4+8+16                     =29
+    //match Ks pi from B (brem)      : 2+4+8+16                     =30
+    //match Ks from B                : 1+4+8                        =13 
+    //match Ks from B (brem)         : 2+4+8                        =14
+
+  } //end (_super_sig_type=="btdkstarc")
+
+  
+  delete[] bdau;
+  delete[] bk0dau;
+  delete[] bKsdau;
+  delete[] D0dau;
+  delete[] D0k0dau;
+  delete[] D0Ksdau;
+  delete[] D0resdau;
+  delete[] brho0dau;
+  delete[] Kstarcdau; 
+  delete[] KstarcKsdau ; 
+  delete[] KstarcK0dau ; 
+  delete[] bomegadau  ;
+  //  
+  return out; 
+  
+}//end isNRSignalEvtControlSample
+
+
+
+Int_t btdkstarc::isSignalEvt2(Int_t lundD0Trk,Int_t Dlund,Int_t i_chb){
+  //  cout<<"enter in isSignalEvt"<<endl;
+  assert(Dlund==421 || Dlund==423);
+  assert(lundD0Trk==321 || lundD0Trk==211);
+
+  Int_t out=0;
+
+  Int_t* D0dau=new Int_t[30];//D0 dau's
+  Int_t* D0k0dau=new Int_t[30];//K0 dau's
+  Int_t* D0Ksdau=new Int_t[30];//Ks dau's 
+  Int_t* D0resdau  =new Int_t[30]; //D0 res dau's (when the D0 decays to Ks + two body resonance)
+  
+  // cout<<"Dlund = "<<Dlund<<endl;   
+  if (_super_sig_type==("btdkstarc")|| _super_sig_type==("btda1")||
+      _super_sig_type==("chbR")|| _super_sig_type==("chbNR")||
+      _super_sig_type==("chb")|| _super_sig_type==("b0b0bar")||
+      _super_sig_type==("uds")|| _super_sig_type==("ccbar")
+      ){
+    
+    Int_t i_D0 =  d1ChBIndex[i_chb]-1 ;
+    Int_t i_D0Ks,i_D0Pi1,i_D0Pi2;
+
+    if (d1D0Lund[i_D0]==310) {
+      assert( (abs(d2D0Lund[i_D0])==lundD0Trk) && (abs(d3D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d1D0Index[i_D0]-1;
+      i_D0Pi1=d2D0Index[i_D0]-1;
+      i_D0Pi2=d3D0Index[i_D0]-1;
+    } else {
+      assert( (abs(d1D0Lund[i_D0])==lundD0Trk) && (abs(d2D0Lund[i_D0])==lundD0Trk) ); 
+      i_D0Ks=d3D0Index[i_D0]-1;
+      i_D0Pi1=d1D0Index[i_D0]-1;
+      i_D0Pi2=d2D0Index[i_D0]-1;
+    }
+    Int_t i_D0KsPi1=d1KsIndex[i_D0Ks]-1;
+    Int_t i_D0KsPi2=d2KsIndex[i_D0Ks]-1;
+  
+    Int_t indexMcD0Pi1=(i_D0Pi1 >=0) ? IndexTrk[i_D0Pi1]-1 : -999;
+    Int_t indexMcD0Pi2=(i_D0Pi2 >=0) ? IndexTrk[i_D0Pi2]-1 : -999;
+    
+    Int_t indexMcD0KsPi1=(i_D0KsPi1 >=0) ? IndexTrk[i_D0KsPi1]-1 : -999;
+    Int_t indexMcD0KsPi2=(i_D0KsPi2 >=0) ? IndexTrk[i_D0KsPi2]-1 : -999;
+    
+ 
+
+
+    for (Int_t i=0;i<nMc;i++){      // Loop on Mc-truth particles
+      
+      for (Int_t k=0;k<30;k++) D0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=-9;
+      //  cout<<"i nMc ="<<i<<"     nMc ="<<nMc<<endl;
+      //       cout<<"abs(idMc[i]) ="<<abs(idMc[i])<<endl;
+      
+      if (abs(idMc[i])==421){
+	
+	//D0's daughters
+	giveMeDau(i,D0dau);
+	if (D0dau[0]==0) continue;
+
+	//   change ordering to have first K0/Ks, and 2nd and 3rd charged tracKs
+	Int_t id1 = D0dau[1];
+	Int_t id2 = D0dau[2];
+	Int_t id3 = D0dau[3];
+
+	if (id1>=0 && id2>=0 && id3>=0) {
+	  if ( (abs(idMc[id3])==311 || abs(idMc[id3])==310) && abs(idMc[id2])==lundD0Trk && abs(idMc[id1])==lundD0Trk ) {
+	    D0dau[1]=id3;
+	    D0dau[2]=id1;
+	    D0dau[3]=id2;
+	  }
+	}
+	//   Ks's daugthers  (from K0)
+	giveMeDau(D0dau,311,D0k0dau);
+	if(D0k0dau[0]==0) giveMeDau(D0dau,310,D0Ksdau);
+	else giveMeDau(D0k0dau,310,D0Ksdau);
+	if(D0Ksdau[0]==0) continue;
+	
+	//cout<<"D0k0dau..."<<endl; printInfo(D0k0dau);
+	//cout<<"D0Ksdau..."<<endl; printInfo(D0Ksdau);
+	
+	// get resonance (omega,phi) (from D0) daughters (if any)
+	giveMeDau(D0dau,223,D0resdau);  // omega
+	if (D0resdau[0]==0) giveMeDau(D0dau,333,D0resdau); // phi
+	//	cout<<"bdau1 ="<<abs(idMc[bdau[1]])<<"bdau2 ="<<abs(idMc[bdau[2]])<<endl;
+	//	cout<<"D0resdau..."<<endl; printInfo(D0resdau);
+	
+
+	//####################################################################
+	//####################     D0/Dstar0 condition     ###################
+	//####################################################################  
+	
+
+	
+	//no other B's dau, apart from eventual Gamma
+
+	//D0 -> Ks lundTrk lundTrk 
+	Bool_t truth = ( ( (D0dau[0]==3 || (D0dau[0]==4 && idMc[D0dau[4]]==22) || (D0dau[0]==5 && idMc[D0dau[4]]==22 && idMc[D0dau[5]]==22)) &&
+			      D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&  
+			      abs(idMc[D0dau[2]])==lundD0Trk &&
+			      abs(idMc[D0dau[3]])==lundD0Trk )
+			    
+			    ||  
+			    
+			    //D0 -> Ks res(lundTrk lundTrk) 
+			    ( (D0dau[0]==2 || (D0dau[0]==3 && idMc[D0dau[3]]==22) || (D0dau[0]==4 && idMc[D0dau[3]]==22 && idMc[D0dau[4]]==22)) &&
+			      D0Ksdau[0]>=2 && abs(idMc[D0Ksdau[1]])==211 && abs(idMc[D0Ksdau[2]])==211 &&
+			      (D0resdau[0]==2 || (D0resdau[0]==3 && D0resdau[3]==22)) &&
+			      abs(idMc[D0resdau[1]])==lundD0Trk &&
+			      abs(idMc[D0resdau[2]])==lundD0Trk ) );
+	
+	if (truth) {
+	  
+	  if (D0resdau[0]==2 || (D0resdau[0]==3 && idMc[D0resdau[3]]==22) ) { 
+	    //cout << "ATTENTION: resonance (omega/phi) from D0 decay found..." << endl; printInfo(D0resdau); 
+	  }
+	  
+	  //if (abs(idMc[bdau[2]])==321) out = 1;
+	  out |= ( 1 << 0 );
+	  //cout << "ATTENTION: Signal event was found" << endl;
+	  //cout << idMc[bdau[2]] << " " << out << endl;
+
+	  if ( 	       (D0dau[0]>=4 && idMc[D0dau[4]]==22 ) || 
+		       (D0resdau[0]>=3 && idMc[D0resdau[3]]==22 ) ||
+		       (D0k0dau[0]>=2 && idMc[D0k0dau[2]]==22 ) ||
+		       (D0Ksdau[0]>=3 && idMc[D0Ksdau[3]]==22 ) ){
+	    
+	    //if (abs(idMc[bdau[2]])==321) out=2;   // A Radiative decay somewhere
+	    out |= ( 1 << 1);  // A Radiative decay somewhere
+
+	  }
+		
+  	  //match D0
+	  if ( indexMcD0Pi1==D0dau[2] || indexMcD0Pi1==D0dau[3] || 
+	       indexMcD0Pi1==D0resdau[1] || indexMcD0Pi1==D0resdau[2])
+	    out |= ( 1 << 8);  //pi from D0
+	  else
+	    if( matchAMuon( indexMcD0Pi1, D0dau   [ 2 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0dau   [ 3 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 1 ] ) ||
+		matchAMuon( indexMcD0Pi1, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 20 );
+
+	  if ( indexMcD0Pi2==D0dau[3] || indexMcD0Pi2==D0dau[2] || 
+	       indexMcD0Pi2==D0resdau[2] || indexMcD0Pi2==D0resdau[1] )
+	    out |= ( 1 << 9 );  //pi from D0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0Pi2, D0dau   [ 2 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0dau   [ 3 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0Pi2, D0resdau[ 2 ] ) )
+	      out |= ( 1 << 21 );
+
+	  if ( (indexMcD0KsPi1==D0Ksdau[1]) || (indexMcD0KsPi1==D0Ksdau[2]) )
+	    out |= ( 1 << 10 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi1, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi1, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 22 );
+	  
+	  if ( (indexMcD0KsPi2==D0Ksdau[2]) || (indexMcD0KsPi2==D0Ksdau[1]) )
+	    out |= ( 1 << 11 ); //pi dal K0
+	  else // See if the pion decays to nu mu.
+	    if ( matchAMuon( indexMcD0KsPi2, D0Ksdau[ 1 ] ) ||
+		 matchAMuon( indexMcD0KsPi2, D0Ksdau[ 2 ] ) )
+	      out |= ( 1 << 23 );
+	  
+	 
+	  //the search is completed
+	  
+	} // else { for (Int_t k=0;k<30;k++) bdau[k]=Dstar0dau[k]=D0dau[k]=Pi0dau[k]=D0k0dau[k]=D0Ksdau[k]=D0resdau[k]=-9; }
+	
+      }//end idMc==521
+    }//end for nMc   
+    
+      
+    // Reco particles
+    // cout<<"reco particles"<<endl;
+    // cout<<"i_chb ="<<i_chb<<endl;	   
+      
+    // cout<<"d1D0Index ="<<d1D0Index[50]<<endl;
+ 
+
+
+
+
+
+
+    //   cout<<"holaaaaaaa"<<endl;
+    //**********************************************************************************************
+    //****************************BIT MAP***********************************************************
+    //**********************************************************************************************
+    /////////WITH K:
+    
+
+    //D0 match: 1+256+512+1024+2048=3841
+    //D0 match (brem): 2+256+512+1024+2048=3842
+
+    //K0 match (from D0): 1+1024+2048=3073
+    //K0 match (from D0) (brem): 2+1024+2048=3074
+
+    //D*0(D0Pi0) match: 1+8+16+256+512+1024+2048=3865
+    //D*0(D0Pi0) match(brem): 2+8+16+256+512+1024+2048=3866
+
+    //D*0(D0Gam) match: 1+32+256+512+1024+2048=3873
+    //D*0(D0Gam) match (brem): 2+32+256+512+1024+2048=3874
+
+    //prompt match: 1+4=5
+    //prompt match (brem): 2+4=6
+
+ 
+    ////////WITH PI:
+    
+    //full match B->D0K: 8192+4+256+512+1024+2048=12036
+    //full match (brem) : 16384+4+256+512+1024+2048=20228
+    
+    //full match B->D*0(D0Pi0)K: 8192+4+8+16+256+512+1024+2048=12060
+    //full match (brem) : 16384+4+8+16+256+512+1024+2048=20252
+    
+    //full match B->D*0(D0Gam)K: 8192+4+32+256+512+1024+2048=12068
+    //full match (brem) : 16384+4+32+256+512+1024+2048=20260
+    
+    //D0 match: 8192+256+512+1024+2048=12032
+    //D0 match (brem): 16384+256+512+1024+2048=20224
+
+    //K0 match (from D0): 8192+1024+2048=11264
+    //K0 match (from D0) (brem): 16384+1024+2048=19456
+
+    //D*0(D0Pi0) match: 8192+8+16+256+512+1024+2048=12056
+    //D*0(D0Pi0) match(brem): 16384+8+16+256+512+1024+2048=20248
+
+    //D*0(D0Gam) match: 8192+32+256+512+1024+2048=12064
+    //D*0(D0Gam) match (brem): 16384+32+256+512+1024+2048=20256
+
+    //prompt match: 8192+4=8196
+    //prompt match (brem): 16384+4=16388
+    
+  }//end if ChB or signal
+  
+
+  delete[] D0dau;
+  delete[] D0k0dau;
+  delete[] D0Ksdau;
+  delete[] D0resdau;
+
+  //  cout<<"exit from isSignalEvt"<<endl;
+  // cout <<"*******************************   out = " << out << endl;
+
+return out; 
+  
+}
+
+
+// Return true if the associated particle matches a daughter muon of the given MC particle.
+Bool_t btdkstarc::matchAMuon( Int_t matchedIndex, Int_t mcIndex )
+{
+  int dau = indexMuonDaughter( mcIndex );
+
+  if ( dau && ( matchedIndex == dau ) )
+    return true;
+
+  return false;
+}
+
+// Check if a particle (pion in particular), decays to mu, and
+//    return the index of the muon (zero if not found).
+Int_t btdkstarc::indexMuonDaughter( Int_t index )
+{
+  Int_t auxDau[30];
+
+  for( int dau = 0; dau < 30; dau++ )
+    auxDau[ dau ] = 0;
+
+  giveMeDau( index, auxDau );
+  int dau = 1;
+  if ( auxDau[ 0 ] )
+    {
+      // Find a muon in the list of daughters of the pion.
+      while( ( dau <= auxDau[ 0 ] ) && ( abs( idMc[ auxDau[ dau ] ] ) != 13 ) )
+	dau++;
+
+      // If we went through the whole vector and didn't find a mu,
+      //    set dau to zero.
+      if ( dau > auxDau[ 0 ] )
+	return 0;
+    }
+
+  return auxDau[ dau ];
+}
+
+
+

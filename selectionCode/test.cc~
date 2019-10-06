@@ -1,0 +1,7 @@
+#include "btdkpi.h"
+
+int main( void )
+{
+  btdkpi t("on4","kspipi",0,"analysis-51");
+  t.Loop();
+}

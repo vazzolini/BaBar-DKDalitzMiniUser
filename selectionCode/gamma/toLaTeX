@@ -1,0 +1,26 @@
+sed 's/---//g'                                                 \
+    | sed 's/->/\\rightarrow/g'                                \
+    | sed 's/   / \     \\quad /g'                                   \
+    | sed "s/'\_\([[:alnum:]]\)/\_\1'/g"                       \
+    | sed "s/\([KDB]\)\([-\+\*0']\{1,2\}\)/\1\^\{\2\}/g"       \
+    | sed 's/pi\([-\+\*0]\{1,2\}\)/pi\^\{\1\}/g'               \
+    | sed 's/eta\([-\+\*0]\{1,2\}\)/eta\^\{\1\}/g'             \
+    | sed 's/rho\([-\+\*0]\{1,2\}\)/rho\^\{\1\}/g'             \
+    | sed 's/anti-\([[:alpha:]]\{1,2\}\)/\\bar\{\1\}/g'        \
+    | sed "s/\([[:alnum:]]\)\([-\+\*0']\{1,2\}\)/\1\^\{\2\}/g" \
+    | sed "s/'/\\\prime/g"                                     \
+    | sed 's/pi/\\pi/g'                                        \
+    | sed 's/mu/\\mu/g'                                        \
+    | sed 's/nu/\\nu/g'                                        \
+    | sed 's/phi/\\phi/g'                                      \
+    | sed 's/eta/\\eta/g'                                      \
+    | sed 's/omega/\\omega/g'                                  \
+    | sed 's/rho/\\rho/g'                                      \
+    | sed 's/Sigma/\\Sigma/g'                                  \
+    | sed 's/Delta/\\Delta/g'                                  \
+    | sed 's/Lambda/\\Lambda/g'                                \
+    | sed 's/psi/\\psi/g'                                      \
+    | sed 's/Omega/\\Omega/g'                                  \
+    | sed 's/tau/\\tau/g'                                      \
+    | sed 's/gamma/\\gamma/g'
+

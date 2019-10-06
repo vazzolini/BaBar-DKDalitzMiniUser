@@ -1,0 +1,12 @@
+#python cutdat_fakeB.py D0 k kspipi d0k btdk fakeBfakeD d0;
+#python cutdat_fakeB.py D0 k kskk d0k btdk fakeBfakeD d0;
+python cutdat_fakeB.py Dstar0 k kspipi d0pi0k btdsk fakeBfakeD d0pi0  ;
+python cutdat_fakeB.py Dstar0 k kskk d0pi0k btdsk fakeBfakeD d0pi0 ;
+python cutdat_fakeB.py Dstar0 k kspipi d0gamk btdsk fakeBfakeD d0gam;
+python cutdat_fakeB.py Dstar0 k kskk d0gamk btdsk fakeBfakeD d0gam;
+#python cutdat_fakeB.py D0 pi kspipi d0pi btdpi fakeBfakeD d0;
+#python cutdat_fakeB.py D0 pi kskk d0pi btdpi fakeBfakeD d0;
+python cutdat_fakeB.py Dstar0 pi kspipi d0pi0pi btdspi fakeBfakeD d0pi0;
+python cutdat_fakeB.py Dstar0 pi kskk d0pi0pi btdspi fakeBfakeD d0pi0;
+python cutdat_fakeB.py Dstar0 pi kspipi d0gampi btdspi fakeBfakeD d0gam;
+python cutdat_fakeB.py Dstar0 pi kskk d0gampi btdspi fakeBfakeD d0gam;

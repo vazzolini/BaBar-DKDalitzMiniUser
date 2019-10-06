@@ -1,0 +1,22 @@
+#bsub -q long -o ASCIIlog/nopi01_k_kspipi_113.log perl remove_d0pi0.pl btdkpi_d0pi0k_kspipi_on_Bbest_Cut113.dat btdkpi_d0gamk_kspipi_on_Bbest_Cut113.dat btdkpi_d0gamk_kspipi_on_Bbest_nopi0_Cut113.dat;
+#bsub -q long -o ASCIIlog/nopi01_k_kspipi_114.log perl remove_d0pi0.pl btdkpi_d0pi0k_kspipi_on_Bbest_Cut114.dat btdkpi_d0gamk_kspipi_on_Bbest_Cut114.dat btdkpi_d0gamk_kspipi_on_Bbest_nopi0_Cut114.dat;
+#bsub -q long -o ASCIIlog/nopi01_k_kskk_113.log perl remove_d0pi0.pl btdkpi_d0pi0k_kskk_on_Bbest_Cut113.dat btdkpi_d0gamk_kskk_on_Bbest_Cut113.dat btdkpi_d0gamk_kskk_on_Bbest_nopi0_Cut113.dat;
+#bsub -q long -o ASCIIlog/nopi01_k_kskk_114.log perl remove_d0pi0.pl btdkpi_d0pi0k_kskk_on_Bbest_Cut114.dat btdkpi_d0gamk_kskk_on_Bbest_Cut114.dat btdkpi_d0gamk_kskk_on_Bbest_nopi0_Cut114.dat;
+#bsub -q long -o ASCIIlog/nopi01_pi_kspipi_113.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kspipi_on_Bbest_Cut113.dat btdkpi_d0gampi_kspipi_on_Bbest_Cut113.dat btdkpi_d0gampi_kspipi_on_Bbest_nopi0_Cut113.dat;
+#bsub -q long -o ASCIIlog/nopi01_pi_kspipi_114.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kspipi_on_Bbest_Cut114.dat btdkpi_d0gampi_kspipi_on_Bbest_Cut114.dat btdkpi_d0gampi_kspipi_on_Bbest_nopi0_Cut114.dat;
+#bsub -q long -o ASCIIlog/nopi01_pi_kskk_113.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kskk_on_Bbest_Cut113.dat btdkpi_d0gampi_kskk_on_Bbest_Cut113.dat btdkpi_d0gampi_kskk_on_Bbest_nopi0_Cut113.dat;
+#bsub -q long -o ASCIIlog/nopi01_pi_kskk_114.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kskk_on_Bbest_Cut114.dat btdkpi_d0gampi_kskk_on_Bbest_Cut114.dat btdkpi_d0gampi_kskk_on_Bbest_nopi0_Cut114.dat;
+
+#b0b0bar
+ 
+bsub -q kanga -o ASCIIlog/nopi01_k_kspipi_112.log perl remove_d0pi0.pl btdkpi_d0pi0k_kspipi_chb_Bbest_Cut112.dat btdkpi_d0gamk_kspipi_chb_Bbest_Cut112.dat btdkpi_d0gamk_kspipi_chb_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_k_kskk_112.log perl remove_d0pi0.pl btdkpi_d0pi0k_kskk_chb_Bbest_Cut112.dat btdkpi_d0gamk_kskk_chb_Bbest_Cut112.dat btdkpi_d0gamk_kskk_chb_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_pi_kspipi_112.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kspipi_chb_Bbest_Cut112.dat btdkpi_d0gampi_kspipi_chb_Bbest_Cut112.dat btdkpi_d0gampi_kspipi_chb_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_pi_kskk_112.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kskk_chb_Bbest_Cut112.dat btdkpi_d0gampi_kskk_chb_Bbest_Cut112.dat btdkpi_d0gampi_kskk_chb_Bbest_nopi0_Cut112.dat;
+
+
+bsub -q kanga -o ASCIIlog/nopi01_k_kspipi_112.log perl remove_d0pi0.pl btdkpi_d0pi0k_kspipi_b0b0bar_Bbest_Cut112.dat btdkpi_d0gamk_kspipi_b0b0bar_Bbest_Cut112.dat btdkpi_d0gamk_kspipi_b0b0bar_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_k_kskk_112.log perl remove_d0pi0.pl btdkpi_d0pi0k_kskk_b0b0bar_Bbest_Cut112.dat btdkpi_d0gamk_kskk_b0b0bar_Bbest_Cut112.dat btdkpi_d0gamk_kskk_b0b0bar_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_pi_kspipi_112.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kspipi_b0b0bar_Bbest_Cut112.dat btdkpi_d0gampi_kspipi_b0b0bar_Bbest_Cut112.dat btdkpi_d0gampi_kspipi_b0b0bar_Bbest_nopi0_Cut112.dat;
+bsub -q kanga -o ASCIIlog/nopi01_pi_kskk_112.log perl remove_d0pi0.pl btdkpi_d0pi0pi_kskk_b0b0bar_Bbest_Cut112.dat btdkpi_d0gampi_kskk_b0b0bar_Bbest_Cut112.dat btdkpi_d0gampi_kskk_b0b0bar_Bbest_nopi0_Cut112.dat;
+

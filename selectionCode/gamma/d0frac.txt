@@ -1,0 +1,718 @@
+This program calculates the D0 fractions from background.
+Diego Milanes. 2007.
+
+
+*************************************************
+*************************************************
+Channel : B->D0K, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   551 
+Total number of D0s             :   48 
+      Fraction of real D0s      :   0.0871143 +- 0.0120137 
+      Total number of RS D0s    :   35 
+           D0s RightSign        :   0.729167 +- 0.0641422 
+           D0s WrongSign        :   0.270833 +- 0.0641422 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   345 
+Total number of D0s             :   8 
+      Fraction of real D0s      :   0.0231884 +- 0.00810273 
+      Total number of RS D0s    :   5 
+           D0s RightSign        :   0.625 +- 0.171163 
+           D0s WrongSign        :   0.375 +- 0.171163 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   15897 
+Total number of D0s             :   6004 
+      Fraction of real D0s      :   0.377681 +- 0.00384513 
+      Total number of RS D0s    :   885 
+           D0s RightSign        :   0.147402 +- 0.00457513 
+           D0s WrongSign        :   0.852598 +- 0.00457513 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   7272 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DK;KsPiPi}       =   0.250142925653727 +/- 0.00399309085645184 C L(0 - 1)
+fmDBBPkg_{DK;KsPiPi}         =   0.0626956171890286 +/- 0.0141291536681464 C L(0 - 1)
+Rbkg_{DK;KsPiPi}             =   0.245566959008383 +/- 0.00391971391422925 C L(0 - 1)
+fContGoodDRS_{DK;KsPiPi}     =   0.147401732178548 +/- 0.00653514513479713 C L(0 - 1)
+fBBGoodDRS_{DK;KsPiPi}        =   0.714450038681856 +/- 0.105139432243849 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DK;KsPiPi}       =   3.9364e-05 +/- 1.18685e-05 C L(0 - 1)
+fSigWSRS_{DK;KsPiPi}         =   0.363636 +/- 0.145041 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D0K, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   32 
+Total number of D0s             :   6 
+      Fraction of real D0s      :   0.1875 +- 0.0689981 
+      Total number of RS D0s    :   5 
+           D0s RightSign        :   0.833333 +- 0.152145 
+           D0s WrongSign        :   0.166667 +- 0.152145 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   16 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   1499 
+Total number of D0s             :   564 
+      Fraction of real D0s      :   0.376251 +- 0.0125125 
+      Total number of RS D0s    :   77 
+           D0s RightSign        :   0.136525 +- 0.0144574 
+           D0s WrongSign        :   0.863475 +- 0.0144574 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   468 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DK;KsKK}       =   0.279121311471895 +/- 0.0142539949478392 C L(0 - 1)
+fmDBBPkg_{DK;KsKK}         =   0.12553811351005 +/- 0.083407248399712 C L(0 - 1)
+Rbkg_{DK;KsKK}             =   0.276712487351141 +/- 0.014104123673895 C L(0 - 1)
+fContGoodDRS_{DK;KsKK}     =   0.136524822695035 +/- 0.0206511028403255 C L(0 - 1)
+fBBGoodDRS_{DK;KsKK}        =   0.833333333333333 +/- 0.264783857576499 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DK;KsKK}       =   3.73573e-05 +/- 1.18132e-05 C L(0 - 1)
+fSigWSRS_{DK;KsKK}         =   0.2 +/- 0.126491 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D0pi, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   2562 
+Total number of D0s             :   144 
+      Fraction of real D0s      :   0.0562061 +- 0.00455031 
+      Total number of RS D0s    :   88 
+           D0s RightSign        :   0.611111 +- 0.0406248 
+           D0s WrongSign        :   0.388889 +- 0.0406248 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   2783 
+Total number of D0s             :   36 
+      Fraction of real D0s      :   0.0129357 +- 0.00214196 
+      Total number of RS D0s    :   17 
+           D0s RightSign        :   0.472222 +- 0.0832046 
+           D0s WrongSign        :   0.527778 +- 0.0832046 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   18819 
+Total number of D0s             :   7689 
+      Fraction of real D0s      :   0.408576 +- 0.00358334 
+      Total number of RS D0s    :   6043 
+           D0s RightSign        :   0.785928 +- 0.00467774 
+           D0s WrongSign        :   0.214072 +- 0.00467774 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   13860 
+Total number of D0s             :   1 
+      Fraction of real D0s      :   7.21501e-05 +- 7.21475e-05 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   0 +- 0 
+           D0s WrongSign        :   1 +- 0 
+
+Background fractions   
+********************** 
+fmDContPkg_{DPi;KsPiPi}       =   0.224383810898147 +/- 0.00321908233000629 C L(0 - 1)
+fmDBBPkg_{DPi;KsPiPi}         =   0.0338161387821399 +/- 0.00431728010981677 C L(0 - 1)
+Rbkg_{DPi;KsPiPi}             =   0.206373447192703 +/- 0.00297159733603121 C L(0 - 1)
+fContGoodDRS_{DPi;KsPiPi}     =   0.78581403846557 +/- 0.00668253203561742 C L(0 - 1)
+fBBGoodDRS_{DPi;KsPiPi}        =   0.583619833861983 +/- 0.0640274725785935 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DPi;KsPiPi}       =   0.000405815 +/- 3.90417e-05 C L(0 - 1)
+fSigWSRS_{DPi;KsPiPi}         =   0.694444 +/- 0.0443253 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D0pi, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   155 
+Total number of D0s             :   14 
+      Fraction of real D0s      :   0.0903226 +- 0.0230237 
+      Total number of RS D0s    :   8 
+           D0s RightSign        :   0.571429 +- 0.13226 
+           D0s WrongSign        :   0.428571 +- 0.13226 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   115 
+Total number of D0s             :   3 
+      Fraction of real D0s      :   0.026087 +- 0.0148636 
+      Total number of RS D0s    :   1 
+           D0s RightSign        :   0.333333 +- 0.272166 
+           D0s WrongSign        :   0.666667 +- 0.272166 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   1974 
+Total number of D0s             :   737 
+      Fraction of real D0s      :   0.373354 +- 0.0108867 
+      Total number of RS D0s    :   568 
+           D0s RightSign        :   0.770692 +- 0.0154852 
+           D0s WrongSign        :   0.229308 +- 0.0154852 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   883 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DPi;KsKK}       =   0.249139634708337 +/- 0.0113590165374398 C L(0 - 1)
+fmDBBPkg_{DPi;KsKK}         =   0.0631660502505665 +/- 0.0258355244352002 C L(0 - 1)
+Rbkg_{DPi;KsKK}             =   0.238422812571415 +/- 0.0108638149137455 C L(0 - 1)
+fContGoodDRS_{DPi;KsKK}     =   0.770691994572592 +/- 0.022119145763221 C L(0 - 1)
+fBBGoodDRS_{DPi;KsKK}        =   0.529857737508065 +/- 0.21090969165103 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DPi;KsKK}       =   0.000390379 +/- 3.88366e-05 C L(0 - 1)
+fSigWSRS_{DPi;KsKK}         =   0.722772 +/- 0.0445408 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0k, D*0->D0pi0, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   96 
+Total number of D0s             :   28 
+      Fraction of real D0s      :   0.291667 +- 0.0463902 
+      Total number of RS D0s    :   18 
+           D0s RightSign        :   0.642857 +- 0.0905522 
+           D0s WrongSign        :   0.357143 +- 0.0905522 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   79 
+Total number of D0s             :   20 
+      Fraction of real D0s      :   0.253165 +- 0.0489216 
+      Total number of RS D0s    :   20 
+           D0s RightSign        :   1 +- 0 
+           D0s WrongSign        :   0 +- 0 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   1654 
+Total number of D0s             :   726 
+      Fraction of real D0s      :   0.438936 +- 0.0122022 
+      Total number of RS D0s    :   104 
+           D0s RightSign        :   0.143251 +- 0.0130019 
+           D0s WrongSign        :   0.856749 +- 0.0130019 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   370 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{Dpi0K;KsPiPi}       =   0.351336123849078 +/- 0.0150008688431748 C L(0 - 1)
+fmDBBPkg_{Dpi0K;KsPiPi}         =   0.274409040320719 +/- 0.0588740245181754 C L(0 - 1)
+Rbkg_{Dpi0K;KsPiPi}             =   0.347207050054051 +/- 0.0145528237310173 C L(0 - 1)
+fContGoodDRS_{Dpi0K;KsPiPi}     =   0.143250688705234 +/- 0.0185720136061585 C L(0 - 1)
+fBBGoodDRS_{Dpi0K;KsPiPi}        =   0.790544389028545 +/- 0.102491655370184 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{Dpi0K;KsPiPi}       =   7.70102e-06 +/- 7.70099e-06 C L(0 - 1)
+fSigWSRS_{Dpi0K;KsPiPi}         =   0 +/- 0 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0k, D*0->D0gam, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   305 
+Total number of D0s             :   74 
+      Fraction of real D0s      :   0.242623 +- 0.0245455 
+      Total number of RS D0s    :   67 
+           D0s RightSign        :   0.905405 +- 0.0340204 
+           D0s WrongSign        :   0.0945946 +- 0.0340204 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   220 
+Total number of D0s             :   62 
+      Fraction of real D0s      :   0.281818 +- 0.0303313 
+      Total number of RS D0s    :   61 
+           D0s RightSign        :   0.983871 +- 0.0159984 
+           D0s WrongSign        :   0.016129 +- 0.0159984 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   4450 
+Total number of D0s             :   1328 
+      Fraction of real D0s      :   0.298427 +- 0.00685923 
+      Total number of RS D0s    :   190 
+           D0s RightSign        :   0.143072 +- 0.00960839 
+           D0s WrongSign        :   0.856928 +- 0.00960839 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   1835 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DgammaK;KsPiPi}       =   0.204456554278608 +/- 0.00714802418173661 C L(0 - 1)
+fmDBBPkg_{DgammaK;KsPiPi}         =   0.258924250827478 +/- 0.0333614327965751 C L(0 - 1)
+Rbkg_{DgammaK;KsPiPi}             =   0.207254806267575 +/- 0.0069971317179784 C L(0 - 1)
+fContGoodDRS_{DgammaK;KsPiPi}     =   0.143072289156627 +/- 0.0137247006616224 C L(0 - 1)
+fBBGoodDRS_{DgammaK;KsPiPi}        =   0.940924704218308 +/- 0.0352875131581279 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DgammaK;KsPiPi}       =   inf +/- nan C L(0 - 1)
+fSigWSRS_{DgammaK;KsPiPi}         =   0.5 +/- 0.353553 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0k, D*0->D0pi0, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   14 
+Total number of D0s             :   3 
+      Fraction of real D0s      :   0.214286 +- 0.109664 
+      Total number of RS D0s    :   2 
+           D0s RightSign        :   0.666667 +- 0.272166 
+           D0s WrongSign        :   0.333333 +- 0.272166 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   2 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   163 
+Total number of D0s             :   87 
+      Fraction of real D0s      :   0.533742 +- 0.0390737 
+      Total number of RS D0s    :   10 
+           D0s RightSign        :   0.114943 +- 0.0341953 
+           D0s WrongSign        :   0.885057 +- 0.0341953 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   19 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{Dpi0K;KsKK}       =   0.472371285676036 +/- 0.0525460575523076 C L(0 - 1)
+fmDBBPkg_{Dpi0K;KsKK}         =   0.187801876629938 +/- 0.17006058535244 C L(0 - 1)
+Rbkg_{Dpi0K;KsKK}             =   0.456662243047795 +/- 0.0509607679014593 C L(0 - 1)
+fContGoodDRS_{Dpi0K;KsKK}     =   0.114942528735632 +/- 0.0488448236409605 C L(0 - 1)
+fBBGoodDRS_{Dpi0K;KsKK}        =   0.666666666666667 +/- 0.473659763908539 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{Dpi0K;KsKK}       =   1.68766e-05 +/- 1.19335e-05 C L(0 - 1)
+fSigWSRS_{Dpi0K;KsKK}         =   0 +/- 0 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0k, D*0->D0gam, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   26 
+Total number of D0s             :   5 
+      Fraction of real D0s      :   0.192308 +- 0.077292 
+      Total number of RS D0s    :   5 
+           D0s RightSign        :   1 +- 0 
+           D0s WrongSign        :   0 +- 0 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   16 
+Total number of D0s             :   3 
+      Fraction of real D0s      :   0.1875 +- 0.0975781 
+      Total number of RS D0s    :   3 
+           D0s RightSign        :   1 +- 0 
+           D0s WrongSign        :   0 +- 0 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   337 
+Total number of D0s             :   126 
+      Fraction of real D0s      :   0.373887 +- 0.0263561 
+      Total number of RS D0s    :   17 
+           D0s RightSign        :   0.134921 +- 0.0304356 
+           D0s WrongSign        :   0.865079 +- 0.0304356 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   110 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DgammaK;KsKK}       =   0.274148699487415 +/- 0.0297219164703918 C L(0 - 1)
+fmDBBPkg_{DgammaK;KsKK}         =   0.190490842031196 +/- 0.105711696711991 C L(0 - 1)
+Rbkg_{DgammaK;KsKK}             =   0.269319724876478 +/- 0.028691085163656 C L(0 - 1)
+fContGoodDRS_{DgammaK;KsKK}     =   0.134920634920635 +/- 0.0434744357653827 C L(0 - 1)
+fBBGoodDRS_{DgammaK;KsKK}        =   1 +/- 0 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DgammaK;KsKK}       =   inf +/- nan C L(0 - 1)
+fSigWSRS_{DgammaK;KsKK}         =   0.5 +/- 0.25 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0pi, D*0->D0pi0, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   863 
+Total number of D0s             :   397 
+      Fraction of real D0s      :   0.460023 +- 0.0169657 
+      Total number of RS D0s    :   383 
+           D0s RightSign        :   0.964736 +- 0.00925716 
+           D0s WrongSign        :   0.0352645 +- 0.00925716 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   695 
+Total number of D0s             :   239 
+      Fraction of real D0s      :   0.343885 +- 0.0180179 
+      Total number of RS D0s    :   227 
+           D0s RightSign        :   0.949791 +- 0.0141256 
+           D0s WrongSign        :   0.0502092 +- 0.0141256 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   2044 
+Total number of D0s             :   1011 
+      Fraction of real D0s      :   0.494618 +- 0.0110587 
+      Total number of RS D0s    :   787 
+           D0s RightSign        :   0.778437 +- 0.0130612 
+           D0s WrongSign        :   0.221563 +- 0.0130612 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   666 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{Dpi0Pi;KsPiPi}       =   0.362844826278349 +/- 0.0130112801035981 C L(0 - 1)
+fmDBBPkg_{Dpi0Pi;KsPiPi}         =   0.40858681505824 +/- 0.0217363465518648 C L(0 - 1)
+Rbkg_{Dpi0Pi;KsPiPi}             =   0.375308320707757 +/- 0.0111760470634781 C L(0 - 1)
+fContGoodDRS_{Dpi0Pi;KsPiPi}     =   0.778437190900099 +/- 0.018656780592857 C L(0 - 1)
+fBBGoodDRS_{Dpi0Pi;KsPiPi}        =   0.959164795510787 +/- 0.0136905432926146 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{Dpi0Pi;KsPiPi}       =   0.000497948 +/- 6.32237e-05 C L(0 - 1)
+fSigWSRS_{Dpi0Pi;KsPiPi}         =   0.774194 +/- 0.0531003 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0pi, D*0->D0gam, D0->kspipi 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   2427 
+Total number of D0s             :   1227 
+      Fraction of real D0s      :   0.505562 +- 0.0101486 
+      Total number of RS D0s    :   1159 
+           D0s RightSign        :   0.94458 +- 0.00653175 
+           D0s WrongSign        :   0.0554197 +- 0.00653175 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   1763 
+Total number of D0s             :   567 
+      Fraction of real D0s      :   0.321611 +- 0.0111245 
+      Total number of RS D0s    :   532 
+           D0s RightSign        :   0.938272 +- 0.0101068 
+           D0s WrongSign        :   0.0617284 +- 0.0101068 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   5298 
+Total number of D0s             :   1646 
+      Fraction of real D0s      :   0.310683 +- 0.00635788 
+      Total number of RS D0s    :   1286 
+           D0s RightSign        :   0.781288 +- 0.0101889 
+           D0s WrongSign        :   0.218712 +- 0.0101889 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   3533 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DgammaPi;KsPiPi}       =   0.178218833855344 +/- 0.00568812113033973 C L(0 - 1)
+fmDBBPkg_{DgammaPi;KsPiPi}         =   0.428741951053755 +/- 0.0133419295664369 C L(0 - 1)
+Rbkg_{DgammaPi;KsPiPi}             =   0.236617358518786 +/- 0.00553192091718333 C L(0 - 1)
+fContGoodDRS_{DgammaPi;KsPiPi}     =   0.781287970838396 +/- 0.0145538887411283 C L(0 - 1)
+fBBGoodDRS_{DgammaPi;KsPiPi}        =   0.942604007063669 +/- 0.00957661272630616 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DgammaPi;KsPiPi}       =   0.000473592 +/- 6.98108e-05 C L(0 - 1)
+fSigWSRS_{DgammaPi;KsPiPi}         =   0.782609 +/- 0.0608155 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0pi, D*0->D0pi0, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   121 
+Total number of D0s             :   54 
+      Fraction of real D0s      :   0.446281 +- 0.0451914 
+      Total number of RS D0s    :   52 
+           D0s RightSign        :   0.962963 +- 0.0256996 
+           D0s WrongSign        :   0.037037 +- 0.0256996 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   87 
+Total number of D0s             :   30 
+      Fraction of real D0s      :   0.344828 +- 0.0509588 
+      Total number of RS D0s    :   30 
+           D0s RightSign        :   1 +- 0 
+           D0s WrongSign        :   0 +- 0 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   218 
+Total number of D0s             :   88 
+      Fraction of real D0s      :   0.40367 +- 0.0332298 
+      Total number of RS D0s    :   72 
+           D0s RightSign        :   0.818182 +- 0.0411152 
+           D0s WrongSign        :   0.181818 +- 0.0411152 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   34 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{Dpi0Pi;KsKK}       =   0.343889754277464 +/- 0.0424148927122249 C L(0 - 1)
+fmDBBPkg_{Dpi0Pi;KsKK}         =   0.404165312312565 +/- 0.0593765880644069 C L(0 - 1)
+Rbkg_{Dpi0Pi;KsKK}             =   0.365142454114579 +/- 0.0345922308536674 C L(0 - 1)
+fContGoodDRS_{Dpi0Pi;KsKK}     =   0.818181818181818 +/- 0.0587292282016794 C L(0 - 1)
+fBBGoodDRS_{Dpi0Pi;KsKK}        =   0.976080623327759 +/- 0.0290811170401599 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{Dpi0Pi;KsKK}       =   0.000337245 +/- 5.39933e-05 C L(0 - 1)
+fSigWSRS_{Dpi0Pi;KsKK}         =   0.74359 +/- 0.0699201 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D*0k, D*0->D0gam, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   295 
+Total number of D0s             :   116 
+      Fraction of real D0s      :   0.39322 +- 0.0284395 
+      Total number of RS D0s    :   113 
+           D0s RightSign        :   0.974138 +- 0.0147371 
+           D0s WrongSign        :   0.0258621 +- 0.0147371 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   142 
+Total number of D0s             :   56 
+      Fraction of real D0s      :   0.394366 +- 0.041012 
+      Total number of RS D0s    :   51 
+           D0s RightSign        :   0.910714 +- 0.0381055 
+           D0s WrongSign        :   0.0892857 +- 0.0381055 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   473 
+Total number of D0s             :   175 
+      Fraction of real D0s      :   0.369979 +- 0.0221991 
+      Total number of RS D0s    :   134 
+           D0s RightSign        :   0.765714 +- 0.0320175 
+           D0s WrongSign        :   0.234286 +- 0.0320175 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   193 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DgammaPi;KsKK}       =   0.254317836538517 +/- 0.0237130128033335 C L(0 - 1)
+fmDBBPkg_{DgammaPi;KsKK}         =   0.393589431585248 +/- 0.0407574513068622 C L(0 - 1)
+Rbkg_{DgammaPi;KsKK}             =   0.295925494946282 +/- 0.0208141071932659 C L(0 - 1)
+fContGoodDRS_{DgammaPi;KsKK}     =   0.765714285714286 +/- 0.0457340136166842 C L(0 - 1)
+fBBGoodDRS_{DgammaPi;KsKK}        =   0.953668210307826 +/- 0.0279523548073527 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DgammaPi;KsKK}       =   0.00040506 +/- 6.48484e-05 C L(0 - 1)
+fSigWSRS_{DgammaPi;KsKK}         =   0.666667 +/- 0.0754851 C L(0 - 1)
+
+
+*************************************************
+*************************************************
+Channel : B->D0k*, k*->kspi, D0->kskk 
+*************************************************
+*************************************************
+Background type  : chb 
+******************************* 
+Total number of candidates      :   26 
+Total number of D0s             :   8 
+      Fraction of real D0s      :   0.307692 +- 0.0905151 
+      Total number of RS D0s    :   5 
+           D0s RightSign        :   0.625 +- 0.171163 
+           D0s WrongSign        :   0.375 +- 0.171163 
+
+Background type  : b0b0bar 
+******************************* 
+Total number of candidates      :   11 
+Total number of D0s             :   1 
+      Fraction of real D0s      :   0.0909091 +- 0.0866784 
+      Total number of RS D0s    :   1 
+           D0s RightSign        :   1 +- 0 
+           D0s WrongSign        :   0 +- 0 
+
+Background type  : ccbar 
+******************************* 
+Total number of candidates      :   317 
+Total number of D0s             :   112 
+      Fraction of real D0s      :   0.353312 +- 0.0268471 
+      Total number of RS D0s    :   58 
+           D0s RightSign        :   0.517857 +- 0.0472154 
+           D0s WrongSign        :   0.482143 +- 0.0472154 
+
+Background type  : uds 
+******************************* 
+Total number of candidates      :   73 
+Total number of D0s             :   0 
+      Fraction of real D0s      :   0 +- 0 
+      Total number of RS D0s    :   0 
+           D0s RightSign        :   nan +- nan 
+           D0s WrongSign        :   nan +- nan 
+
+Background fractions   
+********************** 
+fmDContPkg_{DKspi;KsKK}       =   0.281149294205856 +/- 0.0321735808941481 C L(0 - 1)
+fmDBBPkg_{DKspi;KsKK}         =   0.243827860064387 +/- 0.123088158083332 C L(0 - 1)
+Rbkg_{DKspi;KsKK}             =   0.278959549010891 +/- 0.0311409841258255 C L(0 - 1)
+fContGoodDRS_{DKspi;KsKK}     =   0.517857142857143 +/- 0.0674428485227747 C L(0 - 1)
+fBBGoodDRS_{DKspi;KsKK}        =   0.666189712376209 +/- 0.273760905664966 C L(0 - 1)
+
+Background fractions in Signal   
+******************************* 
+kappaSigWS_{DKspi;KsKK}       =   0.0302173 +/- 0.000512295 C L(0 - 1)
+fSigWSRS_{DKspi;KsKK}         =   0.818909 +/- 0.00662969 C L(0 - 1)
+

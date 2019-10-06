@@ -1,0 +1,4 @@
+setenv ROOTSYS /afs/slac.stanford.edu/g/babar/package/root/5.18-00/Linux24SL3_i386_gcc323
+
+setenv PATH "${PATH}:${ROOTSYS}/bin"
+setenv LD_LIBRARY_PATH "${ROOTSYS}/lib"

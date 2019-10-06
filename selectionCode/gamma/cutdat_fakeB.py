@@ -1,0 +1,100 @@
+#! /usr/bin/env python
+import math
+import os
+import sys
+from string import atof,atoi
+import linecache
+
+
+
+#python cutdat_fakeB.py D0 k kspipi d0k btdk fakeBfakeD
+#python cutdat_fakeB.py D0 k kskk d0k btdk fakeBfakeD
+#python cutdat_fakeB.py Dstar0 k kspipi d0pi0k btdsk fakeBfakeD d0pi0
+#python cutdat_fakeB.py Dstar0 k kskk d0pi0k btdsk fakeBfakeD d0pi0
+#python cutdat_fakeB.py Dstar0 k kspipi d0gamk btdsk fakeBfakeD d0gam
+#python cutdat_fakeB.py Dstar0 k kskk d0gamk btdsk fakeBfakeD d0gam
+
+#python cutdat_fakeB.py D0 pi kspipi d0pi btdpi fakeBfakeD
+#python cutdat_fakeB.py D0 pi kskk d0pi btdpi fakeBfakeD
+#python cutdat_fakeB.py Dstar0 pi kspipi d0pi0pi btdspi fakeBfakeD d0pi0
+#python cutdat_fakeB.py Dstar0 pi kskk d0pi0pi btdspi fakeBfakeD d0pi0 
+#python cutdat_fakeB.py Dstar0 pi kspipi d0gampi btdspi fakeBfakeD d0gam
+#python cutdat_fakeB.py Dstar0 pi kskk d0gampi btdspi fakeBfakeD d0gam
+
+
+
+dtype= sys.argv[1]
+KorPi = sys.argv[2]
+d0mode=sys.argv[3]
+
+
+Bmode= sys.argv[4]
+signame=sys.argv[5]
+fake = sys.argv[6]
+dstar0mode=sys.argv[7]
+
+
+tot=0
+
+file="./ASCII/btdkpi_"+Bmode+"_"+d0mode+"_"+signame+"_Bbest_Cut112_"+fake+".dat"
+f=open(file,'r')
+
+print file
+tot=len(f.readlines())
+print "tot= "+str(tot)
+
+file2="./ASCII/btdkpi_"+Bmode+"_"+d0mode+"_"+signame+"_Bbest_Cut112_"+fake+"_rescaled2BB.dat"
+outfile=file2
+f2=open(outfile,"w")
+
+r=0
+a=0
+lumiBB=1305.4
+
+
+
+if dtype=="D0" and KorPi=="k" and d0mode=="kspipi":
+    lumi_sig = 117608.482
+elif dtype=="D0" and KorPi=="k" and d0mode=="kskk":
+    lumi_sig =745152.355
+elif dtype=="Dstar0"  and dstar0mode=="d0pi0" and KorPi=="k" and d0mode=="kspipi":
+    lumi_sig = 226975.073
+elif dtype=="Dstar0"  and dstar0mode=="d0pi0" and KorPi=="k" and d0mode=="kskk":
+    lumi_sig = 1438420.348
+elif dtype=="Dstar0"  and dstar0mode=="d0gam" and KorPi=="k" and d0mode=="kspipi":
+    lumi_sig = 226975.073
+elif dtype=="Dstar0"  and dstar0mode=="d0gam" and KorPi=="k" and d0mode=="kskk":
+    lumi_sig = 1438420.348
+elif dtype=="D0" and dstar0mode=="d0" and KorPi=="pi"and d0mode=="kspipi":
+    lumi_sig =9767.7880
+elif dtype=="D0" and dstar0mode=="d0" and KorPi=="pi"and d0mode=="kskk":
+    lumi_sig = 61878.199
+elif dtype=="Dstar0"  and dstar0mode=="d0pi0" and KorPi=="pi"and d0mode=="kspipi":
+    lumi_sig =  18192.746
+elif dtype=="Dstar0"  and dstar0mode=="d0pi0" and KorPi=="pi"and d0mode=="kskk":
+    lumi_sig = 115246.420
+elif dtype=="Dstar0"  and dstar0mode=="d0gam" and KorPi=="pi"and d0mode=="kspipi":
+    lumi_sig =18192.746
+elif dtype=="Dstar0"  and dstar0mode=="d0gam" and KorPi=="pi"and d0mode=="kskk":
+    lumi_sig =115246.420
+elif d0mode=="kspipi":
+    lumi_sig=387093.7024;
+elif d0mode=="kskk":  
+    lumi_sig=2452140.191;
+
+
+
+r=lumiBB/lumi_sig
+print "r= "+str(r)
+a=tot*r
+a=int(a)
+print "a= "+str(a)
+
+
+for i in range(1,a+1):
+  #  print "hola"
+    retrieved_line = linecache.getline(file, i)
+    f2.write(retrieved_line)
+
+
+print "end"
